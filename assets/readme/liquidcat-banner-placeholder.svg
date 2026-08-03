@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="480" viewBox="0 0 1600 480" role="img" aria-labelledby="title desc">
+  <title id="title">LiquidCat banner placeholder</title>
+  <desc id="desc">Catppuccin Mocha banner with a translucent cat emblem and LiquidCat wordmark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11111b"/>
+      <stop offset="0.52" stop-color="#181825"/>
+      <stop offset="1" stop-color="#1e1e2e"/>
+    </linearGradient>
+    <radialGradient id="bloom" cx="50%" cy="50%" r="55%">
+      <stop offset="0" stop-color="#cba6f7" stop-opacity=".22"/>
+      <stop offset=".55" stop-color="#89b4fa" stop-opacity=".07"/>
+      <stop offset="1" stop-color="#11111b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#cdd6f4" stop-opacity=".42"/>
+      <stop offset=".45" stop-color="#89b4fa" stop-opacity=".17"/>
+      <stop offset="1" stop-color="#cba6f7" stop-opacity=".28"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#89b4fa"/>
+      <stop offset=".55" stop-color="#cba6f7"/>
+      <stop offset="1" stop-color="#a6e3a1"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="28"/></filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#090910" flood-opacity=".7"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="480" rx="32" fill="url(#bg)"/>
+  <rect width="1600" height="480" rx="32" fill="url(#bloom)"/>
+  <ellipse cx="452" cy="230" rx="230" ry="150" fill="#89b4fa" opacity=".08" filter="url(#blur)"/>
+  <ellipse cx="1180" cy="270" rx="240" ry="150" fill="#cba6f7" opacity=".07" filter="url(#blur)"/>
+
+  <g opacity=".16" fill="none" stroke="#a6adc8" stroke-width="2">
+    <path d="M0 305 C100 305 105 270 175 270 S255 345 335 345 405 225 485 225 560 308 645 308 720 274 805 274 890 330 980 330 1060 240 1145 240 1230 300 1310 300 1400 265 1600 265"/>
+  </g>
+
+  <g transform="translate(280 94)" filter="url(#shadow)">
+    <rect x="0" y="0" width="292" height="292" rx="76" fill="url(#glass)" stroke="#cdd6f4" stroke-opacity=".38"/>
+    <path d="M75 112 96 55l48 31c17-5 35-5 52 0l48-31 21 57c14 19 22 42 22 67 0 61-49 104-111 104S65 240 65 179c0-25 8-48 22-67Z" fill="#11111b" fill-opacity=".56" stroke="url(#accent)" stroke-width="6"/>
+    <path d="M121 178c18 23 34-23 53 0s35-23 53 0" fill="none" stroke="url(#accent)" stroke-width="9" stroke-linecap="round"/>
+    <path d="M176 120v93m0 0-24-24m24 24 24-24" fill="none" stroke="#cdd6f4" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g transform="translate(650 142)">
+    <text x="0" y="98" fill="#cdd6f4" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="92" font-weight="700" letter-spacing="-3">LiquidCat</text>
+    <rect x="2" y="130" width="500" height="4" rx="2" fill="url(#accent)"/>
+    <text x="2" y="180" fill="#a6adc8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="27" font-weight="500" letter-spacing="5">DOWNLOAD · CONVERT · RE-ENCODE</text>
+  </g>
+
+  <g fill="#cdd6f4">
+    <circle cx="124" cy="94" r="2" opacity=".34"/><circle cx="1328" cy="116" r="3" opacity=".2"/>
+    <circle cx="1460" cy="352" r="2" opacity=".3"/><circle cx="930" cy="72" r="2" opacity=".22"/>
+    <circle cx="1120" cy="406" r="3" opacity=".16"/><circle cx="74" cy="392" r="3" opacity=".18"/>
+  </g>
+</svg>
