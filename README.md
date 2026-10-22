@@ -1,4 +1,3 @@
-# LiquidCat
 <div align="center">
 
 <!-- Replace this placeholder with your final banner: assets/readme/liquidcat-banner.png -->
