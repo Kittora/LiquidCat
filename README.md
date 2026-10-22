@@ -9,12 +9,13 @@
 
 ### Download · Convert · Re-encode
 
-**A polished desktop workspace for downloading and transforming multimedia—powered by yt-dlp and FFmpeg, without the usual setup friction.**
+**A polished, native desktop workspace for downloading and transforming multimedia—powered by yt-dlp and FFmpeg, without the usual setup friction or WebView bloat.**
 
 <br>
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-89B4FA?style=for-the-badge&logo=windows11&logoColor=11111B)](#installation)
-[![Desktop](https://img.shields.io/badge/Experience-Desktop-74C7EC?style=for-the-badge)](#overview)
+[![Rust](https://img.shields.io/badge/Rust-Native-000000?style=for-the-badge&logo=rust&logoColor=white)](#tech-stack)
+[![Slint](https://img.shields.io/badge/UI-Slint-74C7EC?style=for-the-badge)](#tech-stack)
 [![yt-dlp](https://img.shields.io/badge/Powered_by-yt--dlp-A6E3A1?style=for-the-badge&logo=youtube&logoColor=11111B)](https://github.com/yt-dlp/yt-dlp)
 [![FFmpeg](https://img.shields.io/badge/Powered_by-FFmpeg-F9E2AF?style=for-the-badge&logo=ffmpeg&logoColor=11111B)](https://ffmpeg.org/)
 [![Theme](https://img.shields.io/badge/Theme-Catppuccin_Mocha-CBA6F7?style=for-the-badge)](https://catppuccin.com/)
@@ -31,7 +32,7 @@
 
 LiquidCat brings media downloading, conversion and re-encoding into one focused desktop application. Paste a compatible link or select a local file, choose the result you want, and let LiquidCat handle the processing pipeline.
 
-It bundles the tools it needs, so users do not have to install Python, FFmpeg or yt-dlp separately.
+This version is a **complete native rewrite** from the ground up. Tauri and WebView2 have been completely removed; the interface is now drawn using **Rust and Slint**, resulting in a snappy, single-executable experience with a tiny memory footprint (~25 MB idle).
 
 > [!NOTE]
 > LiquidCat is designed for media you own or are authorized to download and process. You are responsible for respecting applicable copyright rules and platform terms.
@@ -56,7 +57,7 @@ It bundles the tools it needs, so users do not have to install Python, FFmpeg or
 
 - Convert media to MP3, M4A, FLAC and other formats
 - Re-encode local video and audio files
-- Use FFmpeg with hardware acceleration when available
+- Use FFmpeg with hardware acceleration (NVENC/AMF/CPU)
 - Trim a specific segment without leaving the app
 
 </td>
@@ -69,6 +70,7 @@ It bundles the tools it needs, so users do not have to install Python, FFmpeg or
 - Manage multiple jobs through a processing queue
 - Review completed and previous jobs in history
 - Track each task from preparation to completion
+- Keep your existing presets and history (fully compatible with the old `config.json`)
 
 </td>
 <td width="50%" valign="top">
@@ -78,6 +80,7 @@ It bundles the tools it needs, so users do not have to install Python, FFmpeg or
 - Open the resulting file immediately
 - Jump directly to its destination folder
 - Keep the complete workflow inside one interface
+- 14 built-in themes (including Catppuccin)
 
 </td>
 </tr>
@@ -105,24 +108,24 @@ It bundles the tools it needs, so users do not have to install Python, FFmpeg or
 
 | Component | Role |
 |---|---|
+| [Rust](https://www.rust-lang.org/) | Core backend, performance, and logic |
+| [Slint](https://slint.dev/) | Native UI toolkit (no WebView required) |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Link extraction and media downloads |
 | [FFmpeg](https://ffmpeg.org/) | Conversion, re-encoding, trimming and media processing |
-| Hardware acceleration | Faster compatible encoding workloads when supported |
-| Desktop application | A single graphical workflow for downloads and local files |
 
 ## Installation
 
 ### Windows
 
-1. Open the repository's **Releases** page.
-2. Download the latest LiquidCat package for Windows.
-3. Extract it if the download is provided as an archive.
-4. Run `LiquidCat.exe`.
+1. Open the repository's **[Releases](https://github.com/xjuanfxx/LiquidCat/releases)** page.
+2. Download the latest `LiquidCat-0.1.0-windows-x86_64.exe` (currently in Pre-release).
+3. Run `LiquidCat.exe`. 
 
-Python, FFmpeg and yt-dlp do not need to be installed separately.
+*Note: Python, FFmpeg and yt-dlp do not need to be installed separately. LiquidCat will automatically download and manage them in the background.*
 
 > [!IMPORTANT]
-> Source-build instructions depend on the project's development toolchain and should be added once that toolchain is published in the repository.
+> **Building from source:** You will need Rust 1.88+ installed. Simply clone the repository and run `cargo build --release`. 
+> Alternatively, you can just push the code to GitHub and use the included **Build Windows** GitHub Action to get the `.exe` automatically.
 
 ## How it works
 
@@ -136,39 +139,3 @@ LiquidCat prepares the yt-dlp / FFmpeg job
 Track progress in the queue
         ↓
 Open the finished file or its destination folder
-```
-
-## Roadmap
-
-- [x] Link-based video and audio downloads
-- [x] Format, resolution and quality selection
-- [x] Local file conversion and re-encoding
-- [x] Trimming, subtitles, thumbnails and metadata
-- [x] Processing queue and job history
-- [x] Self-contained runtime for end users
-- [ ] Reusable download and conversion presets
-- [ ] Batch import for links and local files
-- [ ] Expanded accessibility and keyboard navigation
-- [ ] Additional application languages
-
-Roadmap items may change as LiquidCat evolves.
-
-## Contributing
-
-Issues and focused pull requests are welcome. Before proposing a large change, open an issue so the scope and expected behavior can be discussed first.
-
-## Authors
-
-Built by **JuanFX** and **Adaki**.
-
-## Acknowledgements
-
-LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/) and the [Catppuccin](https://catppuccin.com/) color palette.
-
----
-
-<div align="center">
-
-<sub>Crafted with glass, color and a little bit of cat energy.</sub>
-
-</div>
