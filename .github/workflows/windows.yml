@@ -1,0 +1,33 @@
+name: Build Windows
+
+# Compila LiquidCat.exe en un Windows real. Se ejecuta al subir cambios,
+# o a mano desde la pestaña "Actions" -> "Build Windows" -> "Run workflow".
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Compilar (release)
+        run: cargo build --release
+
+      - name: Empaquetar
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item target/release/liquidcat.exe dist/LiquidCat.exe
+          Get-Item dist/LiquidCat.exe | Select-Object Name, @{n='MB';e={[math]::Round($_.Length/1MB,1)}}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LiquidCat-windows
+          path: dist/LiquidCat.exe
