@@ -1,0 +1,460 @@
+import { Pal } from "theme.slint";
+import { IconData } from "icon_data.slint";
+
+// ---------------------------------------------------------------- Icono
+// Los iconos son trazos vectoriales (Path), sin SVG ni imagenes: casi no cuestan memoria.
+export component Icon inherits Rectangle {
+    in property <string> name;
+    in property <color> tint: Pal.text;
+    in property <length> size: 18px;
+    min-width: size;
+    max-width: size;
+    min-height: size;
+    Path {
+        x: 0px;
+        y: (parent.height - root.size) / 2;
+        width: root.size;
+        height: root.size;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        commands: IconData.d(root.name);
+        stroke: root.tint;
+        stroke-width: root.size / 24 * 1.8;
+        stroke-line-cap: round;
+        stroke-line-join: round;
+    }
+}
+
+// ---------------------------------------------------------------- Panel de cristal
+export component Panel inherits Rectangle {
+    in property <float> alpha: Pal.a-panel;
+    in property <color> base: Pal.panel;
+    in property <length> r: Pal.radius;
+    in property <color> border: Pal.line-strong.with-alpha(Pal.a-border);
+    background: base.with-alpha(alpha);
+    border-radius: r;
+    border-width: Pal.border-w;
+    border-color: border;
+    // Reflejo superior (sheen) propio del liquid glass.
+    Rectangle {
+        border-radius: root.r;
+        background: @linear-gradient(180deg, Pal.highlight 0%, #ffffff00 38%);
+    }
+    // Sombra dura (Neo Brutalist) dibujada a mano como dos tiras fuera del borde:
+    // el renderer por software no soporta drop-shadow.
+    if Pal.brutal: Rectangle { x: parent.width; y: 6px; width: 6px; height: parent.height; background: Pal.hard-panel; }
+    if Pal.brutal: Rectangle { x: 6px; y: parent.height; width: parent.width - 6px; height: 6px; background: Pal.hard-panel; }
+    @children
+}
+
+// ---------------------------------------------------------------- Boton
+export component Btn inherits Rectangle {
+    in property <string> text;
+    in property <string> icon;
+    // normal | secondary | primary | success | danger
+    in property <string> kind: "normal";
+    in property <bool> enabled: true;
+    in property <bool> compact: false;
+    in property <bool> small: false;
+    in property <bool> icon-only: false;
+    callback clicked();
+
+    property <bool> solid: kind == "primary" || kind == "success" || kind == "danger";
+    property <color> fill: kind == "primary" ? Pal.accent : kind == "success" ? Pal.success : kind == "danger" ? Pal.danger : kind == "secondary" ? Pal.panel-strong : Pal.panel-strong.with-alpha(Pal.a-soft);
+    property <color> fg: kind == "primary" || kind == "success" ? Pal.on-accent : kind == "danger" ? #ffffff : Pal.text;
+
+    horizontal-stretch: 0;
+    min-height: icon-only ? 38px : compact ? 36px : small ? 34px : 40px;
+    min-width: icon-only ? 38px : 0px;
+    border-radius: Pal.radius-sm;
+    border-width: Pal.border-w;
+    background: ta.pressed && root.enabled ? fill.darker(0.12) : fill;
+    border-color: (ta.has-hover && root.enabled) ? Pal.accent : solid ? fill : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.14));
+    opacity: enabled ? 1.0 : 0.42;
+
+    if Pal.brutal && !ta.pressed: Rectangle { x: parent.width; y: 3px; width: 3px; height: parent.height; background: Pal.hard-ctrl; }
+    if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: Pal.hard-ctrl; }
+    HorizontalLayout {
+        padding-left: root.icon-only ? 0px : root.compact ? 10px : root.small ? 10px : 15px;
+        padding-right: root.icon-only ? 0px : root.compact ? 10px : root.small ? 10px : 15px;
+        spacing: 8px;
+        alignment: center;
+        if root.icon != "": Icon {
+            name: root.icon;
+            tint: root.fg;
+            size: root.small || root.compact ? 16px : 18px;
+        }
+        if root.text != "": Text {
+            text: root.text;
+            color: root.fg;
+            font-weight: 700;
+            font-size: root.small || root.compact ? 12px : 14px;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}
+
+// ---------------------------------------------------------------- Campo de texto
+export component Field inherits Rectangle {
+    in-out property <string> text <=> ti.text;
+    in property <string> placeholder;
+    in property <bool> read-only: false;
+    in property <bool> enabled: true;
+    in property <InputType> input-type: InputType.text;
+    out property <bool> has-focus: ti.has-focus;
+    callback edited(string);
+    callback accepted(string);
+    public function focus-input() { ti.focus(); }
+
+    height: 42px;
+    border-radius: Pal.radius-sm;
+    border-width: Pal.border-w;
+    background: Pal.input.with-alpha(Pal.a-soft);
+    border-color: ti.has-focus ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
+    opacity: enabled ? 1.0 : 0.48;
+    clip: true;
+
+    ti := TextInput {
+        x: 12px;
+        y: 0px;
+        width: parent.width - 24px;
+        height: parent.height;
+        vertical-alignment: center;
+        color: Pal.text;
+        font-size: 14px;
+        single-line: true;
+        read-only: root.read-only;
+        enabled: root.enabled;
+        input-type: root.input-type;
+        selection-background-color: Pal.accent.with-alpha(0.45);
+        selection-foreground-color: Pal.text;
+        edited => { root.edited(self.text); }
+        accepted => { root.accepted(self.text); }
+    }
+    if ti.text == "": Text {
+        x: 12px;
+        y: (parent.height - self.height) / 2;
+        width: parent.width - 24px;
+        text: root.placeholder;
+        color: Pal.muted.with-alpha(0.65);
+        font-size: 14px;
+        overflow: elide;
+    }
+}
+
+// ---------------------------------------------------------------- Select (lista de cristal)
+export component Select inherits Rectangle {
+    in property <[string]> options;
+    in-out property <int> current: 0;
+    in property <bool> enabled: true;
+    in property <length> h: 42px;
+    callback selected(int);
+
+    height: h;
+    border-radius: Pal.radius-sm;
+    border-width: Pal.border-w;
+    background: Pal.input.with-alpha(Pal.a-soft);
+    border-color: (ta.has-hover && root.enabled) ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
+    opacity: enabled ? 1.0 : 0.48;
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 10px;
+        spacing: 6px;
+        Text {
+            horizontal-stretch: 1;
+            text: root.options.length > 0 && root.current >= 0 && root.current < root.options.length ? root.options[root.current] : "";
+            color: Pal.text;
+            font-size: root.h < 40px ? 12px : 14px;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+        Icon { name: "chevron-down"; size: 16px; tint: Pal.accent; }
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { popup.show(); }
+    }
+    popup := PopupWindow {
+        x: 0px;
+        y: root.height + 5px;
+        width: root.width;
+        height: Math.min(root.options.length * 36px + 12px, 292px);
+        close-policy: close-on-click-outside;
+        Rectangle {
+            background: Pal.panel.with-alpha(Pal.a-solid);
+            border-radius: Pal.radius-sm;
+            border-width: 1px;
+            border-color: Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.1));
+            Flickable {
+                viewport-height: root.options.length * 36px + 12px;
+                for opt[i] in root.options: Rectangle {
+                    x: 6px;
+                    y: 6px + i * 36px;
+                    width: parent.width - 12px;
+                    height: 36px;
+                    border-radius: Math.max(2px, Pal.radius-sm - 3px);
+                    background: item.has-hover ? Pal.accent.with-alpha(0.22) : i == root.current ? Pal.accent.with-alpha(0.12) : transparent;
+                    Text {
+                        x: 11px;
+                        width: parent.width - 22px;
+                        text: opt;
+                        color: i == root.current ? Pal.accent : Pal.text;
+                        font-size: 14px;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                    item := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            root.current = i;
+                            root.selected(i);
+                            popup.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- Casilla
+export component Check inherits Rectangle {
+    in-out property <bool> checked: false;
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback toggled(bool);
+    min-height: 22px;
+    opacity: enabled ? 1.0 : 0.45;
+    HorizontalLayout {
+        spacing: 8px;
+        alignment: start;
+        Rectangle {
+            width: 17px;
+            height: 17px;
+            y: (parent.height - self.height) / 2;
+            border-radius: 5px;
+            border-width: 1px;
+            background: root.checked ? Pal.accent : Pal.input.with-alpha(Pal.a-soft);
+            border-color: (ta.has-hover && root.enabled) || root.checked ? Pal.accent : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.12));
+            if root.checked: Icon {
+                x: 2px;
+                width: 13px;
+                name: "check";
+                size: 13px;
+                tint: Pal.on-accent;
+            }
+        }
+        Text {
+            text: root.text;
+            color: Pal.text;
+            font-size: 12.5px;
+            vertical-alignment: center;
+        }
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            root.checked = !root.checked;
+            root.toggled(root.checked);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- Slider (CQ/CRF)
+export component Slide inherits Rectangle {
+    in-out property <int> value: 23;
+    in property <int> minimum: 0;
+    in property <int> maximum: 51;
+    in property <bool> enabled: true;
+    callback changed(int);
+    height: 24px;
+    opacity: enabled ? 1.0 : 0.48;
+    property <float> frac: (root.value - root.minimum) / (root.maximum - root.minimum);
+
+    function update(mx: length) {
+        if (!root.enabled) { return; }
+        let f = Math.max(0.0, Math.min(1.0, (mx - 9px) / (root.width - 18px)));
+        let v = root.minimum + Math.round(f * (root.maximum - root.minimum));
+        if (v != root.value) {
+            root.value = v;
+            root.changed(v);
+        }
+    }
+
+    Rectangle {
+        x: 0px;
+        y: (parent.height - self.height) / 2;
+        width: parent.width;
+        height: 6px;
+        border-radius: 3px;
+        background: Pal.line-strong;
+        Rectangle {
+            x: 0px;
+            width: 9px + (root.width - 18px) * root.frac;
+            height: parent.height;
+            border-radius: 3px;
+            background: Pal.accent;
+        }
+    }
+    Rectangle {
+        x: (root.width - 18px) * root.frac;
+        y: (parent.height - self.height) / 2;
+        width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        background: Pal.accent;
+        border-width: 3px;
+        border-color: Pal.panel;
+    }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        pointer-event(e) => {
+            if (e.kind == PointerEventKind.down) { root.update(self.mouse-x); }
+        }
+        moved => { if (self.pressed) { root.update(self.mouse-x); } }
+    }
+}
+
+// ---------------------------------------------------------------- Barra de progreso
+export component ProgressBar inherits Rectangle {
+    in property <float> value: 0;
+    height: 9px;
+    border-radius: 5px;
+    border-width: 1px;
+    clip: true;
+    background: Pal.input.with-alpha(Pal.a-soft);
+    border-color: Pal.line.with-alpha(Pal.a-border);
+    Rectangle {
+        x: 0px;
+        width: parent.width * Math.max(0.0, Math.min(1.0, root.value));
+        height: parent.height;
+        background: @linear-gradient(90deg, Pal.accent 0%, Pal.accent2 50%, Pal.success 100%);
+        animate width { duration: 180ms; }
+    }
+}
+
+// ---------------------------------------------------------------- Scroll vertical con barra delgada
+export component VScroll inherits Rectangle {
+    in-out property <length> viewport-y <=> fl.viewport-y;
+    out property <length> viewport-height <=> fl.viewport-height;
+    public function scroll-to-end() {
+        fl.viewport-y = Math.min(0px, root.height - fl.viewport-height);
+    }
+    clip: true;
+    property <bool> needs: fl.viewport-height > root.height + 1px;
+    property <length> thumb-h: Math.max(32px, root.height * root.height / Math.max(1px, fl.viewport-height));
+    property <length> travel: Math.max(1px, root.height - thumb-h);
+    property <length> overflow: Math.max(1px, fl.viewport-height - root.height);
+
+    // Rueda del raton: va DETRAS del contenido para no tragarse los clics.
+    TouchArea {
+        width: parent.width - 12px;
+        scroll-event(e) => {
+            if (root.needs) {
+                fl.viewport-y = Math.max(-root.overflow, Math.min(0px, fl.viewport-y + e.delta-y));
+                return EventResult.accept;
+            }
+            return EventResult.reject;
+        }
+    }
+    fl := Flickable {
+        width: parent.width - 8px;
+        interactive: false;
+        VerticalLayout {
+            alignment: start;
+            @children
+        }
+    }
+    if needs: Rectangle {
+        x: parent.width - 6px;
+        y: Math.max(0px, Math.min(travel, -fl.viewport-y / overflow * travel));
+        width: 4px;
+        height: thumb-h;
+        border-radius: 2px;
+        background: bar.pressed || bar.has-hover ? Pal.accent : Pal.line-strong;
+    }
+    bar := TouchArea {
+        x: parent.width - 12px;
+        width: 12px;
+        enabled: root.needs;
+        property <length> grab: 0px;
+        pointer-event(e) => {
+            if (e.kind == PointerEventKind.down) { self.grab = self.mouse-y; }
+        }
+        moved => {
+            if (self.pressed) {
+                fl.viewport-y = Math.max(-root.overflow, Math.min(0px, fl.viewport-y - (self.mouse-y - self.grab) / root.travel * root.overflow));
+                self.grab = self.mouse-y;
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- Etiqueta de campo
+export component FieldLabel inherits Text {
+    color: Pal.muted;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+// ---------------------------------------------------------------- Cabecera de tarjeta
+export component CardHead inherits HorizontalLayout {
+    in property <string> step;
+    in property <string> icon;
+    in property <string> title;
+    in property <color> tint: Pal.accent;
+    spacing: 9px;
+    padding-bottom: 11px;
+    if step != "": Rectangle {
+        width: 22px;
+        height: 22px;
+        y: (parent.height - self.height) / 2;
+        border-radius: Pal.brutal ? 0px : 11px;
+        border-width: Pal.brutal ? 2px : 0px;
+        border-color: Pal.line;
+        background: tint;
+        Text {
+            text: step;
+            color: Pal.on-accent;
+            font-size: 12px;
+            font-weight: 700;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+    Icon { name: icon; size: 20px; tint: root.tint; }
+    Text {
+        text: title;
+        color: Pal.text;
+        font-size: 13px;
+        font-weight: 700;
+        vertical-alignment: center;
+    }
+    @children
+}
+
+// ---------------------------------------------------------------- Pildora / chip
+export component Chip inherits Rectangle {
+    in property <string> text;
+    in property <color> fg: Pal.muted;
+    background: Pal.input.with-alpha(Pal.a-soft);
+    border-radius: Pal.brutal ? 2px : 999px;
+    border-width: Pal.brutal ? 2px : 1px;
+    border-color: Pal.line.with-alpha(Pal.a-border);
+    min-height: 26px;
+    HorizontalLayout {
+        padding-left: 9px;
+        padding-right: 9px;
+        Text { text: root.text; color: root.fg; font-size: 11.5px; vertical-alignment: center; }
+    }
+}

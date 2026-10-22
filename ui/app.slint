@@ -1,0 +1,329 @@
+import "../assets/fonts/Inter-Regular.ttf";
+import "../assets/fonts/Inter-Bold.ttf";
+
+import { Pal } from "theme.slint";
+import { T } from "i18n.slint";
+import { S } from "state.slint";
+import { Icon, Panel, Btn, VScroll } from "widgets.slint";
+import { DownloadView, LocalView, QueueView, ActivityCard } from "views.slint";
+import { AllModals } from "modals.slint";
+
+export { S, T, Pal }
+export { LogLine, QItem, HItem, DepInfo, ThemeEntry } from "state.slint";
+
+// Boton de la barra de titulo (minimizar / maximizar / cerrar).
+component WinButton inherits Rectangle {
+    in property <string> icon;
+    in property <bool> is-close: false;
+    callback clicked();
+    width: 48px;
+    background: ta.has-hover ? (is-close ? #d9384e : Pal.panel-strong) : transparent;
+    Icon {
+        name: root.icon;
+        size: 15px;
+        tint: ta.has-hover && root.is-close ? #ffffff : ta.has-hover ? Pal.text : Pal.muted;
+        x: (parent.width - 15px) / 2;
+    }
+    ta := TouchArea { clicked => { root.clicked(); } }
+}
+
+// Boton de idioma con bandera.
+component LangBtn inherits Rectangle {
+    callback clicked();
+    min-height: 36px;
+    width: 70px;
+    border-radius: Pal.radius-sm;
+    border-width: Pal.border-w;
+    background: ta.pressed ? Pal.panel-strong.darker(0.12) : Pal.panel-strong.with-alpha(Pal.a-soft);
+    border-color: ta.has-hover ? Pal.accent : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.14));
+    if Pal.brutal && !ta.pressed: Rectangle { x: parent.width; y: 3px; width: 3px; height: parent.height; background: Pal.hard-ctrl; }
+    if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: Pal.hard-ctrl; }
+    HorizontalLayout {
+        alignment: center;
+        spacing: 8px;
+        if S.lang == "es": Image { source: @image-url("../assets/flag-mx.png"); width: 22px; height: 15px; y: (parent.height - self.height) / 2; }
+        if S.lang != "es": Image { source: @image-url("../assets/flag-us.png"); width: 22px; height: 15px; y: (parent.height - self.height) / 2; }
+        Text { text: S.lang == "es" ? "ES" : "EN"; color: Pal.text; font-size: 12px; font-weight: 700; vertical-alignment: center; }
+    }
+    ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Pestana del selector Descargador / Archivos locales / Cola.
+component TabBtn inherits Rectangle {
+    in property <string> icon;
+    in property <string> text;
+    in property <bool> active;
+    in property <int> badge: 0;
+    callback clicked();
+    min-height: 42px;
+    border-radius: Math.max(2px, Pal.radius-sm - 2px);
+    border-width: 1px;
+    background: active ? Pal.accent : ta.has-hover ? Pal.panel-strong : transparent;
+    border-color: active ? Pal.accent : transparent;
+    HorizontalLayout {
+        alignment: center;
+        spacing: 9px;
+        Icon { name: root.icon; tint: root.active ? Pal.on-accent : Pal.muted; }
+        Text {
+            text: root.text;
+            color: root.active ? Pal.on-accent : ta.has-hover ? Pal.text : Pal.muted;
+            font-weight: 700;
+            font-size: 14px;
+            vertical-alignment: center;
+        }
+        if root.badge > 0: Rectangle {
+            y: (parent.height - self.height) / 2;
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            background: root.active ? Pal.on-accent : Pal.accent;
+            Text {
+                text: root.badge;
+                color: root.active ? Pal.accent : Pal.on-accent;
+                font-size: 11px;
+                font-weight: 700;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+    }
+    ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Pildora de estado de dependencias.
+component StatusPill inherits Rectangle {
+    background: Pal.input.with-alpha(Pal.a-soft);
+    border-radius: Pal.brutal ? 2px : 999px;
+    border-width: Pal.brutal ? 2px : 1px;
+    border-color: Pal.line.with-alpha(Pal.a-border);
+    min-height: 32px;
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        spacing: 11px;
+        alignment: center;
+        if S.st != 1: Rectangle {
+            y: (parent.height - self.height) / 2;
+            width: 7px;
+            height: 7px;
+            border-radius: 4px;
+            background: S.st == 2 ? Pal.danger : Pal.warning;
+        }
+        if S.st != 1: Text {
+            text: S.st == 0 ? T.st-checking : T.st-missing + S.st-missing;
+            color: S.st == 2 ? Pal.danger : Pal.muted;
+            font-size: 11.5px;
+            vertical-alignment: center;
+            overflow: elide;
+            max-width: 300px;
+        }
+        if S.st == 1: HorizontalLayout {
+            spacing: 5px;
+            Icon { name: "check"; size: 14px; tint: Pal.success; }
+            Text { text: "yt-dlp"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+        }
+        if S.st == 1: HorizontalLayout {
+            spacing: 5px;
+            Icon { name: "check"; size: 14px; tint: Pal.success; }
+            Text { text: "ffmpeg"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+        }
+        if S.st == 1: Rectangle { width: 1px; height: 14px; y: (parent.height - self.height) / 2; background: Pal.line.with-alpha(0.7); }
+        if S.st == 1: HorizontalLayout {
+            spacing: 5px;
+            Icon { name: "chip"; size: 14px; tint: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff; }
+            Text {
+                text: S.gpu == "nvidia" ? "NVIDIA" : S.gpu == "amd" ? "AMD" : "CPU";
+                color: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff;
+                font-size: 11.5px;
+                font-weight: 700;
+                vertical-alignment: center;
+            }
+        }
+    }
+}
+
+export component App inherits Window {
+    title: "LiquidCat";
+    icon: @image-url("../assets/logo.png");
+    no-frame: true;
+    min-width: 860px;
+    min-height: 560px;
+    preferred-width: 1180px;
+    preferred-height: 800px;
+    background: Pal.bg;
+    default-font-family: "Inter Variable";
+    default-font-size: 14px;
+
+    forward-focus: keys;
+    keys := FocusScope {
+        key-pressed(e) => {
+            if (e.text == Key.Escape) {
+                if (S.dlg != 0) { S.dialog-cancel(); } else { S.modal = 0; }
+                return accept;
+            }
+            if (e.modifiers.control && e.text == "v" && S.modal == 0 && S.dlg == 0 && !S.url-has-focus) {
+                S.paste-url();
+                return accept;
+            }
+            return reject;
+        }
+    }
+
+    VerticalLayout {
+        // ------------------------------------------------ barra de titulo
+        Rectangle {
+            height: 44px;
+            background: Pal.surface.with-alpha(Pal.a-strong);
+            Rectangle { y: parent.height - 1px; height: 1px; background: Pal.line.with-alpha(Pal.a-border); }
+            TouchArea {
+                width: parent.width - 144px;
+                pointer-event(e) => {
+                    if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) { S.win-drag(); }
+                }
+                double-clicked => { S.win-maximize(); }
+            }
+            HorizontalLayout {
+                padding-left: 14px;
+                spacing: 9px;
+                Image {
+                    source: @image-url("../assets/logo.png");
+                    width: 24px;
+                    height: 24px;
+                    y: (parent.height - self.height) / 2;
+                    image-fit: cover;
+                }
+                Text { text: "LiquidCat"; color: Pal.text; font-weight: 700; font-size: 14px; vertical-alignment: center; }
+                Rectangle { horizontal-stretch: 1; }
+                WinButton { icon: "minus"; clicked => { S.win-minimize(); } }
+                WinButton { icon: S.maximized ? "restore" : "maximize"; clicked => { S.win-maximize(); } }
+                WinButton { icon: "x"; is-close: true; clicked => { S.win-close(); } }
+            }
+        }
+
+        // ------------------------------------------------ cuerpo
+        Rectangle {
+            vertical-stretch: 1;
+            background: @linear-gradient(145deg, Pal.bg-accent 0%, Pal.bg 54%);
+            clip: true;
+
+            // fondo dinamico: miniatura ya reducida y suavizada desde Rust
+            if S.bg-on && !S.bg-gradient: Image {
+                x: -70px;
+                y: -70px;
+                width: parent.width + 140px;
+                height: parent.height + 140px;
+                source: S.bg-image;
+                image-fit: cover;
+                opacity: 0.5;
+                colorize: #00000050;
+            }
+            if S.bg-on && S.bg-gradient: Rectangle {
+                background: @linear-gradient(135deg, Pal.accent 0%, Pal.accent2 100%);
+                opacity: 0.18;
+            }
+
+            VerticalLayout {
+                padding-left: 14px;
+                padding-right: 14px;
+                padding-top: 12px;
+                padding-bottom: 14px;
+                spacing: 10px;
+
+                // cabecera
+                Panel {
+                    height: 74px;
+                    HorizontalLayout {
+                        padding-left: 16px;
+                        padding-right: 16px;
+                        spacing: 24px;
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            alignment: center;
+                            spacing: 3px;
+                            if Pal.brutal: Rectangle {
+                                height: 17px;
+                                width: 164px;
+                                background: Pal.accent;
+                                border-width: 2px;
+                                border-color: Pal.line;
+                                Text { text: "OZO MEDIA WORKSPACE"; color: Pal.on-accent; font-size: 10px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+                            }
+                            Text { text: "LiquidCat"; color: Pal.text; font-size: 22px; font-weight: 700; }
+                            Text { text: T.app-subtitle; color: Pal.muted; font-size: 12.5px; overflow: elide; }
+                        }
+                        HorizontalLayout {
+                            spacing: 10px;
+                            alignment: end;
+                            StatusPill { }
+                            LangBtn { clicked => { S.toggle-lang(); } }
+                            Btn { compact: true; icon: "book"; text: T.btn-wiki; clicked => { S.modal = 3; } }
+                            Btn { compact: true; icon: "info"; text: T.btn-credits; clicked => { S.modal = 2; } }
+                            Btn { icon-only: true; icon: "settings"; clicked => { S.modal = 1; S.settings-opened(); } }
+                        }
+                    }
+                }
+
+                // pestanas
+                Panel {
+                    height: 52px;
+                    HorizontalLayout {
+                        padding: 5px;
+                        spacing: 6px;
+                        TabBtn { horizontal-stretch: 1; icon: "download"; text: T.tab-download; active: S.tab == 0; clicked => { S.tab = 0; } }
+                        TabBtn { horizontal-stretch: 1; icon: "file-video"; text: T.tab-local; active: S.tab == 1; clicked => { S.tab = 1; } }
+                        TabBtn { horizontal-stretch: 1; icon: "layers"; text: T.tab-queue; active: S.tab == 2; badge: S.queue-active; clicked => { S.tab = 2; } }
+                    }
+                }
+
+                // area de trabajo con scroll
+                VScroll {
+                    vertical-stretch: 1;
+                    VerticalLayout {
+                        spacing: 10px;
+                        padding-right: Pal.brutal ? 8px : 0px;
+                        padding-bottom: Pal.brutal ? 8px : 0px;
+                        if S.tab == 0: DownloadView { }
+                        if S.tab == 1: LocalView { }
+                        if S.tab == 2: QueueView { }
+                        ActivityCard { }
+                    }
+                }
+            }
+
+            // modales y dialogos
+            AllModals { }
+
+            // aviso flotante
+            if S.toast-on: Rectangle {
+                x: parent.width - self.width - 20px;
+                y: parent.height - self.height - 20px;
+                width: Math.min(480px, Math.max(260px, S.toast-text.character-count * 7.5px + 70px));
+                height: 46px;
+                border-radius: Pal.radius-sm;
+                border-width: Pal.border-w;
+                border-color: Pal.line-strong.with-alpha(0.5);
+                background: Pal.panel-strong.with-alpha(Pal.a-strong);
+                HorizontalLayout {
+                    padding-left: 14px;
+                    padding-right: 14px;
+                    spacing: 10px;
+                    Icon {
+                        name: S.toast-kind == 1 ? "check" : S.toast-kind == 2 ? "warning" : S.toast-kind == 3 ? "error" : "message";
+                        tint: S.toast-kind == 1 ? Pal.success : S.toast-kind == 2 ? Pal.warning : S.toast-kind == 3 ? Pal.danger : Pal.accent;
+                    }
+                    Text { text: S.toast-text; color: Pal.text; font-size: 13px; vertical-alignment: center; overflow: elide; }
+                }
+            }
+        }
+    }
+
+    // ---- bordes para redimensionar (ventana sin marco)
+    if !S.maximized: Rectangle {
+        TouchArea { x: 0px; y: 8px; width: 5px; height: parent.height - 16px; mouse-cursor: ew-resize; pointer-event(e) => { if (e.kind == PointerEventKind.down) { S.win-resize(0); } } }
+        TouchArea { x: parent.width - 5px; y: 8px; width: 5px; height: parent.height - 16px; mouse-cursor: ew-resize; pointer-event(e) => { if (e.kind == PointerEventKind.down) { S.win-resize(1); } } }
+        TouchArea { x: 8px; y: parent.height - 5px; width: parent.width - 16px; height: 5px; mouse-cursor: ns-resize; pointer-event(e) => { if (e.kind == PointerEventKind.down) { S.win-resize(2); } } }
+        TouchArea { x: 8px; y: 0px; width: parent.width - 16px; height: 3px; mouse-cursor: ns-resize; pointer-event(e) => { if (e.kind == PointerEventKind.down) { S.win-resize(3); } } }
+        TouchArea { x: parent.width - 12px; y: parent.height - 12px; width: 12px; height: 12px; mouse-cursor: nwse-resize; pointer-event(e) => { if (e.kind == PointerEventKind.down) { S.win-resize(4); } } }
+        TouchArea { x: 0px; y: parent.height - 12px; width: 12px; height: 12px; mouse-cursor: nesw-resize; pointer-event(e) => { if (e.kind == PointerEventKind.down) { S.win-resize(5); } } }
+    }
+}

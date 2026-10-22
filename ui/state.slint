@@ -1,0 +1,171 @@
+// Estado y callbacks compartidos entre la interfaz y el backend en Rust.
+
+export struct LogLine { text: string, level: int }          // 0 normal, 1 comando, 2 ok, 3 error, 4 info
+export struct QItem { id: int, title: string, status: int, output: string }   // 0 espera, 1 procesando, 2 listo, 3 fallo
+export struct HItem { name: string, path: string, meta: string, thumb: image, has-thumb: bool }
+export struct DepInfo { key: string, name: string, installed: bool, version: string, path: string }
+export struct ThemeEntry { id: string, name: string, c1: color, c2: color, c3: color }
+
+export global S {
+    // ---- ventana / navegacion
+    in-out property <bool> maximized: false;
+    in-out property <string> lang: "es";
+    in-out property <string> theme: "catppuccin";
+    in-out property <int> tab: 0;
+    // 0 ninguno, 1 ajustes, 2 creditos, 3 wiki, 4 historial
+    in-out property <int> modal: 0;
+
+    // ---- estado de dependencias: 0 verificando, 1 listas, 2 faltan
+    in-out property <int> st: 0;
+    in-out property <string> st-missing;
+    in-out property <string> gpu: "cpu";
+
+    // ---- fondo dinamico (miniatura difuminada)
+    in-out property <image> bg-image;
+    in-out property <bool> bg-on: false;
+    in-out property <bool> bg-gradient: false;
+
+    // ---- descargador
+    in-out property <string> url;
+    in-out property <bool> url-has-focus: false;
+    in-out property <bool> fetching: false;
+    in-out property <string> title-line;
+    in-out property <bool> is-playlist: false;
+    in-out property <bool> has-preview: false;
+    in-out property <string> pv-title;
+    in-out property <string> pv-desc;
+    in-out property <[string]> pv-chips;
+    in-out property <image> pv-thumb;
+    in-out property <bool> pv-has-thumb: false;
+
+    in-out property <int> mode-idx: 0;
+    in-out property <int> quality-idx: 0;
+    in-out property <[string]> video-opts;
+    in-out property <int> video-idx: 0;
+    in-out property <[string]> audio-opts;
+    in-out property <int> audio-idx: 0;
+    in-out property <int> direct-idx: 0;
+    in-out property <int> hw-idx: 2;
+    in-out property <int> codec-idx: 0;
+    in-out property <int> acodec-idx: 0;
+    in-out property <int> cq: 23;
+
+    in-out property <bool> adv-open: false;
+    in-out property <string> trim-start;
+    in-out property <string> trim-end;
+    in-out property <int> abitrate-idx: 0;
+    in-out property <int> cookies-idx: 0;
+    in-out property <bool> audio-norm: false;
+    in-out property <bool> subs: false;
+    in-out property <bool> subs-embed: false;
+    in-out property <bool> embed-thumb: false;
+    in-out property <bool> embed-meta: false;
+
+    in-out property <string> out-dir;
+    in-out property <string> space-hint;
+    in-out property <bool> space-low: false;
+
+    in-out property <[string]> preset-opts;
+    in-out property <int> preset-idx: 0;
+
+    // ---- archivos locales
+    in-out property <string> local-file;
+    in-out property <int> local-mode-idx: 0;      // 0 video, 1 audio, 2 gif
+    in-out property <int> local-acodec-idx: 0;
+    in-out property <int> local-hw-idx: 2;
+    in-out property <int> local-codec-idx: 0;
+    in-out property <int> local-cq: 23;
+    in-out property <string> local-trim-start;
+    in-out property <string> local-trim-end;
+    in-out property <string> local-gif-fps: "12";
+    in-out property <string> local-gif-width: "480";
+    in-out property <bool> local-audio-norm: false;
+    in-out property <string> local-out-dir;
+    in-out property <bool> local-dragging: false;
+
+    // ---- actividad
+    in-out property <bool> busy: false;
+    in-out property <float> progress: 0;
+    in-out property <string> progress-label;
+    in-out property <[LogLine]> log;
+    in-out property <int> log-rev: 0;
+    in-out property <bool> can-open-folder: false;
+
+    // ---- cola e historial
+    in-out property <[QItem]> queue;
+    in-out property <int> queue-active: 0;
+    in-out property <[HItem]> history;
+
+    // ---- ajustes
+    in-out property <bool> pref-notify: true;
+    in-out property <bool> pref-open: false;
+    in-out property <bool> pref-autoupd: true;
+    in-out property <bool> pref-remember: true;
+    in-out property <int> pref-cookies-idx: 0;
+    in-out property <[DepInfo]> deps;
+    in-out property <[ThemeEntry]> themes;
+
+    // ---- modal de dependencias (progreso)
+    in-out property <string> dep-title;
+    in-out property <string> dep-msg;
+    in-out property <float> dep-progress: 0;
+    in-out property <bool> dep-busy: false;
+    in-out property <bool> dep-show: false;
+    in-out property <bool> dep-prep: false;
+
+    // ---- dialogo generico: 0 ninguno, 1 info, 2 ok, 3 error, 4 confirmar, 5 pedir texto
+    in-out property <int> dlg: 0;
+    in-out property <string> dlg-title;
+    in-out property <string> dlg-msg;
+    in-out property <string> dlg-input;
+    in-out property <string> dlg-action;
+
+    // ---- aviso flotante
+    in-out property <bool> toast-on: false;
+    in-out property <string> toast-text;
+    in-out property <int> toast-kind: 0;          // 0 info, 1 ok, 2 aviso, 3 error
+
+    // ---- acciones de la ventana
+    callback win-minimize();
+    callback win-maximize();
+    callback win-close();
+    callback win-drag();
+    callback win-resize(int);
+
+    // ---- acciones de la app
+    callback toggle-lang();
+    callback set-theme(string);
+    callback url-edited(string);
+    callback paste-url();
+    callback clear-url();
+    callback fetch-formats();
+    callback start-download();
+    callback enqueue();
+    callback enqueue-playlist();
+    callback cancel();
+    callback choose-folder(int);               // 0 descargas, 1 locales
+    callback out-dir-edited();
+    callback pick-local();
+    callback reencode-local();
+    callback open-last-folder();
+    callback mode-changed();
+    callback apply-preset();
+    callback save-preset();
+    callback delete-preset();
+    callback dialog-accept(string, string);    // accion, texto
+    callback dialog-cancel();
+    callback settings-opened();
+    callback history-opened();
+    callback prefs-changed();
+    callback test-cookies();
+    callback dep-action(string, string);       // dependencia, accion
+    callback redownload-deps();
+    callback queue-open(int);
+    callback queue-remove(int);
+    callback queue-clear();
+    callback history-open(int);
+    callback history-folder(int);
+    callback history-clear();
+    callback open-link(string);
+    callback soon(string);
+}

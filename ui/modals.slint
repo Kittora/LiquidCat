@@ -1,0 +1,461 @@
+import { Pal } from "theme.slint";
+import { T } from "i18n.slint";
+import { S } from "state.slint";
+import { Icon, Panel, Btn, Field, Select, Check, VScroll, FieldLabel } from "widgets.slint";
+
+// Contenedor base de un modal (fondo oscurecido + panel de cristal).
+component ModalFrame inherits Rectangle {
+    in property <string> title;
+    in property <length> w: 680px;
+    in property <bool> show-links: false;
+    callback close();
+    background: #03081099;
+    TouchArea { clicked => { root.close(); } }
+    Panel {
+        width: Math.min(root.w, root.width - 48px);
+        height: Math.min(root.height - 48px, 700px);
+        alpha: Pal.a-strong;
+        // el panel captura clics para no cerrar el modal
+        TouchArea { }
+        VerticalLayout {
+            padding: 21px;
+            spacing: 14px;
+            HorizontalLayout {
+                spacing: 16px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    Text { text: "LIQUIDCAT"; color: Pal.accent; font-size: 10px; font-weight: 800; }
+                    Text { text: root.title; color: Pal.text; font-size: 22px; font-weight: 700; }
+                }
+                if root.show-links: Btn { small: true; icon: "github"; text: T.credit-btn-repo; clicked => { S.soon("repo"); } }
+                if root.show-links: Btn { small: true; icon: "discord"; text: T.credit-btn-discord; clicked => { S.soon("discord"); } }
+                Btn { icon-only: true; icon: "x"; clicked => { root.close(); } }
+            }
+            Rectangle { height: 1px; background: Pal.line; }
+            @children
+        }
+    }
+}
+
+component ModalFoot inherits VerticalLayout {
+    spacing: 14px;
+    Rectangle { height: 1px; background: Pal.line; }
+    HorizontalLayout {
+        spacing: 10px;
+        alignment: end;
+        @children
+    }
+}
+
+component H3 inherits HorizontalLayout {
+    in property <string> icon;
+    in property <string> text;
+    in property <color> tint: Pal.accent;
+    spacing: 8px;
+    padding-top: 12px;
+    padding-bottom: 4px;
+    Icon { name: icon; size: 18px; tint: root.tint; }
+    Text { text: root.text; color: root.tint; font-size: 14px; font-weight: 700; vertical-alignment: center; }
+}
+
+component Box inherits Rectangle {
+    background: Pal.input.with-alpha(Pal.a-soft);
+    border-radius: Pal.radius-sm;
+    border-width: 1px;
+    border-color: Pal.line.with-alpha(Pal.a-border);
+}
+
+component WikiItem inherits Box {
+    in property <string> icon;
+    in property <string> head;
+    in property <string> body;
+    VerticalLayout {
+        padding: 13px;
+        spacing: 6px;
+        alignment: start;
+        HorizontalLayout {
+            spacing: 8px;
+            Icon { name: root.icon; size: 16px; tint: Pal.accent; }
+            Text { text: root.head; color: Pal.accent; font-size: 13px; font-weight: 700; vertical-alignment: center; }
+        }
+        Text { text: root.body; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+    }
+}
+
+component Link inherits Text {
+    in property <string> url;
+    color: Pal.accent;
+    font-size: 12px;
+    TouchArea { mouse-cursor: pointer; clicked => { S.open-link(root.url); } }
+}
+
+// ======================================================================
+export component AllModals inherits Rectangle {
+    // ---------------------------------------------------------------- Ajustes
+    if S.modal == 1: ModalFrame {
+        title: T.set-title;
+        w: 820px;
+        close => { S.modal = 0; }
+        VScroll {
+            vertical-stretch: 1;
+            VerticalLayout {
+                padding-right: 6px;
+                H3 { icon: "palette"; text: T.set-theme; tint: Pal.c-preview; }
+                // rejilla de temas (4 columnas, posicion absoluta)
+                Rectangle {
+                    property <length> cw: (self.width - 27px) / 4;
+                    height: 83px * 4;
+                    for th[i] in S.themes: Rectangle {
+                        x: mod(i, 4) * (parent.cw + 9px);
+                        y: floor(i / 4) * 83px;
+                        width: parent.cw;
+                        height: 74px;
+                        border-radius: Pal.radius-sm;
+                        border-width: S.theme == th.id ? 2px : 1px;
+                        border-color: S.theme == th.id || tt.has-hover ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
+                        background: S.theme == th.id ? Pal.accent.with-alpha(0.16) : Pal.input.with-alpha(Pal.a-soft);
+                        VerticalLayout {
+                            padding: 11px;
+                            spacing: 9px;
+                            Rectangle {
+                                height: 23px;
+                                border-radius: 6px;
+                                clip: true;
+                                background: th.c1;
+                                Rectangle { x: parent.width * 0.4; width: parent.width * 0.3; background: th.c2; }
+                                Rectangle { x: parent.width * 0.7; width: parent.width * 0.3; background: th.c3; }
+                            }
+                            Text { text: th.name; color: Pal.text; font-size: 12px; font-weight: 700; overflow: elide; }
+                        }
+                        tt := TouchArea { mouse-cursor: pointer; clicked => { S.set-theme(th.id); } }
+                    }
+                }
+
+                H3 { icon: "sliders"; text: T.set-prefs; tint: Pal.c-sliders; }
+                VerticalLayout {
+                    spacing: 10px;
+                    padding-top: 4px;
+                    Check { text: T.pref-notify; checked <=> S.pref-notify; toggled(b) => { S.prefs-changed(); } }
+                    Check { text: T.pref-open; checked <=> S.pref-open; toggled(b) => { S.prefs-changed(); } }
+                    Check { text: T.pref-autoupd; checked <=> S.pref-autoupd; toggled(b) => { S.prefs-changed(); } }
+                    Check { text: T.pref-remember; checked <=> S.pref-remember; toggled(b) => { S.prefs-changed(); } }
+                    HorizontalLayout {
+                        spacing: 12px;
+                        FieldLabel { text: T.adv-cookies; vertical-alignment: center; }
+                        Select {
+                            max-width: 240px;
+                            h: 36px;
+                            options: [T.adv-cookies-none, "Chrome", "Edge", "Firefox", "Brave", "Opera", "Vivaldi"];
+                            current <=> S.pref-cookies-idx;
+                            selected(i) => { S.cookies-idx = i; S.prefs-changed(); S.test-cookies(); }
+                        }
+                    }
+                }
+
+                H3 { icon: "hard-drive"; text: T.set-deps; tint: Pal.c-file; }
+                VerticalLayout { padding-bottom: 6px; Text { text: T.set-deps-hint; color: Pal.muted; font-size: 12px; wrap: word-wrap; } }
+                for d in S.deps: Box {
+                    height: 74px;
+                    HorizontalLayout {
+                        padding: 11px;
+                        padding-left: 13px;
+                        spacing: 12px;
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 3px;
+                            alignment: center;
+                            HorizontalLayout {
+                                spacing: 9px;
+                                alignment: start;
+                                Text { text: d.name; color: Pal.text; font-size: 13px; font-weight: 800; vertical-alignment: center; }
+                                Rectangle {
+                                    height: 18px;
+                                    width: 74px;
+                                    border-radius: 9px;
+                                    background: d.installed ? Pal.success : Pal.warning;
+                                    Text {
+                                        text: d.installed ? T.dep-installed : T.dep-missing;
+                                        color: Pal.on-accent;
+                                        font-size: 10.5px;
+                                        font-weight: 800;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                            Text { text: T.dep-version + ": " + (d.version == "" ? "—" : d.version); color: Pal.muted; font-size: 11px; overflow: elide; }
+                            Text { text: T.dep-path + ": " + (d.path == "" ? "—" : d.path); color: Pal.muted; font-size: 11px; overflow: elide; }
+                        }
+                        HorizontalLayout {
+                            spacing: 6px;
+                            alignment: center;
+                            Btn { small: true; text: T.dep-install; enabled: !d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "install"); } }
+                            Btn { small: true; text: T.dep-update; enabled: d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "update"); } }
+                            Btn { small: true; text: T.dep-reinstall; enabled: d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "reinstall"); } }
+                        }
+                    }
+                }
+            }
+        }
+        ModalFoot { Btn { kind: "primary"; text: T.btn-close; clicked => { S.modal = 0; } } }
+    }
+
+    // ---------------------------------------------------------------- Creditos
+    if S.modal == 2: ModalFrame {
+        title: T.credit-title;
+        show-links: true;
+        w: 760px;
+        close => { S.modal = 0; }
+        VScroll {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: 12px;
+                padding-right: 6px;
+                HorizontalLayout {
+                    spacing: 12px;
+                    Box {
+                        horizontal-stretch: 1;
+                        VerticalLayout {
+                            padding: 14px;
+                            spacing: 5px;
+                            H3 { icon: "info"; text: T.credit-cat-dev; }
+                            Text { text: "xjuanfxx — " + T.credit-main-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                            Link { text: "github.com/xjuanfxx"; url: "https://github.com/xjuanfxx"; }
+                            Text { text: "notTao — " + T.credit-helper-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                            Link { text: "github.com/notTao"; url: "https://github.com/notTao"; }
+                            Text { text: T.credit-dev-themes-label + ": Neo Brutalist (Light / Dark)"; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                            Text { text: T.credit-dev-feature-label + ": " + T.credit-dev-feature; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                        }
+                    }
+                    Box {
+                        horizontal-stretch: 1;
+                        VerticalLayout {
+                            padding: 14px;
+                            spacing: 4px;
+                            H3 { icon: "download"; text: T.credit-cat-software; }
+                            Text { text: "yt-dlp"; color: Pal.text; font-size: 12.5px; font-weight: 700; }
+                            Text { text: T.credit-section-ytdlp-desc; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                            Link { text: "github.com/yt-dlp/yt-dlp"; url: "https://github.com/yt-dlp/yt-dlp"; }
+                            Text { text: T.credit-license + ": Unlicense"; color: Pal.muted; font-size: 12px; }
+                            VerticalLayout { padding-top: 8px; Text { text: "FFmpeg"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
+                            Text { text: T.credit-section-ffmpeg-desc; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                            Link { text: "gyan.dev/ffmpeg/builds"; url: "https://www.gyan.dev/ffmpeg/builds/"; }
+                            Text { text: T.credit-license + ": GPL v3"; color: Pal.muted; font-size: 12px; }
+                            VerticalLayout { padding-top: 8px; Text { text: "Slint"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
+                            Link { text: "slint.dev"; url: "https://slint.dev"; }
+                            Text { text: T.credit-license + ": GPL-3.0 / Royalty-free"; color: Pal.muted; font-size: 12px; }
+                        }
+                    }
+                }
+                Box {
+                    VerticalLayout {
+                        padding: 14px;
+                        spacing: 6px;
+                        H3 { icon: "palette"; text: T.credit-cat-themes; }
+                        for t in [
+                            { n: "Catppuccin", d: T.credit-catppuccin-desc, u: "catppuccin.com", l: "MIT" },
+                            { n: "Dracula", d: T.credit-dracula-desc, u: "github.com/dracula/dracula-theme", l: "MIT" },
+                            { n: "Nord", d: T.credit-nord-desc, u: "nordtheme.com", l: "MIT" },
+                            { n: "Tokyo Night", d: T.credit-tokyo-desc, u: "github.com/enkia/tokyo-night-vscode-theme", l: "MIT" },
+                            { n: "Gruvbox", d: T.credit-gruv-desc, u: "github.com/morhetz/gruvbox", l: "MIT" },
+                            { n: "Fluent", d: T.credit-fluent-desc, u: "microsoft.com/design/fluent", l: "Microsoft" },
+                        ]: VerticalLayout {
+                            spacing: 1px;
+                            padding-bottom: 6px;
+                            HorizontalLayout {
+                                spacing: 10px;
+                                Text { text: t.n; color: Pal.text; font-size: 12.5px; font-weight: 700; }
+                                Text { text: t.d; color: Pal.muted; font-size: 11.5px; overflow: elide; horizontal-stretch: 1; }
+                            }
+                            HorizontalLayout {
+                                spacing: 10px;
+                                alignment: start;
+                                Link { text: t.u; url: "https://" + t.u; font-size: 11.5px; }
+                                Text { text: T.credit-license + ": " + t.l; color: Pal.muted; font-size: 11.5px; }
+                            }
+                        }
+                    }
+                }
+                VerticalLayout { padding-top: 6px; Text { text: T.credit-note; color: Pal.muted; font-size: 12px; wrap: word-wrap; } }
+            }
+        }
+        ModalFoot { Btn { kind: "primary"; text: T.btn-close; clicked => { S.modal = 0; } } }
+    }
+
+    // ---------------------------------------------------------------- Wiki
+    if S.modal == 3: ModalFrame {
+        title: T.wiki-title;
+        show-links: true;
+        w: 820px;
+        close => { S.modal = 0; }
+        VScroll {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: 12px;
+                padding-right: 6px;
+                Text { text: T.wiki-intro; color: Pal.text; font-size: 13px; wrap: word-wrap; }
+                HorizontalLayout {
+                    spacing: 12px;
+                    VerticalLayout {
+                        horizontal-stretch: 1;
+                        spacing: 12px;
+                        alignment: start;
+                        WikiItem { icon: "search"; head: T.wiki-h-source; body: T.wiki-p-source; }
+                        WikiItem { icon: "layers"; head: T.wiki-h-output; body: T.wiki-p-output; }
+                        WikiItem { icon: "settings"; head: T.wiki-h-advanced; body: T.wiki-p-advanced; }
+                        WikiItem { icon: "file-video"; head: T.wiki-h-local; body: T.wiki-p-local; }
+                        WikiItem { icon: "terminal"; head: T.wiki-h-activity; body: T.wiki-p-activity; }
+                        WikiItem { icon: "palette"; head: T.wiki-h-settings; body: T.wiki-p-settings; }
+                    }
+                    VerticalLayout {
+                        horizontal-stretch: 1;
+                        spacing: 12px;
+                        alignment: start;
+                        WikiItem { icon: "star"; head: T.wiki-h-formats; body: T.wiki-p-formats; }
+                        WikiItem { icon: "sliders"; head: T.wiki-h-encode; body: T.wiki-p-encode; }
+                        WikiItem { icon: "folder"; head: T.wiki-h-dest; body: T.wiki-p-dest; }
+                        WikiItem { icon: "download"; head: T.wiki-h-queue; body: T.wiki-p-queue; }
+                        WikiItem { icon: "hard-drive"; head: T.wiki-h-history; body: T.wiki-p-history; }
+                        WikiItem { icon: "globe"; head: T.wiki-h-lang; body: T.wiki-p-lang; }
+                    }
+                }
+            }
+        }
+        ModalFoot { Btn { kind: "primary"; text: T.btn-close; clicked => { S.modal = 0; } } }
+    }
+
+    // ---------------------------------------------------------------- Historial
+    if S.modal == 4: ModalFrame {
+        title: T.hist-title;
+        w: 820px;
+        close => { S.modal = 0; }
+        VScroll {
+            vertical-stretch: 1;
+            VerticalLayout {
+                spacing: 8px;
+                padding-right: 6px;
+                if S.history.length == 0: Text { text: T.hist-empty; color: Pal.muted; font-size: 12px; }
+                for h[i] in S.history: Box {
+                    height: 68px;
+                    HorizontalLayout {
+                        padding: 8px;
+                        spacing: 12px;
+                        Rectangle {
+                            width: 96px;
+                            border-radius: 8px;
+                            clip: true;
+                            background: Pal.input;
+                            if h.has-thumb: Image { source: h.thumb; image-fit: cover; width: parent.width; height: parent.height; }
+                            if !h.has-thumb: Icon { name: "file-video"; size: 24px; tint: Pal.muted; x: (parent.width - 24px) / 2; }
+                        }
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            alignment: center;
+                            spacing: 3px;
+                            Text { text: h.name; color: Pal.text; font-size: 13px; font-weight: 700; overflow: elide; }
+                            Text { text: h.meta; color: Pal.muted; font-size: 11.5px; overflow: elide; }
+                        }
+                        HorizontalLayout {
+                            spacing: 6px;
+                            alignment: center;
+                            Btn { small: true; text: T.hist-open; clicked => { S.history-open(i); } }
+                            Btn { small: true; icon-only: true; icon: "folder"; clicked => { S.history-folder(i); } }
+                        }
+                    }
+                }
+            }
+        }
+        ModalFoot {
+            Btn { kind: "danger"; text: T.hist-clear; clicked => { S.history-clear(); } }
+            Btn { kind: "primary"; text: T.btn-close; clicked => { S.modal = 0; } }
+        }
+    }
+
+    // ---------------------------------------------------------------- Dependencias (progreso / primer inicio)
+    if S.dep-show: Rectangle {
+        background: #03081099;
+        TouchArea { }
+        Panel {
+            width: 440px;
+            height: 230px;
+            alpha: Pal.a-strong;
+            VerticalLayout {
+                padding: 22px;
+                spacing: 12px;
+                alignment: center;
+                Rectangle {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 18px;
+                    background: Pal.accent;
+                    Icon { name: "refresh"; size: 18px; tint: Pal.on-accent; x: 9px; }
+                }
+                Text { text: S.dep-title; color: Pal.text; font-size: 14px; font-weight: 700; horizontal-alignment: center; wrap: word-wrap; }
+                Text { text: S.dep-msg; color: Pal.muted; font-size: 12.5px; horizontal-alignment: center; wrap: word-wrap; }
+                Rectangle {
+                    height: 8px;
+                    border-radius: 4px;
+                    clip: true;
+                    background: Pal.input.with-alpha(0.8);
+                    Rectangle {
+                        x: 0px;
+                        width: parent.width * Math.max(0.0, Math.min(1.0, S.dep-progress));
+                        background: @linear-gradient(90deg, Pal.accent 0%, Pal.accent2 100%);
+                    }
+                }
+                HorizontalLayout {
+                    alignment: center;
+                    spacing: 10px;
+                    if S.dep-prep && !S.dep-busy: Btn { kind: "secondary"; text: T.dep-redownload; clicked => { S.redownload-deps(); } }
+                    Btn { kind: "primary"; text: T.btn-close; enabled: !S.dep-busy; clicked => { S.dep-show = false; S.dep-prep = false; } }
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- Dialogo generico
+    if S.dlg != 0: Rectangle {
+        background: #03081099;
+        TouchArea { }
+        Panel {
+            width: 440px;
+            alpha: Pal.a-strong;
+            VerticalLayout {
+                padding: 22px;
+                spacing: 12px;
+                alignment: center;
+                Rectangle {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 18px;
+                    background: S.dlg == 3 ? Pal.danger : S.dlg == 2 ? Pal.success : Pal.accent;
+                    Icon {
+                        x: 9px;
+                        name: S.dlg == 3 ? "error" : S.dlg == 2 ? "check" : S.dlg == 4 ? "warning" : "info";
+                        size: 18px;
+                        tint: S.dlg == 3 ? #ffffff : Pal.on-accent;
+                    }
+                }
+                Text { text: S.dlg-title; color: Pal.text; font-size: 14px; font-weight: 700; horizontal-alignment: center; wrap: word-wrap; }
+                if S.dlg-msg != "": Text { text: S.dlg-msg; color: Pal.muted; font-size: 12.5px; horizontal-alignment: center; wrap: word-wrap; }
+                if S.dlg == 5: Field {
+                    text <=> S.dlg-input;
+                    accepted(t) => { S.dialog-accept(S.dlg-action, t); }
+                }
+                HorizontalLayout {
+                    alignment: center;
+                    spacing: 10px;
+                    padding-top: 6px;
+                    if S.dlg >= 4: Btn { kind: "secondary"; text: T.btn-cancel; clicked => { S.dialog-cancel(); } }
+                    Btn {
+                        kind: "primary";
+                        min-width: 120px;
+                        text: S.dlg >= 4 ? "OK" : T.btn-close;
+                        clicked => { S.dialog-accept(S.dlg-action, S.dlg-input); }
+                    }
+                }
+            }
+        }
+    }
+}

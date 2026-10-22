@@ -1,0 +1,595 @@
+import { Pal } from "theme.slint";
+import { T } from "i18n.slint";
+import { S } from "state.slint";
+import { Icon, Panel, Btn, Field, Select, Check, Slide, ProgressBar, VScroll, FieldLabel, CardHead, Chip } from "widgets.slint";
+
+// Grupo "etiqueta + control".
+component FG inherits VerticalLayout {
+    in property <string> label;
+    spacing: 6px;
+    FieldLabel { text: root.label; }
+    @children
+}
+
+// Valor del slider (chip) junto a la etiqueta.
+component CqRow inherits HorizontalLayout {
+    in property <int> value;
+    FieldLabel { text: T.field-cq; horizontal-stretch: 1; }
+    Rectangle {
+        min-width: 34px;
+        height: 22px;
+        border-radius: Pal.brutal ? 2px : 11px;
+        border-width: 1px;
+        border-color: Pal.line.with-alpha(Pal.a-border);
+        background: Pal.input.with-alpha(Pal.a-soft);
+        Text { text: root.value; color: Pal.text; font-size: 12px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+    }
+}
+
+// ======================================================================
+//  Descargador
+// ======================================================================
+export component DownloadView inherits VerticalLayout {
+    spacing: 10px;
+
+    property <bool> is-video: S.mode-idx == 0;
+    property <bool> is-direct: S.direct-idx == 1;
+
+    // ---- 1. Busqueda
+    Panel {
+        border: Pal.line-strong;
+        VerticalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 6px;
+            CardHead { step: "1"; icon: "search"; title: T.cat-search; tint: Pal.c-search; }
+            FieldLabel { text: T.field-url; }
+            HorizontalLayout {
+                spacing: 9px;
+                url-field := Field {
+                    horizontal-stretch: 1;
+                    placeholder: "https://www.youtube.com/watch?v=...";
+                    text <=> S.url;
+                    edited(t) => { S.url-edited(t); }
+                    accepted(t) => { S.fetch-formats(); }
+                    changed has-focus => { S.url-has-focus = self.has-focus; }
+                }
+                Btn { icon-only: true; icon: "x"; kind: "normal"; clicked => { S.clear-url(); } }
+                Btn {
+                    kind: "primary";
+                    icon: S.fetching ? "spinner" : "search";
+                    text: S.fetching ? T.btn-fetch + "..." : T.btn-fetch;
+                    enabled: !S.fetching && S.st == 1;
+                    clicked => { S.fetch-formats(); }
+                }
+            }
+            Text {
+                text: S.title-line;
+                color: Pal.muted;
+                font-size: 12px;
+                min-height: 17px;
+                overflow: elide;
+            }
+        }
+    }
+
+    // ---- Presets
+    Panel {
+        HorizontalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 11px;
+            Icon { name: "layers"; size: 20px; tint: Pal.c-layers; }
+            Text { text: T.cat-presets; color: Pal.text; font-size: 13px; font-weight: 700; vertical-alignment: center; }
+            Select {
+                horizontal-stretch: 1;
+                h: 36px;
+                options: S.preset-opts;
+                current <=> S.preset-idx;
+            }
+            Btn { small: true; kind: "normal"; text: T.preset-apply; clicked => { S.apply-preset(); } }
+            Btn { small: true; kind: "normal"; icon: "check"; text: T.preset-save; clicked => { S.save-preset(); } }
+            Btn { small: true; kind: "normal"; text: T.preset-del; clicked => { S.delete-preset(); } }
+        }
+    }
+
+    // ---- Vista previa
+    if S.has-preview: Panel {
+        VerticalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            CardHead { icon: "preview"; title: T.cat-preview; tint: Pal.c-preview; }
+            HorizontalLayout {
+                spacing: 18px;
+                Rectangle {
+                    width: 220px;
+                    height: 124px;
+                    border-radius: Pal.radius-sm;
+                    border-width: 1px;
+                    border-color: Pal.line.with-alpha(Pal.a-border);
+                    background: Pal.input;
+                    clip: true;
+                    if S.pv-has-thumb: Image {
+                        source: S.pv-thumb;
+                        image-fit: cover;
+                        width: parent.width;
+                        height: parent.height;
+                    }
+                }
+                VerticalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    Text { text: S.pv-title; color: Pal.text; font-size: 17px; font-weight: 700; wrap: word-wrap; overflow: elide; max-height: 48px; }
+                    HorizontalLayout {
+                        spacing: 7px;
+                        alignment: start;
+                        for c in S.pv-chips: Chip { text: c; }
+                    }
+                    Text { text: S.pv-desc; color: Pal.muted; font-size: 12px; wrap: word-wrap; overflow: elide; max-height: 54px; }
+                }
+            }
+        }
+    }
+
+    // ---- 2. Salida  |  3. Codificacion
+    HorizontalLayout {
+        spacing: 10px;
+        Panel {
+            horizontal-stretch: 1;
+            VerticalLayout {
+                padding: 12px;
+                padding-left: 14px;
+                padding-right: 14px;
+                spacing: 10px;
+                CardHead { step: "2"; icon: "layers"; title: T.cat-output; tint: Pal.c-layers; }
+                FG {
+                    label: T.field-mode;
+                    Select {
+                        options: [T.mode-video, T.mode-audio];
+                        current <=> S.mode-idx;
+                        selected(i) => { S.mode-changed(); }
+                    }
+                }
+                FG {
+                    label: T.field-quality;
+                    Select {
+                        options: [T.q-manual, "4K · 2160p", "1440p", "1080p", "720p", "480p"];
+                        current <=> S.quality-idx;
+                    }
+                }
+                FG {
+                    label: T.field-vidfmt;
+                    Select {
+                        enabled: root.is-video;
+                        options: S.video-opts;
+                        current <=> S.video-idx;
+                    }
+                }
+                FG {
+                    label: T.field-audfmt;
+                    Select { options: S.audio-opts; current <=> S.audio-idx; }
+                }
+                FG {
+                    label: T.field-encmode;
+                    Select {
+                        options: [T.enc-reenc, T.enc-direct];
+                        current <=> S.direct-idx;
+                        selected(i) => { S.mode-changed(); }
+                    }
+                }
+            }
+        }
+        Panel {
+            horizontal-stretch: 1;
+            VerticalLayout {
+                padding: 12px;
+                padding-left: 14px;
+                padding-right: 14px;
+                spacing: 10px;
+                alignment: start;
+                CardHead { step: "3"; icon: "sliders"; title: T.cat-codec; tint: Pal.c-sliders; }
+                FG {
+                    label: T.field-hw;
+                    Select {
+                        enabled: root.is-video && !root.is-direct;
+                        options: [T.hw-nvidia, T.hw-amd, T.hw-cpu];
+                        current <=> S.hw-idx;
+                    }
+                }
+                FG {
+                    label: T.field-vcodec;
+                    Select {
+                        enabled: root.is-video && !root.is-direct;
+                        options: [T.codec-h264, T.codec-hevc, T.codec-av1, T.codec-vp9];
+                        current <=> S.codec-idx;
+                    }
+                }
+                FG {
+                    label: T.field-acodec;
+                    Select {
+                        enabled: !root.is-video && !root.is-direct;
+                        options: ["MP3", "AAC", "Opus", T.acodec-ogg, T.acodec-flac, T.acodec-wav];
+                        current <=> S.acodec-idx;
+                    }
+                }
+                VerticalLayout {
+                    spacing: 6px;
+                    CqRow { value: S.cq; }
+                    Slide {
+                        enabled: root.is-video && !root.is-direct;
+                        value <=> S.cq;
+                    }
+                    HorizontalLayout {
+                        Text { text: T.cq-best; color: Pal.muted; font-size: 10.5px; horizontal-stretch: 1; }
+                        Text { text: T.cq-lite; color: Pal.muted; font-size: 10.5px; horizontal-alignment: right; }
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- Opciones avanzadas (colapsable)
+    Panel {
+        VerticalLayout {
+            Rectangle {
+                height: 52px;
+                HorizontalLayout {
+                    padding-left: 18px;
+                    padding-right: 18px;
+                    spacing: 9px;
+                    Icon { name: "sliders"; size: 20px; tint: Pal.c-sliders; }
+                    Text { text: T.cat-advanced; color: Pal.text; font-size: 13px; font-weight: 700; vertical-alignment: center; }
+                    Text { text: T.adv-hint; color: Pal.muted; font-size: 11px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
+                    Icon { name: "chevron-down"; size: 16px; tint: Pal.muted; }
+                }
+                TouchArea { mouse-cursor: pointer; clicked => { S.adv-open = !S.adv-open; } }
+            }
+            if S.adv-open: VerticalLayout {
+                padding-left: 18px;
+                padding-right: 18px;
+                padding-bottom: 17px;
+                spacing: 12px;
+                HorizontalLayout {
+                    spacing: 12px;
+                    FG { label: T.adv-trim-start; horizontal-stretch: 1; Field { placeholder: "0:00"; text <=> S.trim-start; } }
+                    FG { label: T.adv-trim-end; horizontal-stretch: 1; Field { placeholder: "—"; text <=> S.trim-end; } }
+                }
+                HorizontalLayout {
+                    spacing: 12px;
+                    FG {
+                        label: T.adv-bitrate;
+                        horizontal-stretch: 1;
+                        Select {
+                            options: [T.adv-bitrate-default, "320 kbps", "256 kbps", "192 kbps", "128 kbps", "96 kbps"];
+                            current <=> S.abitrate-idx;
+                        }
+                    }
+                    FG {
+                        label: T.adv-cookies;
+                        horizontal-stretch: 1;
+                        Select {
+                            options: [T.adv-cookies-none, "Chrome", "Edge", "Firefox", "Brave", "Opera", "Vivaldi"];
+                            current <=> S.cookies-idx;
+                            selected(i) => { S.test-cookies(); }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 18px;
+                    alignment: start;
+                    Check { text: T.adv-norm; checked <=> S.audio-norm; }
+                    Check { text: T.adv-subs; checked <=> S.subs; }
+                    Check { text: T.adv-subs-embed; checked <=> S.subs-embed; }
+                }
+                HorizontalLayout {
+                    spacing: 18px;
+                    alignment: start;
+                    Check { text: T.adv-embed-thumb; checked <=> S.embed-thumb; }
+                    Check { text: T.adv-embed-meta; checked <=> S.embed-meta; }
+                }
+            }
+        }
+    }
+
+    // ---- 4. Destino
+    Panel {
+        VerticalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 6px;
+            CardHead { step: "4"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
+            FieldLabel { text: T.field-folder; }
+            HorizontalLayout {
+                spacing: 9px;
+                Field {
+                    horizontal-stretch: 1;
+                    placeholder: "...";
+                    text <=> S.out-dir;
+                    edited(t) => { S.out-dir-edited(); }
+                }
+                Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(0); } }
+            }
+            Text { text: S.space-hint; color: S.space-low ? Pal.warning : Pal.muted; font-size: 11.5px; min-height: 16px; }
+        }
+    }
+
+    // ---- Acciones
+    Panel {
+        HorizontalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 13px;
+            Btn {
+                horizontal-stretch: 1;
+                kind: "success";
+                icon: "play";
+                text: root.is-direct ? T.btn-download-direct : T.btn-download-reenc;
+                enabled: S.st == 1 && !S.busy;
+                clicked => { S.start-download(); }
+            }
+            Btn { kind: "secondary"; icon: "layers"; text: T.btn-enqueue; enabled: S.st == 1; clicked => { S.enqueue(); } }
+            if S.is-playlist: Btn { kind: "secondary"; icon: "download"; text: T.btn-playlist; enabled: S.st == 1; clicked => { S.enqueue-playlist(); } }
+            Btn { kind: "danger"; icon: "stop"; text: T.btn-cancel; enabled: S.busy; clicked => { S.cancel(); } }
+        }
+    }
+}
+
+// ======================================================================
+//  Archivos locales
+// ======================================================================
+export component LocalView inherits VerticalLayout {
+    spacing: 10px;
+    property <bool> is-video: S.local-mode-idx == 0;
+    property <bool> is-audio: S.local-mode-idx == 1;
+    property <bool> is-gif: S.local-mode-idx == 2;
+
+    Panel {
+        border: Pal.line-strong;
+        VerticalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 6px;
+            CardHead { step: "1"; icon: "file-video"; title: T.set-local; tint: Pal.c-file; }
+            FieldLabel { text: T.set-local-hint; }
+            HorizontalLayout {
+                spacing: 9px;
+                Field {
+                    horizontal-stretch: 1;
+                    read-only: true;
+                    placeholder: "...";
+                    text <=> S.local-file;
+                    border-color: S.local-dragging ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
+                }
+                Btn { kind: "secondary"; icon: "folder"; text: T.set-browse; clicked => { S.pick-local(); } }
+            }
+            Text { text: T.set-drop-hint; color: Pal.muted; font-size: 11px; }
+            VerticalLayout {
+                spacing: 12px;
+                padding-top: 8px;
+                HorizontalLayout {
+                    spacing: 12px;
+                    FG {
+                        label: T.set-local-type;
+                        horizontal-stretch: 1;
+                        Select {
+                            options: [T.mode-video, T.mode-audio, T.mode-gif];
+                            current <=> S.local-mode-idx;
+                        }
+                    }
+                    FG {
+                        label: T.field-acodec;
+                        horizontal-stretch: 1;
+                        Select {
+                            enabled: root.is-audio;
+                            options: ["MP3", "AAC", "Opus", T.acodec-ogg, T.acodec-flac, T.acodec-wav];
+                            current <=> S.local-acodec-idx;
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 12px;
+                    FG { label: T.adv-trim-start; horizontal-stretch: 1; Field { placeholder: "0:00"; text <=> S.local-trim-start; } }
+                    FG { label: T.adv-trim-end; horizontal-stretch: 1; Field { placeholder: "—"; text <=> S.local-trim-end; } }
+                }
+                if root.is-gif: HorizontalLayout {
+                    spacing: 12px;
+                    FG { label: T.gif-fps; horizontal-stretch: 1; Field { text <=> S.local-gif-fps; input-type: InputType.number; } }
+                    FG { label: T.gif-width; horizontal-stretch: 1; Field { text <=> S.local-gif-width; input-type: InputType.number; } }
+                }
+                Check { text: T.adv-norm; enabled: root.is-audio; checked <=> S.local-audio-norm; }
+            }
+        }
+    }
+
+    HorizontalLayout {
+        spacing: 10px;
+        Panel {
+            horizontal-stretch: 1;
+            VerticalLayout {
+                padding: 12px;
+                padding-left: 14px;
+                padding-right: 14px;
+                spacing: 10px;
+                alignment: start;
+                CardHead { step: "2"; icon: "sliders"; title: T.cat-codec; tint: Pal.c-sliders; }
+                FG {
+                    label: T.field-hw;
+                    Select { enabled: root.is-video; options: [T.hw-nvidia, T.hw-amd, T.hw-cpu]; current <=> S.local-hw-idx; }
+                }
+                FG {
+                    label: T.field-vcodec;
+                    Select { enabled: root.is-video; options: ["H.264", "HEVC / H.265", "AV1", "VP9"]; current <=> S.local-codec-idx; }
+                }
+                VerticalLayout {
+                    spacing: 6px;
+                    CqRow { value: S.local-cq; }
+                    Slide { enabled: root.is-video; value <=> S.local-cq; }
+                }
+            }
+        }
+        Rectangle { horizontal-stretch: 1; }
+    }
+
+    Panel {
+        VerticalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 6px;
+            CardHead { step: "3"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
+            FieldLabel { text: T.field-folder; }
+            HorizontalLayout {
+                spacing: 9px;
+                Field { horizontal-stretch: 1; placeholder: "..."; text <=> S.local-out-dir; }
+                Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(1); } }
+            }
+        }
+    }
+
+    Panel {
+        HorizontalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 13px;
+            Btn {
+                horizontal-stretch: 1;
+                kind: "success";
+                icon: "play";
+                text: root.is-audio ? T.set-local-to-audio : root.is-gif ? T.set-local-to-gif : T.set-local-go;
+                enabled: !S.busy;
+                clicked => { S.reencode-local(); }
+            }
+            Btn { kind: "danger"; icon: "stop"; text: T.btn-cancel; enabled: S.busy; clicked => { S.cancel(); } }
+        }
+    }
+}
+
+// ======================================================================
+//  Cola
+// ======================================================================
+export component QueueView inherits VerticalLayout {
+    Panel {
+        VerticalLayout {
+            padding: 12px;
+            padding-left: 14px;
+            padding-right: 14px;
+            spacing: 8px;
+            CardHead {
+                icon: "layers";
+                title: T.cat-queue;
+                tint: Pal.c-layers;
+                Rectangle { horizontal-stretch: 1; }
+                Btn { small: true; text: T.queue-clear; clicked => { S.queue-clear(); } }
+            }
+            if S.queue.length == 0: Text {
+                text: T.queue-empty;
+                color: Pal.muted;
+                font-size: 12px;
+                wrap: word-wrap;
+            }
+            for q in S.queue: Rectangle {
+                height: 46px;
+                border-radius: Pal.radius-sm;
+                border-width: Pal.brutal ? 2px : 1px;
+                border-color: q.status == 1 ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
+                background: Pal.input.with-alpha(Pal.a-soft);
+                HorizontalLayout {
+                    padding-left: 12px;
+                    padding-right: 8px;
+                    padding-top: 6px;
+                    padding-bottom: 6px;
+                    spacing: 12px;
+                    Rectangle {
+                        width: 96px;
+                        border-radius: 999px;
+                        background: q.status == 2 ? Pal.success : q.status == 3 ? Pal.danger : q.status == 1 ? Pal.accent : Pal.panel-strong;
+                        Text {
+                            text: q.status == 0 ? T.q-pending : q.status == 1 ? T.q-running : q.status == 2 ? T.q-done : T.q-failed;
+                            color: q.status == 0 ? Pal.muted : Pal.on-accent;
+                            font-size: 11px;
+                            font-weight: 700;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Text { text: q.title; color: Pal.text; font-size: 13px; vertical-alignment: center; overflow: elide; horizontal-stretch: 1; }
+                    HorizontalLayout {
+                        spacing: 6px;
+                        if q.status == 2 && q.output != "": Btn { small: true; icon-only: true; icon: "folder"; clicked => { S.queue-open(q.id); } }
+                        if q.status != 1: Btn { small: true; icon-only: true; icon: "x"; clicked => { S.queue-remove(q.id); } }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ======================================================================
+//  Actividad (progreso + consola)
+// ======================================================================
+export component ActivityCard inherits Panel {
+    VerticalLayout {
+        padding: 12px;
+        padding-left: 14px;
+        padding-right: 14px;
+        spacing: 8px;
+        CardHead {
+            icon: "terminal";
+            title: T.cat-activity;
+            tint: Pal.c-terminal;
+            Rectangle { horizontal-stretch: 1; }
+            if S.can-open-folder: Btn { small: true; icon: "folder"; text: T.btn-open-folder; clicked => { S.open-last-folder(); } }
+            Btn { small: true; icon: "hard-drive"; text: T.btn-history; clicked => { S.modal = 4; S.history-opened(); } }
+        }
+        HorizontalLayout {
+            Text { text: S.progress-label; color: Pal.muted; font-size: 12px; horizontal-stretch: 1; overflow: elide; }
+            Text { text: Math.round(S.progress * 100) + "%"; color: Pal.text; font-size: 12px; font-weight: 700; }
+        }
+        ProgressBar { value: S.progress; }
+        Rectangle {
+            height: 150px;
+            border-radius: Pal.radius-sm;
+            border-width: 1px;
+            border-color: Pal.log-border;
+            background: Pal.log-bg;
+            log-scroll := VScroll {
+                x: 0px;
+                y: 8px;
+                width: parent.width;
+                height: parent.height - 16px;
+                VerticalLayout {
+                    padding-left: 12px;
+                    padding-right: 6px;
+                    spacing: 1px;
+                    for l in S.log: Text {
+                        text: l.text;
+                        wrap: word-wrap;
+                        font-size: 12px;
+                        color: l.level == 1 ? Pal.log-cmd : l.level == 2 ? Pal.log-ok : l.level == 3 ? Pal.log-err : l.level == 4 ? Pal.log-info : Pal.log-text;
+                    }
+                }
+            }
+            scroll-timer := Timer {
+                interval: 40ms;
+                running: false;
+                triggered => {
+                    log-scroll.scroll-to-end();
+                    self.running = false;
+                }
+            }
+            changed-watcher := Rectangle {
+                width: 0px;
+                height: 0px;
+                property <int> rev: S.log-rev;
+                changed rev => { scroll-timer.running = true; }
+            }
+        }
+    }
+}
