@@ -14,6 +14,8 @@ component ModalFrame inherits Rectangle {
     Panel {
         width: Math.min(root.w, root.width - 48px);
         height: Math.min(root.height - 48px, 700px);
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
         alpha: Pal.a-strong;
         // el panel captura clics para no cerrar el modal
         TouchArea { }
@@ -387,6 +389,8 @@ export component AllModals inherits Rectangle {
         Panel {
             width: 440px;
             height: 230px;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
             alpha: Pal.a-strong;
             VerticalLayout {
                 padding: 22px;
@@ -428,6 +432,8 @@ export component AllModals inherits Rectangle {
         TouchArea { }
         Panel {
             width: 440px;
+            x: (parent.width - self.width) / 2;
+            y: (parent.height - self.height) / 2;
             alpha: Pal.a-strong;
             VerticalLayout {
                 padding: 22px;

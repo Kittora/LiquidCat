@@ -363,7 +363,10 @@ export component VScroll inherits Rectangle {
         width: parent.width - 12px;
         scroll-event(e) => {
             if (root.needs) {
-                fl.viewport-y = Math.max(-root.overflow, Math.min(0px, fl.viewport-y + e.delta-y * Theme.wheel-step));
+                let next = Math.max(-root.overflow, Math.min(0px, fl.viewport-y + e.delta-y * Theme.wheel-step));
+                // En el borde: cede el evento al scroll padre (logs dentro de la pagina).
+                if (next == fl.viewport-y) { return EventResult.reject; }
+                fl.viewport-y = next;
                 return EventResult.accept;
             }
             return EventResult.reject;
