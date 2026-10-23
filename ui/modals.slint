@@ -28,7 +28,7 @@ component ModalFrame inherits Rectangle {
                     Text { text: "LIQUIDCAT"; color: Pal.accent; font-size: 10px; font-weight: 800; }
                     Text { text: root.title; color: Pal.text; font-size: 22px; font-weight: 700; }
                 }
-                if root.show-links: Btn { small: true; icon: "github"; text: T.credit-btn-repo; clicked => { S.soon("repo"); } }
+                if root.show-links: Btn { small: true; icon: "github"; text: T.credit-btn-repo; clicked => { S.open-link("https://github.com/Kittora/LiquidCat"); } }
                 if root.show-links: Btn { small: true; icon: "discord"; text: T.credit-btn-discord; clicked => { S.soon("discord"); } }
                 Btn { icon-only: true; icon: "x"; clicked => { root.close(); } }
             }
@@ -224,6 +224,9 @@ export component AllModals inherits Rectangle {
                             Link { text: "github.com/xjuanfxx"; url: "https://github.com/xjuanfxx"; }
                             Text { text: "notTao — " + T.credit-helper-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                             Link { text: "github.com/notTao"; url: "https://github.com/notTao"; }
+                            VerticalLayout { padding-top: 8px; }
+                            Text { text: T.credit-btn-repo; color: Pal.muted; font-size: 12px; }
+                            Link { text: "github.com/Kittora/LiquidCat"; url: "https://github.com/Kittora/LiquidCat"; }
                             Text { text: T.credit-dev-themes-label + ": Neo Brutalist (Light / Dark)"; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                             Text { text: T.credit-dev-feature-label + ": " + T.credit-dev-feature; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                         }
@@ -295,6 +298,11 @@ export component AllModals inherits Rectangle {
                 spacing: 12px;
                 padding-right: 6px;
                 Text { text: T.wiki-intro; color: Pal.text; font-size: 13px; wrap: word-wrap; }
+                HorizontalLayout {
+                    spacing: 8px;
+                    Text { text: T.credit-btn-repo + ":"; color: Pal.muted; font-size: 12px; vertical-alignment: center; }
+                    Link { text: "github.com/Kittora/LiquidCat"; url: "https://github.com/Kittora/LiquidCat"; font-size: 12px; }
+                }
                 HorizontalLayout {
                     spacing: 12px;
                     VerticalLayout {

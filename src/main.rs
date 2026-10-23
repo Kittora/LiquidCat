@@ -14,9 +14,12 @@ mod util;
 slint::include_modules!();
 
 fn main() {
-    // Renderer por software por defecto: es el que menos memoria usa (~25 MB).
-    // Para forzar OpenGL: LIQUIDCAT_GL=1
-    if std::env::var_os("SLINT_BACKEND").is_none() && std::env::var_os("LIQUIDCAT_GL").is_none() {
+    // Renderer: por defecto Slint usa FemtoVG (GPU/OpenGL, con vsync a la tasa
+    // del monitor: 60/120/144 Hz) y, si no hay OpenGL disponible, cae solo al
+    // renderer por software. Ese fallback automatico solo ocurre si NO
+    // forzamos el backend a mano.
+    // Para forzar software (menos memoria, sin vsync): LIQUIDCAT_SOFTWARE=1
+    if std::env::var_os("SLINT_BACKEND").is_none() && std::env::var_os("LIQUIDCAT_SOFTWARE").is_some() {
         std::env::set_var("SLINT_BACKEND", "winit-software");
     }
     let app = App::new().expect("no se pudo crear la ventana");

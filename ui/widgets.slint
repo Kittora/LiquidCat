@@ -64,8 +64,8 @@ export component Btn inherits Rectangle {
     property <color> fg: kind == "primary" || kind == "success" ? Pal.on-accent : kind == "danger" ? #ffffff : Pal.text;
 
     horizontal-stretch: 0;
-    min-height: icon-only ? 38px : compact ? 36px : small ? 34px : 40px;
-    min-width: icon-only ? 38px : 0px;
+    min-height: icon-only ? 32px : compact ? 30px : small ? 30px : 36px;
+    min-width: icon-only ? 32px : 0px;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: ta.pressed && root.enabled ? fill.darker(0.12) : fill;
@@ -370,6 +370,9 @@ export component VScroll inherits Rectangle {
     fl := Flickable {
         width: parent.width - 8px;
         interactive: false;
+        // Desplazamiento suave: la rueda fija el destino y la vista lo alcanza
+        // interpolada (a la tasa del monitor con el renderer GPU: hasta 120 Hz).
+        animate viewport-y { duration: 140ms; easing: ease-out; }
         VerticalLayout {
             alignment: start;
             @children

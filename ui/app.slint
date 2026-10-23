@@ -30,8 +30,8 @@ component WinButton inherits Rectangle {
 // Boton de idioma con bandera.
 component LangBtn inherits Rectangle {
     callback clicked();
-    min-height: 36px;
-    width: 70px;
+    min-height: 28px;
+    width: 58px;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: ta.pressed ? Pal.panel-strong.darker(0.12) : Pal.panel-strong.with-alpha(Pal.a-soft);
@@ -40,10 +40,10 @@ component LangBtn inherits Rectangle {
     if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: Pal.hard-ctrl; }
     HorizontalLayout {
         alignment: center;
-        spacing: 8px;
-        if S.lang == "es": Image { source: @image-url("../assets/flag-mx.png"); width: 22px; height: 15px; y: (parent.height - self.height) / 2; }
-        if S.lang != "es": Image { source: @image-url("../assets/flag-us.png"); width: 22px; height: 15px; y: (parent.height - self.height) / 2; }
-        Text { text: S.lang == "es" ? "ES" : "EN"; color: Pal.text; font-size: 12px; font-weight: 700; vertical-alignment: center; }
+        spacing: 6px;
+        if S.lang == "es": Image { source: @image-url("../assets/flag-mx.png"); width: 18px; height: 12px; y: (parent.height - self.height) / 2; }
+        if S.lang != "es": Image { source: @image-url("../assets/flag-us.png"); width: 18px; height: 12px; y: (parent.height - self.height) / 2; }
+        Text { text: S.lang == "es" ? "ES" : "EN"; color: Pal.text; font-size: 11px; font-weight: 700; vertical-alignment: center; }
     }
     ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
 }
@@ -96,11 +96,11 @@ component StatusPill inherits Rectangle {
     border-radius: Pal.brutal ? 2px : 999px;
     border-width: Pal.brutal ? 2px : 1px;
     border-color: Pal.line.with-alpha(Pal.a-border);
-    min-height: 32px;
+    min-height: 28px;
     HorizontalLayout {
-        padding-left: 12px;
-        padding-right: 12px;
-        spacing: 11px;
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 8px;
         alignment: center;
         if S.st != 1: Rectangle {
             y: (parent.height - self.height) / 2;
@@ -112,29 +112,29 @@ component StatusPill inherits Rectangle {
         if S.st != 1: Text {
             text: S.st == 0 ? T.st-checking : T.st-missing + S.st-missing;
             color: S.st == 2 ? Pal.danger : Pal.muted;
-            font-size: 11.5px;
+            font-size: 11px;
             vertical-alignment: center;
             overflow: elide;
             max-width: 300px;
         }
         if S.st == 1: HorizontalLayout {
-            spacing: 5px;
-            Icon { name: "check"; size: 14px; tint: Pal.success; }
-            Text { text: "yt-dlp"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+            spacing: 4px;
+            Icon { name: "check"; size: 13px; tint: Pal.success; }
+            Text { text: "yt-dlp"; color: Pal.success; font-size: 11px; font-weight: 700; vertical-alignment: center; }
         }
         if S.st == 1: HorizontalLayout {
-            spacing: 5px;
-            Icon { name: "check"; size: 14px; tint: Pal.success; }
-            Text { text: "ffmpeg"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+            spacing: 4px;
+            Icon { name: "check"; size: 13px; tint: Pal.success; }
+            Text { text: "ffmpeg"; color: Pal.success; font-size: 11px; font-weight: 700; vertical-alignment: center; }
         }
-        if S.st == 1: Rectangle { width: 1px; height: 14px; y: (parent.height - self.height) / 2; background: Pal.line.with-alpha(0.7); }
+        if S.st == 1: Rectangle { width: 1px; height: 12px; y: (parent.height - self.height) / 2; background: Pal.line.with-alpha(0.7); }
         if S.st == 1: HorizontalLayout {
-            spacing: 5px;
-            Icon { name: "chip"; size: 14px; tint: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff; }
+            spacing: 4px;
+            Icon { name: "chip"; size: 13px; tint: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff; }
             Text {
                 text: S.gpu == "nvidia" ? "NVIDIA" : S.gpu == "amd" ? "AMD" : "CPU";
                 color: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff;
-                font-size: 11.5px;
+                font-size: 11px;
                 font-weight: 700;
                 vertical-alignment: center;
             }
@@ -150,7 +150,9 @@ export component App inherits Window {
     min-height: 560px;
     preferred-width: 1180px;
     preferred-height: 800px;
-    background: Pal.bg;
+    // Ventana transparente: fuera del contenedor redondeado no se pinta nada,
+    // asi las esquinas dejan ver el escritorio en vez de un segundo fondo.
+    background: transparent;
     default-font-family: "Inter Variable";
     default-font-size: 14px;
 
@@ -169,10 +171,21 @@ export component App inherits Window {
         }
     }
 
+    // Esquinas redondeadas de la ventana (0 al maximizar para no dejar huecos).
+    property <length> corner-radius: S.maximized ? 0px : 12px;
+
+    // Contenedor redondeado que da forma a toda la app.
+    Rectangle {
+        border-radius: root.corner-radius;
+        clip: true;
+        background: Pal.bg;
+
     VerticalLayout {
         // ------------------------------------------------ barra de titulo
         Rectangle {
             height: 44px;
+            border-top-left-radius: root.corner-radius;
+            border-top-right-radius: root.corner-radius;
             background: Pal.surface.with-alpha(Pal.a-strong);
             Rectangle { y: parent.height - 1px; height: 1px; background: Pal.line.with-alpha(Pal.a-border); }
             TouchArea {
@@ -203,6 +216,8 @@ export component App inherits Window {
         // ------------------------------------------------ cuerpo
         Rectangle {
             vertical-stretch: 1;
+            border-bottom-left-radius: root.corner-radius;
+            border-bottom-right-radius: root.corner-radius;
             background: @linear-gradient(145deg, Pal.bg-accent 0%, Pal.bg 54%);
             clip: true;
 
@@ -231,15 +246,15 @@ export component App inherits Window {
 
                 // cabecera
                 Panel {
-                    height: 74px;
+                    height: 58px;
                     HorizontalLayout {
-                        padding-left: 16px;
-                        padding-right: 16px;
-                        spacing: 24px;
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        spacing: 16px;
                         VerticalLayout {
                             horizontal-stretch: 1;
                             alignment: center;
-                            spacing: 3px;
+                            spacing: 1px;
                             if Pal.brutal: Rectangle {
                                 height: 17px;
                                 width: 164px;
@@ -248,11 +263,11 @@ export component App inherits Window {
                                 border-color: Pal.line;
                                 Text { text: "OZO MEDIA WORKSPACE"; color: Pal.on-accent; font-size: 10px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
                             }
-                            Text { text: "LiquidCat"; color: Pal.text; font-size: 22px; font-weight: 700; }
-                            Text { text: T.app-subtitle; color: Pal.muted; font-size: 12.5px; overflow: elide; }
+                            Text { text: "LiquidCat"; color: Pal.text; font-size: 19px; font-weight: 700; }
+                            Text { text: T.app-subtitle; color: Pal.muted; font-size: 11.5px; overflow: elide; }
                         }
                         HorizontalLayout {
-                            spacing: 10px;
+                            spacing: 8px;
                             alignment: end;
                             StatusPill { }
                             LangBtn { clicked => { S.toggle-lang(); } }
@@ -315,6 +330,7 @@ export component App inherits Window {
                 }
             }
         }
+    }
     }
 
     // ---- bordes para redimensionar (ventana sin marco)

@@ -32,7 +32,7 @@
 
 LiquidCat brings media downloading, conversion and re-encoding into one focused desktop application. Paste a compatible link or select a local file, choose the result you want, and let LiquidCat handle the processing pipeline.
 
-This version is a **complete native rewrite** from the ground up. Tauri and WebView2 have been completely removed; the interface is now drawn using **Rust and Slint**, resulting in a snappy, single-executable experience with a tiny memory footprint (~25 MB idle).
+This version is a **complete native rewrite** from the ground up. Tauri and WebView2 have been completely removed; the interface is now drawn using **Rust and Slint**, resulting in a snappy, single-executable experience with a tiny memory footprint (~25 MB idle with the software renderer).
 
 > [!NOTE]
 > LiquidCat is designed for media you own or are authorized to download and process. You are responsible for respecting applicable copyright rules and platform terms.
