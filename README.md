@@ -143,16 +143,35 @@ Open the finished file or its destination folder
 
 ## Roadmap
 
-- [x] Native Slint UI (no WebView, single executable)
-- [x] Download, convert, re-encode and trim pipelines
-- [x] Job queue, history and 14 built-in themes
-- [ ] Real banner and screenshots in this README
-- [ ] Automated release publishing from the Windows workflow
-- [ ] Code-signed builds
-- [ ] Linux and macOS builds
+- [x] Link-based video and audio downloads
+- [x] Format, resolution and quality selection
+- [x] Local file conversion and re-encoding
+- [x] Trimming, subtitles, thumbnails and metadata
+- [x] Processing queue and job history
+- [x] Self-contained runtime for end users
+- [ ] Reusable download and conversion presets
+- [ ] Batch import for links and local files
+- [ ] Expanded accessibility and keyboard navigation
+- [ ] Additional application languages
+
+Roadmap items may change as LiquidCat evolves.
+
+## Contributing
+
+Issues and focused pull requests are welcome. Before proposing a large change, open an issue so the scope and expected behavior can be discussed first.
 
 ## Authors
 
-- **xjuanfxx** ([@Kittora](https://github.com/Kittora)) — author and maintainer
+Built by **JuanFX** and **Adaki**.
 
-See also the full list of [contributors](https://github.com/Kittora/LiquidCat/graphs/contributors) who participated in this project.
+## Acknowledgements
+
+LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/) and the [Catppuccin](https://catppuccin.com/) color palette.
+
+---
+
+<div align="center">
+
+<sub>Crafted with glass, color and a little bit of cat energy.</sub>
+
+</div>
