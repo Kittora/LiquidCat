@@ -117,7 +117,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 
 ### Windows
 
-1. Open the repository's **[Releases](https://github.com/xjuanfxx/LiquidCat/releases)** page.
+1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
 2. Download the latest `LiquidCat-0.1.0-windows-x86_64.exe` (currently in Pre-release).
 3. Run `LiquidCat.exe`. 
 
@@ -139,3 +139,20 @@ LiquidCat prepares the yt-dlp / FFmpeg job
 Track progress in the queue
         ↓
 Open the finished file or its destination folder
+```
+
+## Roadmap
+
+- [x] Native Slint UI (no WebView, single executable)
+- [x] Download, convert, re-encode and trim pipelines
+- [x] Job queue, history and 14 built-in themes
+- [ ] Real banner and screenshots in this README
+- [ ] Automated release publishing from the Windows workflow
+- [ ] Code-signed builds
+- [ ] Linux and macOS builds
+
+## Authors
+
+- **xjuanfxx** ([@Kittora](https://github.com/Kittora)) — author and maintainer
+
+See also the full list of [contributors](https://github.com/Kittora/LiquidCat/graphs/contributors) who participated in this project.
