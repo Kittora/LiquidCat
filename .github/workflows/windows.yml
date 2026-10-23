@@ -20,6 +20,9 @@ jobs:
       - name: Compilar (release)
         run: cargo build --release
 
+      - name: Clippy
+        run: cargo clippy --all-targets
+
       - name: Empaquetar
         shell: pwsh
         run: |

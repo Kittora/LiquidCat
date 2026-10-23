@@ -1,4 +1,4 @@
-import { Pal } from "theme.slint";
+import { Pal, Theme } from "theme.slint";
 import { IconData } from "icon_data.slint";
 
 // ---------------------------------------------------------------- Icono
@@ -64,8 +64,8 @@ export component Btn inherits Rectangle {
     property <color> fg: kind == "primary" || kind == "success" ? Pal.on-accent : kind == "danger" ? #ffffff : Pal.text;
 
     horizontal-stretch: 0;
-    min-height: icon-only ? 32px : compact ? 30px : small ? 30px : 36px;
-    min-width: icon-only ? 32px : 0px;
+    min-height: icon-only ? Theme.control-h : compact ? Theme.control-h-sm : small ? Theme.control-h-sm : Theme.control-h;
+    min-width: icon-only ? Theme.control-h : 0px;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: ta.pressed && root.enabled ? fill.darker(0.12) : fill;
@@ -75,20 +75,20 @@ export component Btn inherits Rectangle {
     if Pal.brutal && !ta.pressed: Rectangle { x: parent.width; y: 3px; width: 3px; height: parent.height; background: Pal.hard-ctrl; }
     if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: Pal.hard-ctrl; }
     HorizontalLayout {
-        padding-left: root.icon-only ? 0px : root.compact ? 10px : root.small ? 10px : 15px;
-        padding-right: root.icon-only ? 0px : root.compact ? 10px : root.small ? 10px : 15px;
-        spacing: 8px;
+        padding-left: root.icon-only ? 0px : (root.compact || root.small ? Theme.ctrl-pad-x : Theme.btn-pad-x);
+        padding-right: root.icon-only ? 0px : (root.compact || root.small ? Theme.ctrl-pad-x : Theme.btn-pad-x);
+        spacing: 6px;
         alignment: center;
         if root.icon != "": Icon {
             name: root.icon;
             tint: root.fg;
-            size: root.small || root.compact ? 16px : 18px;
+            size: root.small || root.compact ? 15px : 16px;
         }
         if root.text != "": Text {
             text: root.text;
             color: root.fg;
             font-weight: 700;
-            font-size: root.small || root.compact ? 12px : 14px;
+            font-size: Theme.font-btn;
             vertical-alignment: center;
             overflow: elide;
         }
@@ -112,7 +112,7 @@ export component Field inherits Rectangle {
     callback accepted(string);
     public function focus-input() { ti.focus(); }
 
-    height: 42px;
+    height: Theme.control-h;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: Pal.input.with-alpha(Pal.a-soft);
@@ -121,13 +121,13 @@ export component Field inherits Rectangle {
     clip: true;
 
     ti := TextInput {
-        x: 12px;
+        x: 10px;
         y: 0px;
-        width: parent.width - 24px;
+        width: parent.width - 20px;
         height: parent.height;
         vertical-alignment: center;
         color: Pal.text;
-        font-size: 14px;
+        font-size: Theme.font-body;
         single-line: true;
         read-only: root.read-only;
         enabled: root.enabled;
@@ -138,12 +138,12 @@ export component Field inherits Rectangle {
         accepted => { root.accepted(self.text); }
     }
     if ti.text == "": Text {
-        x: 12px;
+        x: 10px;
         y: (parent.height - self.height) / 2;
-        width: parent.width - 24px;
+        width: parent.width - 20px;
         text: root.placeholder;
         color: Pal.muted.with-alpha(0.65);
-        font-size: 14px;
+        font-size: Theme.font-body;
         overflow: elide;
     }
 }
@@ -153,7 +153,7 @@ export component Select inherits Rectangle {
     in property <[string]> options;
     in-out property <int> current: 0;
     in property <bool> enabled: true;
-    in property <length> h: 42px;
+    in property <length> h: Theme.control-h;
     callback selected(int);
 
     height: h;
@@ -164,18 +164,18 @@ export component Select inherits Rectangle {
     opacity: enabled ? 1.0 : 0.48;
 
     HorizontalLayout {
-        padding-left: 12px;
-        padding-right: 10px;
+        padding-left: Theme.ctrl-pad-x;
+        padding-right: 8px;
         spacing: 6px;
         Text {
             horizontal-stretch: 1;
             text: root.options.length > 0 && root.current >= 0 && root.current < root.options.length ? root.options[root.current] : "";
             color: Pal.text;
-            font-size: root.h < 40px ? 12px : 14px;
+            font-size: Theme.font-body;
             vertical-alignment: center;
             overflow: elide;
         }
-        Icon { name: "chevron-down"; size: 16px; tint: Pal.accent; }
+        Icon { name: "chevron-down"; size: 14px; tint: Pal.accent; }
     }
     ta := TouchArea {
         enabled: root.enabled;
@@ -186,7 +186,7 @@ export component Select inherits Rectangle {
         x: 0px;
         y: root.height + 5px;
         width: root.width;
-        height: Math.min(root.options.length * 36px + 12px, 292px);
+        height: Math.min(root.options.length * Theme.control-h-sm + 12px, 280px);
         close-policy: close-on-click-outside;
         Rectangle {
             background: Pal.panel.with-alpha(Pal.a-solid);
@@ -194,12 +194,12 @@ export component Select inherits Rectangle {
             border-width: 1px;
             border-color: Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.1));
             Flickable {
-                viewport-height: root.options.length * 36px + 12px;
+                viewport-height: root.options.length * Theme.control-h-sm + 12px;
                 for opt[i] in root.options: Rectangle {
                     x: 6px;
-                    y: 6px + i * 36px;
+                    y: 6px + i * Theme.control-h-sm;
                     width: parent.width - 12px;
-                    height: 36px;
+                    height: Theme.control-h-sm;
                     border-radius: Math.max(2px, Pal.radius-sm - 3px);
                     background: item.has-hover ? Pal.accent.with-alpha(0.22) : i == root.current ? Pal.accent.with-alpha(0.12) : transparent;
                     Text {
@@ -207,7 +207,7 @@ export component Select inherits Rectangle {
                         width: parent.width - 22px;
                         text: opt;
                         color: i == root.current ? Pal.accent : Pal.text;
-                        font-size: 14px;
+                        font-size: Theme.font-body;
                         vertical-alignment: center;
                         overflow: elide;
                     }
@@ -357,11 +357,13 @@ export component VScroll inherits Rectangle {
     property <length> overflow: Math.max(1px, fl.viewport-height - root.height);
 
     // Rueda del raton: va DETRAS del contenido para no tragarse los clics.
+    // Sin animacion: el delta se aplica de inmediato (con multiplicador
+    // constante) para que responda 1:1 con la rueda.
     TouchArea {
         width: parent.width - 12px;
         scroll-event(e) => {
             if (root.needs) {
-                fl.viewport-y = Math.max(-root.overflow, Math.min(0px, fl.viewport-y + e.delta-y));
+                fl.viewport-y = Math.max(-root.overflow, Math.min(0px, fl.viewport-y + e.delta-y * Theme.wheel-step));
                 return EventResult.accept;
             }
             return EventResult.reject;
@@ -370,9 +372,6 @@ export component VScroll inherits Rectangle {
     fl := Flickable {
         width: parent.width - 8px;
         interactive: false;
-        // Desplazamiento suave: la rueda fija el destino y la vista lo alcanza
-        // interpolada (a la tasa del monitor con el renderer GPU: hasta 120 Hz).
-        animate viewport-y { duration: 140ms; easing: ease-out; }
         VerticalLayout {
             alignment: start;
             @children
@@ -406,7 +405,7 @@ export component VScroll inherits Rectangle {
 // ---------------------------------------------------------------- Etiqueta de campo
 export component FieldLabel inherits Text {
     color: Pal.muted;
-    font-size: 12px;
+    font-size: Theme.font-label;
     font-weight: 700;
 }
 
@@ -416,30 +415,30 @@ export component CardHead inherits HorizontalLayout {
     in property <string> icon;
     in property <string> title;
     in property <color> tint: Pal.accent;
-    spacing: 9px;
-    padding-bottom: 11px;
+    spacing: 8px;
+    padding-bottom: 8px;
     if step != "": Rectangle {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         y: (parent.height - self.height) / 2;
-        border-radius: Pal.brutal ? 0px : 11px;
+        border-radius: Pal.brutal ? 0px : 10px;
         border-width: Pal.brutal ? 2px : 0px;
         border-color: Pal.line;
         background: tint;
         Text {
             text: step;
             color: Pal.on-accent;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
     }
-    Icon { name: icon; size: 20px; tint: root.tint; }
+    Icon { name: icon; size: 18px; tint: root.tint; }
     Text {
         text: title;
         color: Pal.text;
-        font-size: 13px;
+        font-size: Theme.font-title;
         font-weight: 700;
         vertical-alignment: center;
     }
@@ -454,10 +453,10 @@ export component Chip inherits Rectangle {
     border-radius: Pal.brutal ? 2px : 999px;
     border-width: Pal.brutal ? 2px : 1px;
     border-color: Pal.line.with-alpha(Pal.a-border);
-    min-height: 26px;
+    min-height: 24px;
     HorizontalLayout {
-        padding-left: 9px;
-        padding-right: 9px;
-        Text { text: root.text; color: root.fg; font-size: 11.5px; vertical-alignment: center; }
+        padding-left: 8px;
+        padding-right: 8px;
+        Text { text: root.text; color: root.fg; font-size: 11px; vertical-alignment: center; }
     }
 }

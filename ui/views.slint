@@ -1,4 +1,4 @@
-import { Pal } from "theme.slint";
+import { Pal, Theme } from "theme.slint";
 import { T } from "i18n.slint";
 import { S } from "state.slint";
 import { Icon, Panel, Btn, Field, Select, Check, Slide, ProgressBar, VScroll, FieldLabel, CardHead, Chip } from "widgets.slint";
@@ -6,7 +6,7 @@ import { Icon, Panel, Btn, Field, Select, Check, Slide, ProgressBar, VScroll, Fi
 // Grupo "etiqueta + control".
 component FG inherits VerticalLayout {
     in property <string> label;
-    spacing: 6px;
+    spacing: Theme.gap-sm;
     FieldLabel { text: root.label; }
     @children
 }
@@ -30,7 +30,7 @@ component CqRow inherits HorizontalLayout {
 //  Descargador
 // ======================================================================
 export component DownloadView inherits VerticalLayout {
-    spacing: 10px;
+    spacing: Theme.gap;
 
     property <bool> is-video: S.mode-idx == 0;
     property <bool> is-direct: S.direct-idx == 1;
@@ -39,14 +39,14 @@ export component DownloadView inherits VerticalLayout {
     Panel {
         border: Pal.line-strong;
         VerticalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
-            spacing: 6px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap-sm;
             CardHead { step: "1"; icon: "search"; title: T.cat-search; tint: Pal.c-search; }
             FieldLabel { text: T.field-url; }
             HorizontalLayout {
-                spacing: 9px;
+                spacing: Theme.gap;
                 url-field := Field {
                     horizontal-stretch: 1;
                     placeholder: "https://www.youtube.com/watch?v=...";
@@ -77,15 +77,14 @@ export component DownloadView inherits VerticalLayout {
     // ---- Presets
     Panel {
         HorizontalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
-            spacing: 11px;
-            Icon { name: "layers"; size: 20px; tint: Pal.c-layers; }
-            Text { text: T.cat-presets; color: Pal.text; font-size: 13px; font-weight: 700; vertical-alignment: center; }
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap;
+            Icon { name: "layers"; size: 18px; tint: Pal.c-layers; }
+            Text { text: T.cat-presets; color: Pal.text; font-size: Theme.font-title; font-weight: 700; vertical-alignment: center; }
             Select {
                 horizontal-stretch: 1;
-                h: 36px;
                 options: S.preset-opts;
                 current <=> S.preset-idx;
             }
@@ -98,9 +97,9 @@ export component DownloadView inherits VerticalLayout {
     // ---- Vista previa
     if S.has-preview: Panel {
         VerticalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
             CardHead { icon: "preview"; title: T.cat-preview; tint: Pal.c-preview; }
             HorizontalLayout {
                 spacing: 18px;
@@ -136,14 +135,14 @@ export component DownloadView inherits VerticalLayout {
 
     // ---- 2. Salida  |  3. Codificacion
     HorizontalLayout {
-        spacing: 10px;
+        spacing: Theme.gap;
         Panel {
             horizontal-stretch: 1;
             VerticalLayout {
-                padding: 12px;
-                padding-left: 14px;
-                padding-right: 14px;
-                spacing: 10px;
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap;
                 CardHead { step: "2"; icon: "layers"; title: T.cat-output; tint: Pal.c-layers; }
                 FG {
                     label: T.field-mode;
@@ -185,10 +184,10 @@ export component DownloadView inherits VerticalLayout {
         Panel {
             horizontal-stretch: 1;
             VerticalLayout {
-                padding: 12px;
-                padding-left: 14px;
-                padding-right: 14px;
-                spacing: 10px;
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap;
                 alignment: start;
                 CardHead { step: "3"; icon: "sliders"; title: T.cat-codec; tint: Pal.c-sliders; }
                 FG {
@@ -216,7 +215,7 @@ export component DownloadView inherits VerticalLayout {
                     }
                 }
                 VerticalLayout {
-                    spacing: 6px;
+                    spacing: Theme.gap-sm;
                     CqRow { value: S.cq; }
                     Slide {
                         enabled: root.is-video && !root.is-direct;
@@ -235,30 +234,30 @@ export component DownloadView inherits VerticalLayout {
     Panel {
         VerticalLayout {
             Rectangle {
-                height: 52px;
+                height: Theme.control-h + 8px;
                 HorizontalLayout {
-                    padding-left: 18px;
-                    padding-right: 18px;
-                    spacing: 9px;
-                    Icon { name: "sliders"; size: 20px; tint: Pal.c-sliders; }
-                    Text { text: T.cat-advanced; color: Pal.text; font-size: 13px; font-weight: 700; vertical-alignment: center; }
-                    Text { text: T.adv-hint; color: Pal.muted; font-size: 11px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
-                    Icon { name: "chevron-down"; size: 16px; tint: Pal.muted; }
+                    padding-left: Theme.card-pad-x;
+                    padding-right: Theme.card-pad-x;
+                    spacing: Theme.gap;
+                    Icon { name: "sliders"; size: 18px; tint: Pal.c-sliders; }
+                    Text { text: T.cat-advanced; color: Pal.text; font-size: Theme.font-title; font-weight: 700; vertical-alignment: center; }
+                    Text { text: T.adv-hint; color: Pal.muted; font-size: 10.5px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
+                    Icon { name: "chevron-down"; size: 15px; tint: Pal.muted; }
                 }
                 TouchArea { mouse-cursor: pointer; clicked => { S.adv-open = !S.adv-open; } }
             }
             if S.adv-open: VerticalLayout {
-                padding-left: 18px;
-                padding-right: 18px;
-                padding-bottom: 17px;
-                spacing: 12px;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                padding-bottom: Theme.card-pad;
+                spacing: Theme.gap-lg;
                 HorizontalLayout {
-                    spacing: 12px;
+                    spacing: Theme.gap-lg;
                     FG { label: T.adv-trim-start; horizontal-stretch: 1; Field { placeholder: "0:00"; text <=> S.trim-start; } }
                     FG { label: T.adv-trim-end; horizontal-stretch: 1; Field { placeholder: "—"; text <=> S.trim-end; } }
                 }
                 HorizontalLayout {
-                    spacing: 12px;
+                    spacing: Theme.gap-lg;
                     FG {
                         label: T.adv-bitrate;
                         horizontal-stretch: 1;
@@ -297,14 +296,14 @@ export component DownloadView inherits VerticalLayout {
     // ---- 4. Destino
     Panel {
         VerticalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
-            spacing: 6px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap-sm;
             CardHead { step: "4"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
             FieldLabel { text: T.field-folder; }
             HorizontalLayout {
-                spacing: 9px;
+                spacing: Theme.gap;
                 Field {
                     horizontal-stretch: 1;
                     placeholder: "...";
@@ -320,10 +319,10 @@ export component DownloadView inherits VerticalLayout {
     // ---- Acciones
     Panel {
         HorizontalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
-            spacing: 13px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap;
             Btn {
                 horizontal-stretch: 1;
                 kind: "success";
@@ -343,7 +342,7 @@ export component DownloadView inherits VerticalLayout {
 //  Archivos locales
 // ======================================================================
 export component LocalView inherits VerticalLayout {
-    spacing: 10px;
+    spacing: Theme.gap;
     property <bool> is-video: S.local-mode-idx == 0;
     property <bool> is-audio: S.local-mode-idx == 1;
     property <bool> is-gif: S.local-mode-idx == 2;
@@ -351,14 +350,14 @@ export component LocalView inherits VerticalLayout {
     Panel {
         border: Pal.line-strong;
         VerticalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
-            spacing: 6px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap-sm;
             CardHead { step: "1"; icon: "file-video"; title: T.set-local; tint: Pal.c-file; }
             FieldLabel { text: T.set-local-hint; }
             HorizontalLayout {
-                spacing: 9px;
+                spacing: Theme.gap;
                 Field {
                     horizontal-stretch: 1;
                     read-only: true;
@@ -370,10 +369,10 @@ export component LocalView inherits VerticalLayout {
             }
             Text { text: T.set-drop-hint; color: Pal.muted; font-size: 11px; }
             VerticalLayout {
-                spacing: 12px;
+                spacing: Theme.gap-lg;
                 padding-top: 8px;
                 HorizontalLayout {
-                    spacing: 12px;
+                    spacing: Theme.gap-lg;
                     FG {
                         label: T.set-local-type;
                         horizontal-stretch: 1;
@@ -393,12 +392,12 @@ export component LocalView inherits VerticalLayout {
                     }
                 }
                 HorizontalLayout {
-                    spacing: 12px;
+                    spacing: Theme.gap-lg;
                     FG { label: T.adv-trim-start; horizontal-stretch: 1; Field { placeholder: "0:00"; text <=> S.local-trim-start; } }
                     FG { label: T.adv-trim-end; horizontal-stretch: 1; Field { placeholder: "—"; text <=> S.local-trim-end; } }
                 }
                 if root.is-gif: HorizontalLayout {
-                    spacing: 12px;
+                    spacing: Theme.gap-lg;
                     FG { label: T.gif-fps; horizontal-stretch: 1; Field { text <=> S.local-gif-fps; input-type: InputType.number; } }
                     FG { label: T.gif-width; horizontal-stretch: 1; Field { text <=> S.local-gif-width; input-type: InputType.number; } }
                 }
@@ -408,14 +407,14 @@ export component LocalView inherits VerticalLayout {
     }
 
     HorizontalLayout {
-        spacing: 10px;
+        spacing: Theme.gap;
         Panel {
             horizontal-stretch: 1;
             VerticalLayout {
-                padding: 12px;
-                padding-left: 14px;
-                padding-right: 14px;
-                spacing: 10px;
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap;
                 alignment: start;
                 CardHead { step: "2"; icon: "sliders"; title: T.cat-codec; tint: Pal.c-sliders; }
                 FG {
@@ -427,7 +426,7 @@ export component LocalView inherits VerticalLayout {
                     Select { enabled: root.is-video; options: ["H.264", "HEVC / H.265", "AV1", "VP9"]; current <=> S.local-codec-idx; }
                 }
                 VerticalLayout {
-                    spacing: 6px;
+                    spacing: Theme.gap-sm;
                     CqRow { value: S.local-cq; }
                     Slide { enabled: root.is-video; value <=> S.local-cq; }
                 }
@@ -438,14 +437,14 @@ export component LocalView inherits VerticalLayout {
 
     Panel {
         VerticalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
-            spacing: 6px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap-sm;
             CardHead { step: "3"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
             FieldLabel { text: T.field-folder; }
             HorizontalLayout {
-                spacing: 9px;
+                spacing: Theme.gap;
                 Field { horizontal-stretch: 1; placeholder: "..."; text <=> S.local-out-dir; }
                 Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(1); } }
             }
@@ -454,10 +453,10 @@ export component LocalView inherits VerticalLayout {
 
     Panel {
         HorizontalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
-            spacing: 13px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap;
             Btn {
                 horizontal-stretch: 1;
                 kind: "success";
@@ -477,9 +476,9 @@ export component LocalView inherits VerticalLayout {
 export component QueueView inherits VerticalLayout {
     Panel {
         VerticalLayout {
-            padding: 12px;
-            padding-left: 14px;
-            padding-right: 14px;
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
             spacing: 8px;
             CardHead {
                 icon: "layers";
@@ -495,7 +494,7 @@ export component QueueView inherits VerticalLayout {
                 wrap: word-wrap;
             }
             for q in S.queue: Rectangle {
-                height: 46px;
+                height: 42px;
                 border-radius: Pal.radius-sm;
                 border-width: Pal.brutal ? 2px : 1px;
                 border-color: q.status == 1 ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
@@ -505,7 +504,7 @@ export component QueueView inherits VerticalLayout {
                     padding-right: 8px;
                     padding-top: 6px;
                     padding-bottom: 6px;
-                    spacing: 12px;
+                    spacing: Theme.gap-lg;
                     Rectangle {
                         width: 96px;
                         border-radius: 999px;
@@ -521,7 +520,7 @@ export component QueueView inherits VerticalLayout {
                     }
                     Text { text: q.title; color: Pal.text; font-size: 13px; vertical-alignment: center; overflow: elide; horizontal-stretch: 1; }
                     HorizontalLayout {
-                        spacing: 6px;
+                        spacing: Theme.gap-sm;
                         if q.status == 2 && q.output != "": Btn { small: true; icon-only: true; icon: "folder"; clicked => { S.queue-open(q.id); } }
                         if q.status != 1: Btn { small: true; icon-only: true; icon: "x"; clicked => { S.queue-remove(q.id); } }
                     }
@@ -536,9 +535,9 @@ export component QueueView inherits VerticalLayout {
 // ======================================================================
 export component ActivityCard inherits Panel {
     VerticalLayout {
-        padding: 12px;
-        padding-left: 14px;
-        padding-right: 14px;
+        padding: Theme.card-pad;
+        padding-left: Theme.card-pad-x;
+        padding-right: Theme.card-pad-x;
         spacing: 8px;
         CardHead {
             icon: "terminal";

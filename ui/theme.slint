@@ -52,3 +52,35 @@ export global Pal {
     in-out property <color> hard-panel: #171717;
     in-out property <color> hard-ctrl: #171717;
 }
+
+// Escala de la interfaz. Un solo sitio para ajustar densidad y tipografia.
+// Los radios se derivan de Pal para que los temas (Neo Brutalist) sigan mandando.
+export global Theme {
+    // Alturas de control
+    out property <length> control-h: 38px;
+    out property <length> control-h-sm: 32px;
+    out property <length> header-h: 54px;
+    out property <length> tab-h: 40px;
+
+    // Espaciado
+    out property <length> gap: 8px;
+    out property <length> gap-sm: 5px;
+    out property <length> gap-lg: 10px;
+    out property <length> card-pad: 10px;
+    out property <length> card-pad-x: 12px;
+    out property <length> ctrl-pad-x: 10px;
+    out property <length> btn-pad-x: 12px;
+
+    // Radios (siguen el tema activo)
+    out property <length> radius: Pal.radius;
+    out property <length> radius-sm: Pal.radius-sm;
+
+    // Tipografia
+    out property <length> font-label: 11px;
+    out property <length> font-body: 12.5px;
+    out property <length> font-btn: 12px;
+    out property <length> font-title: 12.5px;
+
+    // Rueda del raton: multiplicador constante sobre el delta del evento.
+    out property <float> wheel-step: 2.2;
+}

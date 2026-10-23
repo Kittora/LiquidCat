@@ -9,6 +9,8 @@ rust-version = "1.88"
 description = "LiquidCat — descargador y convertidor de medios (yt-dlp + ffmpeg), nativo en Rust"
 
 [dependencies]
+# Renderer: FemtoVG (OpenGL, vsync) por defecto y software como fallback.
+# La seleccion se hace en src/main.rs (LIQUIDCAT_SOFTWARE=1 fuerza software).
 slint = { version = "1.14", default-features = false, features = ["std", "backend-winit", "renderer-femtovg", "renderer-software", "compat-1-2", "unstable-winit-030"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

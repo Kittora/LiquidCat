@@ -1,10 +1,10 @@
 import "../assets/fonts/Inter-Regular.ttf";
 import "../assets/fonts/Inter-Bold.ttf";
 
-import { Pal } from "theme.slint";
+import { Pal, Theme } from "theme.slint";
 import { T } from "i18n.slint";
 import { S } from "state.slint";
-import { Icon, Panel, Btn, VScroll } from "widgets.slint";
+import { Icon, Panel, VScroll } from "widgets.slint";
 import { DownloadView, LocalView, QueueView, ActivityCard } from "views.slint";
 import { AllModals } from "modals.slint";
 
@@ -27,23 +27,59 @@ component WinButton inherits Rectangle {
     ta := TouchArea { clicked => { root.clicked(); } }
 }
 
+// Boton plano del grupo de controles del header.
+component HeaderBtn inherits Rectangle {
+    in property <string> icon;
+    in property <string> text;
+    in property <bool> icon-only: false;
+    callback clicked();
+    height: Theme.control-h;
+    horizontal-stretch: 0;
+    min-width: icon-only ? Theme.control-h : 0px;
+    border-radius: Math.max(2px, Theme.radius-sm - 4px);
+    background: ta.pressed ? Pal.panel-strong.with-alpha(0.95) : ta.has-hover ? Pal.panel-strong.with-alpha(0.55) : transparent;
+    animate background { duration: 120ms; }
+    HorizontalLayout {
+        padding-left: icon-only ? 0px : Theme.btn-pad-x;
+        padding-right: icon-only ? 0px : Theme.btn-pad-x;
+        spacing: 6px;
+        alignment: center;
+        Icon { name: root.icon; size: 15px; tint: ta.has-hover ? Pal.text : Pal.muted; }
+        if !root.icon-only: Text {
+            text: root.text;
+            color: ta.has-hover ? Pal.text : Pal.muted;
+            font-size: Theme.font-btn;
+            font-weight: 700;
+            vertical-alignment: center;
+        }
+    }
+    ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Separador vertical sutil entre grupos del header.
+component HeaderSep inherits Rectangle {
+    min-width: 1px;
+    max-width: 1px;
+    background: Pal.line.with-alpha(Pal.a-border * 0.8);
+}
+
 // Boton de idioma con bandera.
 component LangBtn inherits Rectangle {
     callback clicked();
-    min-height: 28px;
-    width: 58px;
-    border-radius: Pal.radius-sm;
-    border-width: Pal.border-w;
-    background: ta.pressed ? Pal.panel-strong.darker(0.12) : Pal.panel-strong.with-alpha(Pal.a-soft);
-    border-color: ta.has-hover ? Pal.accent : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.14));
-    if Pal.brutal && !ta.pressed: Rectangle { x: parent.width; y: 3px; width: 3px; height: parent.height; background: Pal.hard-ctrl; }
-    if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: Pal.hard-ctrl; }
+    height: Theme.control-h;
+    min-width: 50px;
+    horizontal-stretch: 0;
+    border-radius: Math.max(2px, Theme.radius-sm - 4px);
+    background: ta.pressed ? Pal.panel-strong.with-alpha(0.95) : ta.has-hover ? Pal.panel-strong.with-alpha(0.55) : transparent;
+    animate background { duration: 120ms; }
     HorizontalLayout {
         alignment: center;
-        spacing: 6px;
+        spacing: 5px;
+        padding-left: 8px;
+        padding-right: 8px;
         if S.lang == "es": Image { source: @image-url("../assets/flag-mx.png"); width: 18px; height: 12px; y: (parent.height - self.height) / 2; }
         if S.lang != "es": Image { source: @image-url("../assets/flag-us.png"); width: 18px; height: 12px; y: (parent.height - self.height) / 2; }
-        Text { text: S.lang == "es" ? "ES" : "EN"; color: Pal.text; font-size: 11px; font-weight: 700; vertical-alignment: center; }
+        Text { text: S.lang == "es" ? "ES" : "EN"; color: ta.has-hover ? Pal.text : Pal.muted; font-size: 11px; font-weight: 700; vertical-alignment: center; }
     }
     ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
 }
@@ -55,20 +91,20 @@ component TabBtn inherits Rectangle {
     in property <bool> active;
     in property <int> badge: 0;
     callback clicked();
-    min-height: 42px;
+    min-height: Theme.tab-h;
     border-radius: Math.max(2px, Pal.radius-sm - 2px);
     border-width: 1px;
     background: active ? Pal.accent : ta.has-hover ? Pal.panel-strong : transparent;
     border-color: active ? Pal.accent : transparent;
     HorizontalLayout {
         alignment: center;
-        spacing: 9px;
-        Icon { name: root.icon; tint: root.active ? Pal.on-accent : Pal.muted; }
+        spacing: 8px;
+        Icon { name: root.icon; size: 16px; tint: root.active ? Pal.on-accent : Pal.muted; }
         Text {
             text: root.text;
             color: root.active ? Pal.on-accent : ta.has-hover ? Pal.text : Pal.muted;
             font-weight: 700;
-            font-size: 14px;
+            font-size: Theme.font-body;
             vertical-alignment: center;
         }
         if root.badge > 0: Rectangle {
@@ -90,16 +126,15 @@ component TabBtn inherits Rectangle {
     ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
 }
 
-// Pildora de estado de dependencias.
+// Pildora de estado de dependencias (plana: vive dentro del grupo del header).
 component StatusPill inherits Rectangle {
-    background: Pal.input.with-alpha(Pal.a-soft);
+    background: transparent;
     border-radius: Pal.brutal ? 2px : 999px;
-    border-width: Pal.brutal ? 2px : 1px;
-    border-color: Pal.line.with-alpha(Pal.a-border);
-    min-height: 28px;
+    border-width: 0px;
+    height: Theme.control-h;
     HorizontalLayout {
         padding-left: 10px;
-        padding-right: 10px;
+        padding-right: 6px;
         spacing: 8px;
         alignment: center;
         if S.st != 1: Rectangle {
@@ -115,7 +150,7 @@ component StatusPill inherits Rectangle {
             font-size: 11px;
             vertical-alignment: center;
             overflow: elide;
-            max-width: 300px;
+            max-width: 200px;
         }
         if S.st == 1: HorizontalLayout {
             spacing: 4px;
@@ -238,18 +273,18 @@ export component App inherits Window {
             }
 
             VerticalLayout {
-                padding-left: 14px;
-                padding-right: 14px;
-                padding-top: 12px;
-                padding-bottom: 14px;
-                spacing: 10px;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                padding-top: Theme.card-pad;
+                padding-bottom: Theme.card-pad;
+                spacing: Theme.gap;
 
                 // cabecera
                 Panel {
-                    height: 58px;
+                    height: Theme.header-h;
                     HorizontalLayout {
-                        padding-left: 14px;
-                        padding-right: 14px;
+                        padding-left: Theme.card-pad-x;
+                        padding-right: Theme.card-pad-x;
                         spacing: 16px;
                         VerticalLayout {
                             horizontal-stretch: 1;
@@ -266,24 +301,36 @@ export component App inherits Window {
                             Text { text: "LiquidCat"; color: Pal.text; font-size: 19px; font-weight: 700; }
                             Text { text: T.app-subtitle; color: Pal.muted; font-size: 11.5px; overflow: elide; }
                         }
-                        HorizontalLayout {
-                            spacing: 8px;
-                            alignment: end;
-                            StatusPill { }
-                            LangBtn { clicked => { S.toggle-lang(); } }
-                            Btn { compact: true; icon: "book"; text: T.btn-wiki; clicked => { S.modal = 3; } }
-                            Btn { compact: true; icon: "info"; text: T.btn-credits; clicked => { S.modal = 2; } }
-                            Btn { icon-only: true; icon: "settings"; clicked => { S.modal = 1; S.settings-opened(); } }
+                        // Un solo grupo: estado + acciones + idioma, misma altura,
+                        // mismo padding y separadores sutiles.
+                        Rectangle {
+                            height: Theme.control-h;
+                            horizontal-stretch: 0;
+                            border-radius: Theme.radius-sm;
+                            border-width: Pal.border-w;
+                            border-color: Pal.line.with-alpha(Pal.a-border);
+                            background: Pal.input.with-alpha(0.35);
+                            clip: true;
+                            HorizontalLayout {
+                                spacing: 0px;
+                                StatusPill { }
+                                HeaderSep { }
+                                HeaderBtn { icon: "book"; text: T.btn-wiki; clicked => { S.modal = 3; } }
+                                HeaderBtn { icon: "info"; text: T.btn-credits; clicked => { S.modal = 2; } }
+                                HeaderSep { }
+                                HeaderBtn { icon-only: true; icon: "settings"; clicked => { S.modal = 1; S.settings-opened(); } }
+                                LangBtn { clicked => { S.toggle-lang(); } }
+                            }
                         }
                     }
                 }
 
                 // pestanas
                 Panel {
-                    height: 52px;
+                    height: Theme.tab-h + 8px;
                     HorizontalLayout {
-                        padding: 5px;
-                        spacing: 6px;
+                        padding: 4px;
+                        spacing: 5px;
                         TabBtn { horizontal-stretch: 1; icon: "download"; text: T.tab-download; active: S.tab == 0; clicked => { S.tab = 0; } }
                         TabBtn { horizontal-stretch: 1; icon: "file-video"; text: T.tab-local; active: S.tab == 1; clicked => { S.tab = 1; } }
                         TabBtn { horizontal-stretch: 1; icon: "layers"; text: T.tab-queue; active: S.tab == 2; badge: S.queue-active; clicked => { S.tab = 2; } }
@@ -294,7 +341,7 @@ export component App inherits Window {
                 VScroll {
                     vertical-stretch: 1;
                     VerticalLayout {
-                        spacing: 10px;
+                        spacing: Theme.gap;
                         padding-right: Pal.brutal ? 8px : 0px;
                         padding-bottom: Pal.brutal ? 8px : 0px;
                         if S.tab == 0: DownloadView { }
