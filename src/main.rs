@@ -13,6 +13,30 @@ mod util;
 
 slint::include_modules!();
 
+/// Esquinas redondeadas nativas (Windows 11). Evita depender de una ventana
+/// transparente: la app se pinta opaca y DWM recorta la silueta, asi que no
+/// queda ningun fondo detras de las esquinas. En Windows 10 las llamadas
+/// simplemente fallan y la ventana queda cuadrada.
+#[cfg(windows)]
+fn round_window(app: &App) {
+    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    use windows_sys::Win32::Graphics::Dwm::DwmSetWindowAttribute;
+
+    let slint_handle = app.window().window_handle();
+    let Ok(handle) = slint_handle.window_handle() else { return };
+    let RawWindowHandle::Win32(w) = handle.as_raw() else { return };
+    let hwnd = w.hwnd.get() as *mut core::ffi::c_void;
+
+    // DWMWA_WINDOW_CORNER_PREFERENCE (33) = DWMWCP_ROUND (2)
+    let round: i32 = 2;
+    // DWMWA_BORDER_COLOR (34) = DWMWA_COLOR_NONE (0xFFFFFFFE)
+    let no_border: u32 = 0xFFFF_FFFE;
+    unsafe {
+        DwmSetWindowAttribute(hwnd, 33, &round as *const _ as *const _, std::mem::size_of::<i32>() as u32);
+        DwmSetWindowAttribute(hwnd, 34, &no_border as *const _ as *const _, std::mem::size_of::<u32>() as u32);
+    }
+}
+
 fn main() {
     // Renderer: por defecto Slint usa FemtoVG (GPU/OpenGL, con vsync a la tasa
     // del monitor: 60/120/144 Hz) y, si no hay OpenGL disponible, cae solo al
@@ -29,5 +53,19 @@ fn main() {
     ui_bridge::load_initial(&core, &app);
     ui_bridge::setup(&core, &app);
     ui_bridge::startup_deps(&core, first_run);
+    // La ventana debe existir antes de pedir el HWND a DWM.
+    app.show().expect("no se pudo mostrar la ventana");
+    #[cfg(windows)]
+    {
+        round_window(&app);
+        // El handle nativo puede tardar un frame en estar disponible: reintento
+        // una vez ya arrancado el bucle de eventos.
+        let weak = app.as_weak();
+        slint::Timer::single_shot(std::time::Duration::from_millis(120), move || {
+            if let Some(app) = weak.upgrade() {
+                round_window(&app);
+            }
+        });
+    }
     app.run().expect("error en el bucle de eventos");
 }

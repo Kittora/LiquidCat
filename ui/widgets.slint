@@ -113,6 +113,8 @@ export component Field inherits Rectangle {
     public function focus-input() { ti.focus(); }
 
     height: Theme.control-h;
+    min-width: 0px;
+    preferred-width: 0px;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: Pal.input.with-alpha(Pal.a-soft);
@@ -157,6 +159,10 @@ export component Select inherits Rectangle {
     callback selected(int);
 
     height: h;
+    // El ancho preferido no depende del texto seleccionado: evita que las
+    // columnas se reacomoden al cambiar una opcion.
+    min-width: 0px;
+    preferred-width: 0px;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: Pal.input.with-alpha(Pal.a-soft);
@@ -355,12 +361,15 @@ export component VScroll inherits Rectangle {
     property <length> thumb-h: Math.max(32px, root.height * root.height / Math.max(1px, fl.viewport-height));
     property <length> travel: Math.max(1px, root.height - thumb-h);
     property <length> overflow: Math.max(1px, fl.viewport-height - root.height);
+    // Ancho reservado a la derecha: la barra queda separada del borde de las
+    // tarjetas en vez de pegada a ellas.
+    property <length> rail: 14px;
 
-    // Rueda del raton: va DETRAS del contenido para no tragarse los clics.
-    // Sin animacion: el delta se aplica de inmediato (con multiplicador
-    // constante) para que responda 1:1 con la rueda.
+    // Rueda del raton: el Flickable la gestiona de forma nativa (aunque
+    // `interactive` sea false), asi que este handler solo actua cuando el
+    // Flickable no consume el evento. Sin animacion: respuesta inmediata.
     TouchArea {
-        width: parent.width - 12px;
+        width: parent.width - root.rail;
         scroll-event(e) => {
             if (root.needs) {
                 let next = Math.max(-root.overflow, Math.min(0px, fl.viewport-y + e.delta-y * Theme.wheel-step));
@@ -373,24 +382,35 @@ export component VScroll inherits Rectangle {
         }
     }
     fl := Flickable {
-        width: parent.width - 8px;
+        width: parent.width - root.rail;
         interactive: false;
         VerticalLayout {
             alignment: start;
             @children
         }
     }
+    // Riel sutil, visible solo al interactuar (estilo Fluent).
+    if needs && (bar.has-hover || bar.pressed): Rectangle {
+        x: parent.width - 10px;
+        y: 2px;
+        width: 6px;
+        height: parent.height - 4px;
+        border-radius: 3px;
+        background: Pal.line.with-alpha(0.35);
+    }
     if needs: Rectangle {
-        x: parent.width - 6px;
+        x: parent.width - self.width - 4px;
         y: Math.max(0px, Math.min(travel, -fl.viewport-y / overflow * travel));
-        width: 4px;
+        width: (bar.pressed || bar.has-hover) ? 6px : 4px;
         height: thumb-h;
-        border-radius: 2px;
-        background: bar.pressed || bar.has-hover ? Pal.accent : Pal.line-strong;
+        border-radius: 3px;
+        background: bar.pressed ? Pal.accent : bar.has-hover ? Pal.accent2 : Pal.line-strong;
+        animate width { duration: 110ms; }
+        animate background { duration: 110ms; }
     }
     bar := TouchArea {
-        x: parent.width - 12px;
-        width: 12px;
+        x: parent.width - root.rail;
+        width: root.rail;
         enabled: root.needs;
         property <length> grab: 0px;
         pointer-event(e) => {

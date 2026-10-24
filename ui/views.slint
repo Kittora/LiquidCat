@@ -6,6 +6,7 @@ import { Icon, Panel, Btn, Field, Select, Check, Slide, ProgressBar, VScroll, Fi
 // Grupo "etiqueta + control".
 component FG inherits VerticalLayout {
     in property <string> label;
+    min-width: 0px;
     spacing: Theme.gap-sm;
     FieldLabel { text: root.label; }
     @children
