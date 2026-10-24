@@ -446,8 +446,9 @@ export component CardHead inherits HorizontalLayout {
         width: 20px;
         height: 20px;
         // CardHead tiene 8px de padding inferior: centra el circulo en la
-        // fila de contenido, no en la caja completa.
-        y: (parent.height - 8px - self.height) / 2;
+        // fila de contenido, no en la caja completa. El +2px compensa la
+        // linea base de la fuente y lo alinea con el icono y el titulo.
+        y: (parent.height - 8px - self.height) / 2 + 2px;
         border-radius: Pal.brutal ? 0px : 10px;
         border-width: Pal.brutal ? 2px : 0px;
         border-color: Pal.line;
@@ -463,7 +464,7 @@ export component CardHead inherits HorizontalLayout {
             height: parent.height;
             // El glifo del "1" de Poppins queda a la izquierda de su caja;
             // este pequeno desplazamiento lo centra visualmente.
-            x: step == "1" ? 4px : 0px;
+            x: step == "1" ? 3px : 0px;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
@@ -484,8 +485,8 @@ export component Chip inherits Rectangle {
     in property <string> text;
     in property <color> fg: Pal.muted;
     background: Pal.input.with-alpha(Pal.a-soft);
-    // Forma de ovalo/pildora en todos los temas (tambien Neo Brutalist).
-    border-radius: 999px;
+    // Recuadro redondeado, como las tarjetas de seccion; no una pildora.
+    border-radius: Pal.brutal ? 2px : 6px;
     border-width: Pal.brutal ? 2px : 1px;
     border-color: Pal.line.with-alpha(Pal.a-border);
     min-height: Theme.chip-h;

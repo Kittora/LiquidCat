@@ -401,7 +401,16 @@ fn fetch(core: &Arc<Core>, app: &App) {
                     s.set_audio_idx(0);
                     s.set_title_line(ss(&res.title));
                     s.set_pv_title(ss(&res.title));
-                    s.set_pv_desc(ss(&res.description));
+                    // La descripcion de YouTube suele traer lineas vacias;
+                    // al quitarlas las dos lineas visibles de la preview
+                    // muestran texto real en vez de un hueco cortado.
+                    let desc = res.description
+                        .lines()
+                        .map(str::trim)
+                        .filter(|line| !line.is_empty())
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    s.set_pv_desc(ss(&desc));
                     s.set_pv_chips(ModelRc::new(VecModel::from(res.chips.iter().map(|x| ss(x)).collect::<Vec<_>>())));
                     match thumb {
                         Some((px, w, h)) => { s.set_pv_thumb(buf_to_image(&px, w, h)); s.set_pv_has_thumb(true); }
