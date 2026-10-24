@@ -61,8 +61,11 @@ export component Btn inherits Rectangle {
     callback clicked();
 
     property <bool> solid: kind == "primary" || kind == "success" || kind == "danger";
-    property <color> fill: kind == "primary" ? Pal.accent : kind == "success" ? Pal.success : kind == "danger" ? Pal.danger : kind == "secondary" ? Pal.panel-strong : Pal.panel-strong.with-alpha(Pal.a-soft);
-    property <color> fg: kind == "primary" || kind == "success" ? Pal.on-accent : kind == "danger" ? #ffffff : Pal.text;
+    // El estado deshabilitado se pinta con colores propios, no con opacity:
+    // opacity < 1 hace que Slint guarde el control en una capa aparte y esa
+    // capa no se invalida cuando cambia el texto (p. ej. al cambiar idioma).
+    property <color> fill: !enabled ? Pal.panel-strong.with-alpha(0.28) : kind == "primary" ? Pal.accent : kind == "success" ? Pal.success : kind == "danger" ? Pal.danger : kind == "secondary" ? Pal.panel-strong : Pal.panel-strong.with-alpha(Pal.a-soft);
+    property <color> fg: !enabled ? Pal.muted.with-alpha(0.75) : kind == "primary" || kind == "success" ? Pal.on-accent : kind == "danger" ? #ffffff : Pal.text;
 
     horizontal-stretch: 0;
     min-height: icon-only ? Theme.control-h : compact ? Theme.control-h-sm : small ? Theme.control-h-sm : Theme.control-h;
@@ -70,14 +73,12 @@ export component Btn inherits Rectangle {
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: ta.pressed && root.enabled ? fill.darker(0.12) : fill;
-    border-color: (ta.has-hover && root.enabled) ? Pal.accent : solid ? fill : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.14));
-    opacity: enabled ? 1.0 : 0.42;
+    border-color: !enabled ? Pal.line.with-alpha(Pal.a-border * 0.6) : (ta.has-hover ? Pal.accent : solid ? fill : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.14)));
     animate background { duration: 120ms; }
     animate border-color { duration: 120ms; }
-    animate opacity { duration: 120ms; }
 
-    if Pal.brutal && !ta.pressed: Rectangle { x: parent.width; y: 3px; width: 3px; height: parent.height; background: Pal.hard-ctrl; }
-    if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: Pal.hard-ctrl; }
+    if Pal.brutal && !ta.pressed: Rectangle { x: parent.width; y: 3px; width: 3px; height: parent.height; background: root.enabled ? Pal.hard-ctrl : Pal.hard-ctrl.with-alpha(0.4); }
+    if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: root.enabled ? Pal.hard-ctrl : Pal.hard-ctrl.with-alpha(0.4); }
     HorizontalLayout {
         padding-left: root.icon-only ? 0px : (root.compact || root.small ? Theme.ctrl-pad-x : Theme.btn-pad-x);
         padding-right: root.icon-only ? 0px : (root.compact || root.small ? Theme.ctrl-pad-x : Theme.btn-pad-x);
@@ -121,11 +122,9 @@ export component Field inherits Rectangle {
     preferred-width: 0px;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
-    background: Pal.input.with-alpha(Pal.a-soft);
-    border-color: ti.has-focus ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
-    opacity: enabled ? 1.0 : 0.48;
+    background: root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
+    border-color: ti.has-focus ? Pal.accent : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);
     animate border-color { duration: 120ms; }
-    animate opacity { duration: 120ms; }
     clip: true;
 
     ti := TextInput {
@@ -134,7 +133,7 @@ export component Field inherits Rectangle {
         width: parent.width - 20px;
         height: parent.height;
         vertical-alignment: center;
-        color: Pal.text;
+        color: root.enabled ? Pal.text : Pal.muted.with-alpha(0.75);
         font-size: Theme.font-body;
         single-line: true;
         read-only: root.read-only;
@@ -150,7 +149,7 @@ export component Field inherits Rectangle {
         y: (parent.height - self.height) / 2;
         width: parent.width - 20px;
         text: root.placeholder;
-        color: Pal.muted.with-alpha(0.65);
+        color: Pal.muted.with-alpha(root.enabled ? 0.65 : 0.4);
         font-size: Theme.font-body;
         overflow: elide;
     }
@@ -172,11 +171,9 @@ export component Select inherits Rectangle {
     preferred-width: 0px;
     border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
-    background: Pal.input.with-alpha(Pal.a-soft);
-    border-color: (ta.has-hover && root.enabled) ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
-    opacity: enabled ? 1.0 : 0.48;
+    background: root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
+    border-color: (ta.has-hover && root.enabled) ? Pal.accent : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);
     animate border-color { duration: 120ms; }
-    animate opacity { duration: 120ms; }
 
     HorizontalLayout {
         padding-left: Theme.ctrl-pad-x;
@@ -185,12 +182,12 @@ export component Select inherits Rectangle {
         Text {
             horizontal-stretch: 1;
             text: root.options.length > 0 && root.current >= 0 && root.current < root.options.length ? root.options[root.current] : "";
-            color: Pal.text;
+            color: root.enabled ? Pal.text : Pal.muted.with-alpha(0.75);
             font-size: Theme.font-body;
             vertical-alignment: center;
             overflow: elide;
         }
-        Icon { name: "chevron-down"; size: 14px; tint: Pal.accent; }
+        Icon { name: "chevron-down"; size: 14px; tint: root.enabled ? Pal.accent : Pal.muted.with-alpha(0.55); }
     }
     ta := TouchArea {
         enabled: root.enabled;
@@ -224,7 +221,6 @@ export component Check inherits Rectangle {
     in property <bool> enabled: true;
     callback toggled(bool);
     min-height: 22px;
-    opacity: enabled ? 1.0 : 0.45;
     HorizontalLayout {
         spacing: 8px;
         alignment: start;
@@ -234,19 +230,19 @@ export component Check inherits Rectangle {
             y: (parent.height - self.height) / 2;
             border-radius: 5px;
             border-width: 1px;
-            background: root.checked ? Pal.accent : Pal.input.with-alpha(Pal.a-soft);
-            border-color: (ta.has-hover && root.enabled) || root.checked ? Pal.accent : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.12));
+            background: root.checked ? (root.enabled ? Pal.accent : Pal.muted.with-alpha(0.5)) : Pal.input.with-alpha(root.enabled ? Pal.a-soft : Pal.a-soft * 0.55);
+            border-color: (ta.has-hover && root.enabled) || root.checked ? (root.enabled ? Pal.accent : Pal.muted.with-alpha(0.5)) : Pal.line-strong.with-alpha(root.enabled ? Math.min(1.0, Pal.a-border + 0.12) : Pal.a-border * 0.55);
             if root.checked: Icon {
                 x: 2px;
                 width: 13px;
                 name: "check";
                 size: 13px;
-                tint: Pal.on-accent;
+                tint: root.enabled ? Pal.on-accent : Pal.panel;
             }
         }
         Text {
             text: root.text;
-            color: Pal.text;
+            color: root.enabled ? Pal.text : Pal.muted.with-alpha(0.75);
             font-size: 12.5px;
             vertical-alignment: center;
         }
@@ -269,7 +265,6 @@ export component Slide inherits Rectangle {
     in property <bool> enabled: true;
     callback changed(int);
     height: 24px;
-    opacity: enabled ? 1.0 : 0.48;
     property <float> frac: (root.value - root.minimum) / (root.maximum - root.minimum);
 
     function update(mx: length) {
@@ -288,13 +283,13 @@ export component Slide inherits Rectangle {
         width: parent.width;
         height: 6px;
         border-radius: 3px;
-        background: Pal.line-strong;
+        background: root.enabled ? Pal.line-strong : Pal.line-strong.with-alpha(0.5);
         Rectangle {
             x: 0px;
             width: 9px + (root.width - 18px) * root.frac;
             height: parent.height;
             border-radius: 3px;
-            background: Pal.accent;
+            background: root.enabled ? Pal.accent : Pal.muted.with-alpha(0.55);
         }
     }
     Rectangle {
@@ -303,9 +298,9 @@ export component Slide inherits Rectangle {
         width: 18px;
         height: 18px;
         border-radius: 9px;
-        background: Pal.accent;
+        background: root.enabled ? Pal.accent : Pal.muted.with-alpha(0.6);
         border-width: 3px;
-        border-color: Pal.panel;
+        border-color: root.enabled ? Pal.panel : Pal.panel.with-alpha(0.7);
     }
     ta := TouchArea {
         enabled: root.enabled;
@@ -359,6 +354,11 @@ export component VScroll inherits Rectangle {
     property <length> content-h: fl.viewport-height;
     changed content-h => { root.clamp-view(); }
     clip: true;
+    // El contenido del Flickable no debe imponer su altura al layout: el
+    // scroll tiene que encogerse al espacio disponible (si no, en los modales
+    // empuja el pie fuera de la ventana).
+    min-height: 0px;
+    min-width: 0px;
     property <bool> needs: fl.viewport-height > root.height + 1px;
     property <length> thumb-h: Math.max(32px, root.height * root.height / Math.max(1px, fl.viewport-height));
     property <length> travel: Math.max(1px, root.height - thumb-h);

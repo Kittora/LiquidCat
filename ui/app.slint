@@ -16,13 +16,13 @@ component WinButton inherits Rectangle {
     in property <string> icon;
     in property <bool> is-close: false;
     callback clicked();
-    width: 48px;
+    width: 44px;
     background: ta.has-hover ? (is-close ? #d9384e : Pal.panel-strong) : transparent;
     Icon {
         name: root.icon;
-        size: 15px;
+        size: 14px;
         tint: ta.has-hover && root.is-close ? #ffffff : ta.has-hover ? Pal.text : Pal.muted;
-        x: (parent.width - 15px) / 2;
+        x: (parent.width - 14px) / 2;
     }
     ta := TouchArea { clicked => { root.clicked(); } }
 }
@@ -230,29 +230,31 @@ export component App inherits Window {
     VerticalLayout {
         // ------------------------------------------------ barra de titulo
         Rectangle {
-            height: 44px;
+            // Barra compacta (estilo AB Download Manager): 34 px, icono y
+            // tipografia mas pequenos, botones de ventana de 44 px.
+            height: 34px;
             border-top-left-radius: root.corner-radius;
             border-top-right-radius: root.corner-radius;
             background: Pal.surface.with-alpha(Pal.a-strong);
-            Rectangle { y: parent.height - 1px; height: 1px; background: Pal.line.with-alpha(Pal.a-border); }
+            Rectangle { y: parent.height - Pal.border-w; height: Pal.border-w; background: Pal.line.with-alpha(Pal.a-border); }
             TouchArea {
-                width: parent.width - 144px;
+                width: parent.width - 132px;
                 pointer-event(e) => {
                     if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) { S.win-drag(); }
                 }
                 double-clicked => { S.win-maximize(); }
             }
             HorizontalLayout {
-                padding-left: 14px;
-                spacing: 9px;
+                padding-left: 12px;
+                spacing: 7px;
                 Image {
                     source: @image-url("../assets/logo.png");
-                    width: 24px;
-                    height: 24px;
+                    width: 18px;
+                    height: 18px;
                     y: (parent.height - self.height) / 2;
                     image-fit: cover;
                 }
-                Text { text: "LiquidCat"; color: Pal.text; font-weight: 700; font-size: 14px; vertical-alignment: center; }
+                Text { text: "LiquidCat"; color: Pal.text; font-weight: 700; font-size: 12.5px; vertical-alignment: center; }
                 Rectangle { horizontal-stretch: 1; }
                 WinButton { icon: "minus"; clicked => { S.win-minimize(); } }
                 WinButton { icon: S.maximized ? "restore" : "maximize"; clicked => { S.win-maximize(); } }

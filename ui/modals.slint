@@ -221,29 +221,33 @@ export component AllModals inherits Rectangle {
                 padding-right: 6px;
                 HorizontalLayout {
                     spacing: 12px;
-                    Box {
+                    // Development tiene menos contenido que Software used:
+                    // la tarjeta conserva su altura natural en vez de estirarse
+                    // hasta igualar la de al lado.
+                    VerticalLayout {
                         horizontal-stretch: 1;
-                        VerticalLayout {
-                            padding: 14px;
-                            spacing: 5px;
-                            H3 { icon: "info"; text: T.credit-cat-dev; }
-                            // Solo el nombre es un enlace (resaltado); el rol va
-                            // debajo como texto normal.
-                            HorizontalLayout {
-                                alignment: start;
-                                Link { text: "xjuanfxx"; url: "https://github.com/xjuanfxx"; font-size: 13px; font-weight: 700; }
+                        alignment: start;
+                        Box {
+                            VerticalLayout {
+                                padding: 12px;
+                                spacing: 4px;
+                                H3 { icon: "info"; text: T.credit-cat-dev; }
+                                // Solo el nombre es un enlace (resaltado); el rol va
+                                // debajo como texto normal.
+                                HorizontalLayout {
+                                    alignment: start;
+                                    Link { text: "xjuanfxx"; url: "https://github.com/xjuanfxx"; font-size: 13px; font-weight: 700; }
+                                }
+                                Text { text: T.credit-main-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
+                                VerticalLayout { padding-top: 2px; }
+                                HorizontalLayout {
+                                    alignment: start;
+                                    Link { text: "notTao"; url: "https://github.com/notTao"; font-size: 13px; font-weight: 700; }
+                                }
+                                Text { text: T.credit-helper-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
+                                VerticalLayout { padding-top: 4px; }
+                                Text { text: T.credit-dev-themes-label + ": Neo Brutalist (Light / Dark)"; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                             }
-                            Text { text: T.credit-main-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
-                            VerticalLayout { padding-top: 4px; }
-                            HorizontalLayout {
-                                alignment: start;
-                                Link { text: "notTao"; url: "https://github.com/notTao"; font-size: 13px; font-weight: 700; }
-                            }
-                            Text { text: T.credit-helper-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
-                            VerticalLayout { padding-top: 8px; }
-                            Text { text: T.credit-btn-repo; color: Pal.muted; font-size: 12px; }
-                            Link { text: "github.com/Kittora/LiquidCat"; url: "https://github.com/Kittora/LiquidCat"; }
-                            Text { text: T.credit-dev-themes-label + ": Neo Brutalist (Light / Dark)"; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                         }
                     }
                     Box {
