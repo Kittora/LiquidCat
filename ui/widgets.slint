@@ -365,7 +365,7 @@ export component VScroll inherits Rectangle {
     property <length> overflow: Math.max(1px, fl.viewport-height - root.height);
     // Ancho reservado a la derecha: la barra queda separada del borde de las
     // tarjetas en vez de pegada a ellas.
-    property <length> rail: 14px;
+    in property <length> rail: 14px;
 
     // Rueda del raton: el Flickable la gestiona de forma nativa (aunque
     // `interactive` sea false), asi que este handler solo actua cuando el
@@ -445,7 +445,9 @@ export component CardHead inherits HorizontalLayout {
     if step != "": Rectangle {
         width: 20px;
         height: 20px;
-        y: (parent.height - self.height) / 2;
+        // CardHead tiene 8px de padding inferior: centra el circulo en la
+        // fila de contenido, no en la caja completa.
+        y: (parent.height - 8px - self.height) / 2;
         border-radius: Pal.brutal ? 0px : 10px;
         border-width: Pal.brutal ? 2px : 0px;
         border-color: Pal.line;
@@ -455,6 +457,13 @@ export component CardHead inherits HorizontalLayout {
             color: Pal.on-accent;
             font-size: 11px;
             font-weight: 700;
+            // El Text debe ocupar todo el circulo para que la alineacion
+            // centre de verdad el numero (1, 2, 3...).
+            width: parent.width;
+            height: parent.height;
+            // El glifo del "1" de Poppins queda a la izquierda de su caja;
+            // este pequeno desplazamiento lo centra visualmente.
+            x: step == "1" ? 4px : 0px;
             horizontal-alignment: center;
             vertical-alignment: center;
         }
@@ -475,13 +484,14 @@ export component Chip inherits Rectangle {
     in property <string> text;
     in property <color> fg: Pal.muted;
     background: Pal.input.with-alpha(Pal.a-soft);
-    border-radius: Pal.brutal ? 2px : 999px;
+    // Forma de ovalo/pildora en todos los temas (tambien Neo Brutalist).
+    border-radius: 999px;
     border-width: Pal.brutal ? 2px : 1px;
     border-color: Pal.line.with-alpha(Pal.a-border);
-    min-height: 24px;
+    min-height: Theme.chip-h;
     HorizontalLayout {
         padding-left: 8px;
         padding-right: 8px;
-        Text { text: root.text; color: root.fg; font-size: 11px; vertical-alignment: center; }
+        Text { text: root.text; color: root.fg; font-size: Theme.font-label; vertical-alignment: center; }
     }
 }
