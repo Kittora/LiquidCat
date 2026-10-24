@@ -85,6 +85,7 @@ export component DownloadView inherits VerticalLayout {
             Icon { name: "layers"; size: 18px; tint: Pal.c-layers; }
             Text { text: T.cat-presets; color: Pal.text; font-size: Theme.font-title; font-weight: 700; vertical-alignment: center; }
             Select {
+                select-id: 1;
                 horizontal-stretch: 1;
                 options: S.preset-opts;
                 current <=> S.preset-idx;
@@ -148,6 +149,7 @@ export component DownloadView inherits VerticalLayout {
                 FG {
                     label: T.field-mode;
                     Select {
+                        select-id: 2;
                         options: [T.mode-video, T.mode-audio];
                         current <=> S.mode-idx;
                         selected(i) => { S.mode-changed(); }
@@ -156,6 +158,7 @@ export component DownloadView inherits VerticalLayout {
                 FG {
                     label: T.field-quality;
                     Select {
+                        select-id: 3;
                         options: [T.q-manual, "4K · 2160p", "1440p", "1080p", "720p", "480p"];
                         current <=> S.quality-idx;
                     }
@@ -163,6 +166,7 @@ export component DownloadView inherits VerticalLayout {
                 FG {
                     label: T.field-vidfmt;
                     Select {
+                        select-id: 4;
                         enabled: root.is-video;
                         options: S.video-opts;
                         current <=> S.video-idx;
@@ -170,11 +174,12 @@ export component DownloadView inherits VerticalLayout {
                 }
                 FG {
                     label: T.field-audfmt;
-                    Select { options: S.audio-opts; current <=> S.audio-idx; }
+                    Select { select-id: 5; options: S.audio-opts; current <=> S.audio-idx; }
                 }
                 FG {
                     label: T.field-encmode;
                     Select {
+                        select-id: 6;
                         options: [T.enc-reenc, T.enc-direct];
                         current <=> S.direct-idx;
                         selected(i) => { S.mode-changed(); }
@@ -194,6 +199,7 @@ export component DownloadView inherits VerticalLayout {
                 FG {
                     label: T.field-hw;
                     Select {
+                        select-id: 7;
                         enabled: root.is-video && !root.is-direct;
                         options: [T.hw-nvidia, T.hw-amd, T.hw-cpu];
                         current <=> S.hw-idx;
@@ -202,6 +208,7 @@ export component DownloadView inherits VerticalLayout {
                 FG {
                     label: T.field-vcodec;
                     Select {
+                        select-id: 8;
                         enabled: root.is-video && !root.is-direct;
                         options: [T.codec-h264, T.codec-hevc, T.codec-av1, T.codec-vp9];
                         current <=> S.codec-idx;
@@ -210,6 +217,7 @@ export component DownloadView inherits VerticalLayout {
                 FG {
                     label: T.field-acodec;
                     Select {
+                        select-id: 9;
                         enabled: !root.is-video && !root.is-direct;
                         options: ["MP3", "AAC", "Opus", T.acodec-ogg, T.acodec-flac, T.acodec-wav];
                         current <=> S.acodec-idx;
@@ -263,6 +271,7 @@ export component DownloadView inherits VerticalLayout {
                         label: T.adv-bitrate;
                         horizontal-stretch: 1;
                         Select {
+                            select-id: 10;
                             options: [T.adv-bitrate-default, "320 kbps", "256 kbps", "192 kbps", "128 kbps", "96 kbps"];
                             current <=> S.abitrate-idx;
                         }
@@ -271,6 +280,7 @@ export component DownloadView inherits VerticalLayout {
                         label: T.adv-cookies;
                         horizontal-stretch: 1;
                         Select {
+                            select-id: 11;
                             options: [T.adv-cookies-none, "Chrome", "Edge", "Firefox", "Brave", "Opera", "Vivaldi"];
                             current <=> S.cookies-idx;
                             selected(i) => { S.test-cookies(); }
@@ -378,6 +388,7 @@ export component LocalView inherits VerticalLayout {
                         label: T.set-local-type;
                         horizontal-stretch: 1;
                         Select {
+                            select-id: 12;
                             options: [T.mode-video, T.mode-audio, T.mode-gif];
                             current <=> S.local-mode-idx;
                         }
@@ -386,6 +397,7 @@ export component LocalView inherits VerticalLayout {
                         label: T.field-acodec;
                         horizontal-stretch: 1;
                         Select {
+                            select-id: 13;
                             enabled: root.is-audio;
                             options: ["MP3", "AAC", "Opus", T.acodec-ogg, T.acodec-flac, T.acodec-wav];
                             current <=> S.local-acodec-idx;
@@ -420,11 +432,11 @@ export component LocalView inherits VerticalLayout {
                 CardHead { step: "2"; icon: "sliders"; title: T.cat-codec; tint: Pal.c-sliders; }
                 FG {
                     label: T.field-hw;
-                    Select { enabled: root.is-video; options: [T.hw-nvidia, T.hw-amd, T.hw-cpu]; current <=> S.local-hw-idx; }
+                    Select { select-id: 14; enabled: root.is-video; options: [T.hw-nvidia, T.hw-amd, T.hw-cpu]; current <=> S.local-hw-idx; }
                 }
                 FG {
                     label: T.field-vcodec;
-                    Select { enabled: root.is-video; options: ["H.264", "HEVC / H.265", "AV1", "VP9"]; current <=> S.local-codec-idx; }
+                    Select { select-id: 15; enabled: root.is-video; options: ["H.264", "HEVC / H.265", "AV1", "VP9"]; current <=> S.local-codec-idx; }
                 }
                 VerticalLayout {
                     spacing: Theme.gap-sm;

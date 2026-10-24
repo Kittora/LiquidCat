@@ -1,5 +1,6 @@
 import { Pal, Theme } from "theme.slint";
 import { IconData } from "icon_data.slint";
+import { S } from "state.slint";
 
 // ---------------------------------------------------------------- Icono
 // Los iconos son trazos vectoriales (Path), sin SVG ni imagenes: casi no cuestan memoria.
@@ -157,6 +158,7 @@ export component Field inherits Rectangle {
 
 // ---------------------------------------------------------------- Select (lista de cristal)
 export component Select inherits Rectangle {
+    in property <int> select-id: 0;
     in property <[string]> options;
     in-out property <int> current: 0;
     in property <bool> enabled: true;
@@ -193,47 +195,24 @@ export component Select inherits Rectangle {
     ta := TouchArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
-        clicked => { popup.show(); }
+        clicked => {
+            // La lista se pinta como capa dentro de la ventana (ver app.slint).
+            S.dd-x = root.absolute-position.x;
+            S.dd-y = root.absolute-position.y;
+            S.dd-w = root.width;
+            S.dd-h = root.height;
+            S.dd-options = root.options;
+            S.dd-current = root.current;
+            S.dd-owner = root.select-id;
+        }
     }
-    popup := PopupWindow {
-        x: 0px;
-        y: root.height + 5px;
-        width: root.width;
-        height: Math.min(root.options.length * Theme.control-h-sm + 12px, 280px);
-        close-policy: close-on-click-outside;
-        Rectangle {
-            background: Pal.panel.with-alpha(Pal.a-solid);
-            border-radius: Pal.radius-sm;
-            border-width: 1px;
-            border-color: Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.1));
-            Flickable {
-                viewport-height: root.options.length * Theme.control-h-sm + 12px;
-                for opt[i] in root.options: Rectangle {
-                    x: 6px;
-                    y: 6px + i * Theme.control-h-sm;
-                    width: parent.width - 12px;
-                    height: Theme.control-h-sm;
-                    border-radius: Math.max(2px, Pal.radius-sm - 3px);
-                    background: item.has-hover ? Pal.accent.with-alpha(0.22) : i == root.current ? Pal.accent.with-alpha(0.12) : transparent;
-                    Text {
-                        x: 11px;
-                        width: parent.width - 22px;
-                        text: opt;
-                        color: i == root.current ? Pal.accent : Pal.text;
-                        font-size: Theme.font-body;
-                        vertical-alignment: center;
-                        overflow: elide;
-                    }
-                    item := TouchArea {
-                        mouse-cursor: pointer;
-                        clicked => {
-                            root.current = i;
-                            root.selected(i);
-                            popup.close();
-                        }
-                    }
-                }
-            }
+    // Al elegir en la capa compartida, solo reacciona el Select que la abrio.
+    property <int> pick-rev: S.dd-pick-rev;
+    changed pick-rev => {
+        if (S.dd-owner == root.select-id) {
+            root.current = S.dd-picked;
+            root.selected(S.dd-picked);
+            S.dd-owner = 0;
         }
     }
 }

@@ -125,6 +125,17 @@ export global S {
     in-out property <string> toast-text;
     in-out property <int> toast-kind: 0;          // 0 info, 1 ok, 2 aviso, 3 error
 
+    // ---- desplegable propio (se pinta dentro de la ventana, sin PopupWindow)
+    in-out property <int> dd-owner: 0;            // id del Select abierto (0 = cerrado)
+    in-out property <length> dd-x;
+    in-out property <length> dd-y;
+    in-out property <length> dd-w;
+    in-out property <length> dd-h;
+    in-out property <[string]> dd-options;
+    in-out property <int> dd-current: 0;
+    in-out property <int> dd-pick-rev: 0;         // se incrementa al elegir una opcion
+    in-out property <int> dd-picked: -1;
+
     // ---- acciones de la ventana
     callback win-minimize();
     callback win-maximize();

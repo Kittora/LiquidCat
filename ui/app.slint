@@ -200,7 +200,8 @@ export component App inherits Window {
     keys := FocusScope {
         key-pressed(e) => {
             if (e.text == Key.Escape) {
-                if (S.dlg != 0) { S.dialog-cancel(); } else { S.modal = 0; }
+                if (S.dd-owner != 0) { S.dd-owner = 0; }
+                else if (S.dlg != 0) { S.dialog-cancel(); } else { S.modal = 0; }
                 return accept;
             }
             if (e.modifiers.control && e.text == "v" && S.modal == 0 && S.dlg == 0 && !S.url-has-focus) {
@@ -215,6 +216,10 @@ export component App inherits Window {
     // asi no aparece ninguna franja de fondo entre el borde del sistema y el
     // nuestro, y al maximizar no quedan huecos.
     property <length> corner-radius: 0px;
+
+    // Si cambia el modal, cualquier desplegable abierto deja de tener dueno.
+    property <int> modal-idx: S.modal;
+    changed modal-idx => { S.dd-owner = 0; }
 
     // Contenedor principal.
     Rectangle {
@@ -358,7 +363,7 @@ export component App inherits Window {
                     vertical-stretch: 1;
                     // Al cambiar de pestana se empieza desde arriba.
                     property <int> tab: S.tab;
-                    changed tab => { self.reset(); }
+                    changed tab => { self.reset(); S.dd-owner = 0; }
                     VerticalLayout {
                         spacing: Theme.gap;
                         padding-right: Pal.brutal ? 8px : 0px;
@@ -397,6 +402,62 @@ export component App inherits Window {
             }
         }
     }
+    }
+
+    // ---- desplegable compartido: se pinta dentro de la ventana (sin
+    // PopupWindow) para que abrir/cerrar no deje zonas sin repintar.
+    if S.dd-owner != 0: ddl := Rectangle {
+        property <length> ph: Math.min(S.dd-options.length * Theme.control-h-sm + 12px, 280px);
+        property <length> top: S.dd-y + S.dd-h + 5px;
+
+        // Clic fuera del panel: cierra. La rueda no mueve la pagina de fondo.
+        TouchArea {
+            clicked => { S.dd-owner = 0; }
+            scroll-event(e) => { return EventResult.accept; }
+        }
+
+        Rectangle {
+            x: Math.max(6px, Math.min(S.dd-x, ddl.width - S.dd-w - 6px));
+            y: Math.max(6px, ddl.top + ddl.ph <= ddl.height - 6px ? ddl.top : S.dd-y - 5px - ddl.ph);
+            width: S.dd-w;
+            height: ddl.ph;
+            background: Pal.panel.with-alpha(Pal.a-solid);
+            border-radius: Pal.radius-sm;
+            border-width: Pal.border-w;
+            border-color: Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.1));
+            clip: true;
+
+            // Evita que un clic en el borde del panel cierre la lista.
+            TouchArea { }
+
+            Flickable {
+                viewport-height: S.dd-options.length * Theme.control-h-sm + 12px;
+                for opt[i] in S.dd-options: Rectangle {
+                    x: 6px;
+                    y: 6px + i * Theme.control-h-sm;
+                    width: parent.width - 12px;
+                    height: Theme.control-h-sm;
+                    border-radius: Math.max(2px, Pal.radius-sm - 3px);
+                    background: it.has-hover ? Pal.accent.with-alpha(0.22) : i == S.dd-current ? Pal.accent.with-alpha(0.12) : transparent;
+                    Text {
+                        x: 11px;
+                        width: parent.width - 22px;
+                        text: opt;
+                        color: i == S.dd-current ? Pal.accent : Pal.text;
+                        font-size: Theme.font-body;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                    it := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            S.dd-picked = i;
+                            S.dd-pick-rev += 1;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // ---- bordes para redimensionar (ventana sin marco)
