@@ -63,27 +63,6 @@ component HeaderSep inherits Rectangle {
     background: Pal.line.with-alpha(Pal.a-border * 0.8);
 }
 
-// Boton de idioma con bandera.
-component LangBtn inherits Rectangle {
-    callback clicked();
-    height: Theme.control-h;
-    min-width: 50px;
-    horizontal-stretch: 0;
-    border-radius: Math.max(2px, Theme.radius-sm - 4px);
-    background: ta.pressed ? Pal.panel-strong.with-alpha(0.95) : ta.has-hover ? Pal.panel-strong.with-alpha(0.55) : transparent;
-    animate background { duration: 120ms; }
-    HorizontalLayout {
-        alignment: center;
-        spacing: 5px;
-        padding-left: 8px;
-        padding-right: 8px;
-        if S.lang == "es": Image { source: @image-url("../assets/flag-mx.png"); width: 18px; height: 12px; y: (parent.height - self.height) / 2; }
-        if S.lang != "es": Image { source: @image-url("../assets/flag-us.png"); width: 18px; height: 12px; y: (parent.height - self.height) / 2; }
-        Text { text: S.lang == "es" ? "ES" : "EN"; color: ta.has-hover ? Pal.text : Pal.muted; font-size: 11px; font-weight: 700; vertical-alignment: center; }
-    }
-    ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
-}
-
 // Pestana del selector Descargador / Archivos locales / Cola.
 component TabBtn inherits Rectangle {
     in property <string> icon;
@@ -317,7 +296,7 @@ export component App inherits Window {
                             Text { text: "LiquidCat"; color: Pal.text; font-size: 19px; font-weight: 700; }
                             Text { text: T.app-subtitle; color: Pal.muted; font-size: 11.5px; overflow: elide; }
                         }
-                        // Un solo grupo: estado + acciones + idioma, misma altura,
+                        // Un solo grupo: estado + acciones, misma altura,
                         // mismo padding y separadores sutiles. El VerticalLayout
                         // centra el grupo verticalmente dentro de la barra.
                         VerticalLayout {
@@ -341,7 +320,6 @@ export component App inherits Window {
                                     HeaderBtn { icon: "info"; text: T.btn-credits; clicked => { S.modal = 2; } }
                                     HeaderSep { }
                                     HeaderBtn { icon-only: true; icon: "settings"; clicked => { S.modal = 1; S.settings-opened(); } }
-                                    LangBtn { clicked => { S.toggle-lang(); } }
                                 }
                             }
                         }

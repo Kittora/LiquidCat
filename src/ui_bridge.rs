@@ -48,6 +48,7 @@ pub fn apply_lang(core: &Core, app: &App) {
     i18n_data::apply(app, &lang);
     let s = app.global::<S>();
     s.set_lang(ss(&lang));
+    s.set_lang_idx(if lang == "en" { 1 } else { 0 });
     if !core.formats.lock().unwrap().loaded {
         let ph = ui(&lang, "fmt_first");
         s.set_video_opts(ModelRc::new(VecModel::from(vec![ss(&ph)])));
@@ -714,6 +715,15 @@ pub fn setup(core: &Arc<Core>, app: &App) {
         {
             let mut l = c.lang.lock().unwrap();
             *l = if *l == "es" { "en".into() } else { "es".into() };
+        }
+        apply_lang(&c, &a);
+        save_prefs(&c, &a);
+    });
+    cb!(on_set_lang, |a, c, lang: SharedString| {
+        let lang = if lang == "en" { "en" } else { "es" };
+        {
+            let mut l = c.lang.lock().unwrap();
+            *l = lang.into();
         }
         apply_lang(&c, &a);
         save_prefs(&c, &a);

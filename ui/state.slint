@@ -10,6 +10,8 @@ export global S {
     // ---- ventana / navegacion
     in-out property <bool> maximized: false;
     in-out property <string> lang: "es";
+    // 0 = Espanol, 1 = English (indice del selector de idioma en Ajustes).
+    in-out property <int> lang-idx: 0;
     in-out property <string> theme: "catppuccin";
     in-out property <int> tab: 0;
     // 0 ninguno, 1 ajustes, 2 creditos, 3 wiki, 4 historial
@@ -145,6 +147,7 @@ export global S {
 
     // ---- acciones de la app
     callback toggle-lang();
+    callback set-lang(string);
     callback set-theme(string);
     callback url-edited(string);
     callback paste-url();

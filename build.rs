@@ -2,6 +2,10 @@ fn main() {
     slint_build::compile("ui/app.slint").unwrap();
     #[cfg(windows)]
     {
-        // Icono del .exe (opcional): requiere el crate winres si se quiere incrustar.
+        // Incrusta assets/icon.ico en LiquidCat.exe para que Windows lo use
+        // en el Explorador y en la barra de tareas.
+        let mut res = winresource::WindowsResource::new();
+        res.set_icon("assets/icon.ico");
+        res.compile().unwrap();
     }
 }

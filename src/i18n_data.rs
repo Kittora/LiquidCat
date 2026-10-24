@@ -238,7 +238,9 @@ pub static ES: &[(&str, &str)] = &[
     ("wiki_h_settings", "Ajustes"),
     ("wiki_p_settings", "Cambia entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y administra la carpeta de descarga. El estado superior muestra ✓ yt-dlp, ✓ ffmpeg y la GPU (verde NVIDIA, rojo AMD, azul CPU)."),
     ("wiki_h_lang", "Idioma y créditos"),
-    ("wiki_p_lang", "Botón de idioma (Español/Inglés) y Créditos con los desarrolladores, el software usado y los autores de los temas."),
+    ("wiki_p_lang", "Selector de idioma en Ajustes, y Créditos con los desarrolladores, el software usado y los autores de los temas."),
+    ("set_lang", "Idioma"),
+    ("set_lang_label", "Idioma de la interfaz"),
 ];
 
 pub static EN: &[(&str, &str)] = &[
@@ -477,7 +479,9 @@ pub static EN: &[(&str, &str)] = &[
     ("wiki_h_settings", "Settings"),
     ("wiki_p_settings", "Switch between 14 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night and Neo Brutalist), update yt-dlp to the latest (nightly) and ffmpeg with one click, and manage the download folder. The top status shows ✓ yt-dlp, ✓ ffmpeg and the GPU (green NVIDIA, red AMD, blue CPU)."),
     ("wiki_h_lang", "Language & credits"),
-    ("wiki_p_lang", "Language button (Spanish/English) and Credits with the developers, the software used and the theme authors."),
+    ("wiki_p_lang", "Language selector in Settings, and Credits with the developers, the software used and the theme authors."),
+    ("set_lang", "Language"),
+    ("set_lang_label", "Interface language"),
 ];
 
 /// Rellena el global `T` de la interfaz con el idioma indicado.
@@ -722,6 +726,8 @@ pub fn apply(app: &App, lang: &str) {
             "wiki_p_settings" => t.set_wiki_p_settings((*v).into()),
             "wiki_h_lang" => t.set_wiki_h_lang((*v).into()),
             "wiki_p_lang" => t.set_wiki_p_lang((*v).into()),
+            "set_lang" => t.set_set_lang((*v).into()),
+            "set_lang_label" => t.set_set_lang_label((*v).into()),
             _ => {}
         }
     }

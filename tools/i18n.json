@@ -235,7 +235,9 @@
   "wiki_h_settings": "Ajustes",
   "wiki_p_settings": "Cambia entre <b>14 temas</b> (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), <b>actualiza yt-dlp a la última versión (nightly)</b> y <b>ffmpeg</b> con un clic, y administra la carpeta de descarga. El estado superior muestra ✓ yt-dlp, ✓ ffmpeg y la GPU (verde NVIDIA, rojo AMD, azul CPU).",
   "wiki_h_lang": "Idioma y créditos",
-  "wiki_p_lang": "Botón de <b>idioma</b> (Español/Inglés) y <b>Créditos</b> con los desarrolladores, el software usado y los autores de los temas."
+  "wiki_p_lang": "Selector de <b>idioma</b> en <b>Ajustes</b>, y <b>Créditos</b> con los desarrolladores, el software usado y los autores de los temas.",
+  "set_lang": "Idioma",
+  "set_lang_label": "Idioma de la interfaz"
  },
  "en": {
   "app_title": "LiquidCat",
@@ -473,6 +475,8 @@
   "wiki_h_settings": "Settings",
   "wiki_p_settings": "Switch between <b>14 themes</b> (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night and Neo Brutalist), <b>update yt-dlp to the latest (nightly)</b> and <b>ffmpeg</b> with one click, and manage the download folder. The top status shows ✓ yt-dlp, ✓ ffmpeg and the GPU (green NVIDIA, red AMD, blue CPU).",
   "wiki_h_lang": "Language & credits",
-  "wiki_p_lang": "<b>Language</b> button (Spanish/English) and <b>Credits</b> with the developers, the software used and the theme authors."
+  "wiki_p_lang": "<b>Language</b> selector in <b>Settings</b>, and <b>Credits</b> with the developers, the software used and the theme authors.",
+  "set_lang": "Language",
+  "set_lang_label": "Interface language"
  }
 }
