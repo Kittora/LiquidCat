@@ -96,6 +96,8 @@ component TabBtn inherits Rectangle {
     border-width: 1px;
     background: active ? Pal.accent : ta.has-hover ? Pal.panel-strong : transparent;
     border-color: active ? Pal.accent : transparent;
+    animate background { duration: 120ms; }
+    animate border-color { duration: 120ms; }
     HorizontalLayout {
         alignment: center;
         spacing: 8px;
@@ -352,8 +354,11 @@ export component App inherits Window {
                 }
 
                 // area de trabajo con scroll
-                VScroll {
+                main-scroll := VScroll {
                     vertical-stretch: 1;
+                    // Al cambiar de pestana se empieza desde arriba.
+                    property <int> tab: S.tab;
+                    changed tab => { self.reset(); }
                     VerticalLayout {
                         spacing: Theme.gap;
                         padding-right: Pal.brutal ? 8px : 0px;

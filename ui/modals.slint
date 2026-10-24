@@ -8,6 +8,9 @@ component ModalFrame inherits Rectangle {
     in property <string> title;
     in property <length> w: 680px;
     in property <bool> show-links: false;
+    // El boton de comunidad es opcional: en la wiki solo queremos el de codigo
+    // fuente, pegado al boton de cerrar.
+    in property <bool> show-discord: true;
     callback close();
     background: #03081099;
     TouchArea { clicked => { root.close(); } }
@@ -31,7 +34,7 @@ component ModalFrame inherits Rectangle {
                     Text { text: root.title; color: Pal.text; font-size: 22px; font-weight: 700; }
                 }
                 if root.show-links: Btn { small: true; icon: "github"; text: T.credit-btn-repo; clicked => { S.open-link("https://github.com/Kittora/LiquidCat"); } }
-                if root.show-links: Btn { small: true; icon: "discord"; text: T.credit-btn-discord; clicked => { S.soon("discord"); } }
+                if root.show-links && root.show-discord: Btn { small: true; icon: "discord"; text: T.credit-btn-discord; clicked => { S.soon("discord"); } }
                 Btn { icon-only: true; icon: "x"; clicked => { root.close(); } }
             }
             Rectangle { height: 1px; background: Pal.line; }
@@ -223,15 +226,23 @@ export component AllModals inherits Rectangle {
                             padding: 14px;
                             spacing: 5px;
                             H3 { icon: "info"; text: T.credit-cat-dev; }
-                            Text { text: "xjuanfxx — " + T.credit-main-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
-                            Link { text: "github.com/xjuanfxx"; url: "https://github.com/xjuanfxx"; }
-                            Text { text: "notTao — " + T.credit-helper-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
-                            Link { text: "github.com/notTao"; url: "https://github.com/notTao"; }
+                            // Solo el nombre es un enlace (resaltado); el rol va
+                            // debajo como texto normal.
+                            HorizontalLayout {
+                                alignment: start;
+                                Link { text: "xjuanfxx"; url: "https://github.com/xjuanfxx"; font-size: 13px; font-weight: 700; }
+                            }
+                            Text { text: T.credit-main-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
+                            VerticalLayout { padding-top: 4px; }
+                            HorizontalLayout {
+                                alignment: start;
+                                Link { text: "notTao"; url: "https://github.com/notTao"; font-size: 13px; font-weight: 700; }
+                            }
+                            Text { text: T.credit-helper-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
                             VerticalLayout { padding-top: 8px; }
                             Text { text: T.credit-btn-repo; color: Pal.muted; font-size: 12px; }
                             Link { text: "github.com/Kittora/LiquidCat"; url: "https://github.com/Kittora/LiquidCat"; }
                             Text { text: T.credit-dev-themes-label + ": Neo Brutalist (Light / Dark)"; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
-                            Text { text: T.credit-dev-feature-label + ": " + T.credit-dev-feature; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                         }
                     }
                     Box {
@@ -251,6 +262,8 @@ export component AllModals inherits Rectangle {
                             VerticalLayout { padding-top: 8px; Text { text: "Slint"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
                             Link { text: "slint.dev"; url: "https://slint.dev"; }
                             Text { text: T.credit-license + ": GPL-3.0 / Royalty-free"; color: Pal.muted; font-size: 12px; }
+                            VerticalLayout { padding-top: 8px; Text { text: "Poppins"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
+                            Text { text: T.credit-license + ": SIL OFL 1.1"; color: Pal.muted; font-size: 12px; }
                         }
                     }
                 }
@@ -293,6 +306,8 @@ export component AllModals inherits Rectangle {
     if S.modal == 3: ModalFrame {
         title: T.wiki-title;
         show-links: true;
+        // Solo el boton de codigo fuente, justo al lado de cerrar.
+        show-discord: false;
         w: 820px;
         close => { S.modal = 0; }
         VScroll {
@@ -302,17 +317,11 @@ export component AllModals inherits Rectangle {
                 padding-right: 6px;
                 Text { text: T.wiki-intro; color: Pal.text; font-size: 13px; wrap: word-wrap; }
                 HorizontalLayout {
-                    spacing: 8px;
-                    Text { text: T.credit-btn-repo + ":"; color: Pal.muted; font-size: 12px; vertical-alignment: center; }
-                    Link { text: "github.com/Kittora/LiquidCat"; url: "https://github.com/Kittora/LiquidCat"; font-size: 12px; }
-                }
-                HorizontalLayout {
                     spacing: 12px;
                     VerticalLayout {
                         horizontal-stretch: 1;
                         spacing: 12px;
                         alignment: start;
-                        WikiItem { icon: "search"; head: T.wiki-h-source; body: T.wiki-p-source; }
                         WikiItem { icon: "layers"; head: T.wiki-h-output; body: T.wiki-p-output; }
                         WikiItem { icon: "settings"; head: T.wiki-h-advanced; body: T.wiki-p-advanced; }
                         WikiItem { icon: "file-video"; head: T.wiki-h-local; body: T.wiki-p-local; }

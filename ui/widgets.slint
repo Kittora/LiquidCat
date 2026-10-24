@@ -71,6 +71,9 @@ export component Btn inherits Rectangle {
     background: ta.pressed && root.enabled ? fill.darker(0.12) : fill;
     border-color: (ta.has-hover && root.enabled) ? Pal.accent : solid ? fill : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.14));
     opacity: enabled ? 1.0 : 0.42;
+    animate background { duration: 120ms; }
+    animate border-color { duration: 120ms; }
+    animate opacity { duration: 120ms; }
 
     if Pal.brutal && !ta.pressed: Rectangle { x: parent.width; y: 3px; width: 3px; height: parent.height; background: Pal.hard-ctrl; }
     if Pal.brutal && !ta.pressed: Rectangle { x: 3px; y: parent.height; width: parent.width - 3px; height: 3px; background: Pal.hard-ctrl; }
@@ -120,6 +123,8 @@ export component Field inherits Rectangle {
     background: Pal.input.with-alpha(Pal.a-soft);
     border-color: ti.has-focus ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
     opacity: enabled ? 1.0 : 0.48;
+    animate border-color { duration: 120ms; }
+    animate opacity { duration: 120ms; }
     clip: true;
 
     ti := TextInput {
@@ -168,6 +173,8 @@ export component Select inherits Rectangle {
     background: Pal.input.with-alpha(Pal.a-soft);
     border-color: (ta.has-hover && root.enabled) ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
     opacity: enabled ? 1.0 : 0.48;
+    animate border-color { duration: 120ms; }
+    animate opacity { duration: 120ms; }
 
     HorizontalLayout {
         padding-left: Theme.ctrl-pad-x;
@@ -356,6 +363,22 @@ export component VScroll inherits Rectangle {
     public function scroll-to-end() {
         fl.viewport-y = Math.min(0px, root.height - fl.viewport-height);
     }
+    // Vuelve al principio (p. ej. al cambiar de pestana).
+    public function reset() {
+        root.viewport-y = 0px;
+    }
+    // Si el contenido encoge (cambiar opciones, cerrar la vista previa...),
+    // el desplazamiento anterior dejaria la parte de arriba oculta.
+    public function clamp-view() {
+        let min-y = Math.min(0px, root.height - fl.viewport-height);
+        if (root.viewport-y < min-y) {
+            root.viewport-y = min-y;
+        }
+    }
+    changed height => { root.clamp-view(); }
+    // Propiedad local para poder observar los cambios de altura del contenido.
+    property <length> content-h: fl.viewport-height;
+    changed content-h => { root.clamp-view(); }
     clip: true;
     property <bool> needs: fl.viewport-height > root.height + 1px;
     property <length> thumb-h: Math.max(32px, root.height * root.height / Math.max(1px, fl.viewport-height));
