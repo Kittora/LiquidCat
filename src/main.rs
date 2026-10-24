@@ -25,7 +25,7 @@ fn round_window(app: &App) {
     let slint_handle = app.window().window_handle();
     let Ok(handle) = slint_handle.window_handle() else { return };
     let RawWindowHandle::Win32(w) = handle.as_raw() else { return };
-    let hwnd = w.hwnd.get() as *mut core::ffi::c_void;
+    let hwnd = w.hwnd.get() as *mut std::ffi::c_void;
 
     // DWMWA_WINDOW_CORNER_PREFERENCE (33) = DWMWCP_ROUND (2)
     let round: i32 = 2;
