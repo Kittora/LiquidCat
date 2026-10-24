@@ -286,7 +286,9 @@ export component App inherits Window {
 
                 // cabecera
                 Panel {
-                    height: Theme.header-h;
+                    // Neo Brutalist añade el badge "OZO MEDIA WORKSPACE" encima
+                    // del titulo: necesita mas alto para no desbordar.
+                    height: Pal.brutal ? Theme.header-h + 20px : Theme.header-h;
                     HorizontalLayout {
                         padding-left: Theme.card-pad-x;
                         padding-right: Theme.card-pad-x;
@@ -313,13 +315,16 @@ export component App inherits Window {
                             alignment: center;
                             horizontal-stretch: 0;
                             Rectangle {
-                                height: Theme.control-h;
+                                // El borde del grupo (3 px en Neo Brutalist) no
+                                // debe quedar debajo de los botones.
+                                height: Theme.control-h + 2 * Pal.border-w;
                                 border-radius: Theme.radius-sm;
                                 border-width: Pal.border-w;
                                 border-color: Pal.line.with-alpha(Pal.a-border);
                                 background: Pal.input.with-alpha(0.35);
                                 clip: true;
                                 HorizontalLayout {
+                                    padding: Pal.border-w;
                                     spacing: 0px;
                                     StatusPill { }
                                     HeaderSep { }
