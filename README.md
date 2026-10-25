@@ -91,16 +91,16 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 
 <div align="center">
 
-<!-- Replace these placeholders with real screenshots. Recommended size: 1440 × 900 px. -->
+<!-- Screenshots captured at 1180 × 800. -->
 
 | Downloader | Converter |
 |:---:|:---:|
-| <img src="assets/readme/screenshot-placeholder.svg" alt="LiquidCat downloader screen placeholder" width="680"> | <img src="assets/readme/screenshot-placeholder.svg" alt="LiquidCat converter screen placeholder" width="680"> |
+| <img src="assets/readme/downloader.png" alt="LiquidCat downloader" width="680"> | <img src="assets/readme/converter.png" alt="LiquidCat local file converter" width="680"> |
 | Paste a link, inspect the available options and choose the output. | Convert or re-encode local files with precise control. |
 
 | Queue & history | Output settings |
 |:---:|:---:|
-| <img src="assets/readme/screenshot-placeholder.svg" alt="LiquidCat queue and history placeholder" width="680"> | <img src="assets/readme/screenshot-placeholder.svg" alt="LiquidCat output settings placeholder" width="680"> |
+| <img src="assets/readme/queue-history.png" alt="LiquidCat queue and history" width="680"> | <img src="assets/readme/output-settings.png" alt="LiquidCat output settings" width="680"> |
 | Follow active jobs and revisit completed work. | Configure quality, metadata, subtitles and destination. |
 
 </div>
@@ -122,7 +122,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 2. Download the latest `LiquidCat-0.2.0-windows-x86_64.exe`.
 3. Run `LiquidCat.exe`. 
 
-*Note: Python, FFmpeg and yt-dlp do not need to be installed separately. LiquidCat will automatically download and manage them in the background.*
+*Note: **Python is not required.** LiquidCat automatically downloads and manages yt-dlp (which bundles its own runtime) and FFmpeg/ffprobe in the background.*
 
 > [!IMPORTANT]
 > **Building from source:** You will need Rust 1.88+ installed. Simply clone the repository and run `cargo build --release`. 
