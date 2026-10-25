@@ -27,7 +27,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item target/release/liquidcat.exe dist/LiquidCat.exe
+          Copy-Item target/release/LiquidCat.exe dist/LiquidCat.exe
           Get-Item dist/LiquidCat.exe | Select-Object Name, @{n='MB';e={[math]::Round($_.Length/1MB,1)}}
 
       - uses: actions/upload-artifact@v7
