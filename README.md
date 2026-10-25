@@ -70,6 +70,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 - Manage multiple jobs through a processing queue
 - Review completed and previous jobs in history
 - Track each task from preparation to completion
+- Start with three built-in presets: 4K Original, 1080p MP4 and Audio MP3 320
 - Keep your existing presets and history (fully compatible with the old `config.json`)
 
 </td>
@@ -118,7 +119,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Windows
 
 1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
-2. Download the latest `LiquidCat-0.1.0-windows-x86_64.exe` (currently in Pre-release).
+2. Download the latest `LiquidCat-0.2.0-windows-x86_64.exe`.
 3. Run `LiquidCat.exe`. 
 
 *Note: Python, FFmpeg and yt-dlp do not need to be installed separately. LiquidCat will automatically download and manage them in the background.*
@@ -149,7 +150,7 @@ Open the finished file or its destination folder
 - [x] Trimming, subtitles, thumbnails and metadata
 - [x] Processing queue and job history
 - [x] Self-contained runtime for end users
-- [ ] Reusable download and conversion presets
+- [x] Reusable download and conversion presets
 - [ ] Batch import for links and local files
 - [ ] Expanded accessibility and keyboard navigation
 - [ ] Additional application languages

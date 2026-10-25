@@ -2,7 +2,7 @@
 //! (%APPDATA%\LiquidCat\config.json), asi se conservan preferencias, presets e historial.
 use crate::util;
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -11,6 +11,70 @@ pub struct Preset {
     pub name: String,
     #[serde(default)]
     pub settings: Value,
+}
+
+/// Presets que acompanan a una instalacion nueva. Son deliberadamente pocos:
+/// cubren maxima calidad, un MP4 compatible y extraccion de audio.
+pub fn default_presets() -> Vec<Preset> {
+    vec![
+        Preset {
+            name: "4K Original".into(),
+            settings: json!({
+                "mode": "video",
+                "quality": "2160",
+                "direct": "1",
+                "audio_codec": "aac",
+                "audio_bitrate": "320",
+                "vendor": "cpu",
+                "codec": "h264",
+                "cq": "20",
+                "audio_norm": false,
+                "subs": false,
+                "subs_embed": false,
+                "embed_thumb": false,
+                "embed_meta": true,
+                "cookies": ""
+            }),
+        },
+        Preset {
+            name: "1080p MP4".into(),
+            settings: json!({
+                "mode": "video",
+                "quality": "1080",
+                "direct": "0",
+                "audio_codec": "aac",
+                "audio_bitrate": "192",
+                "vendor": "cpu",
+                "codec": "h264",
+                "cq": "23",
+                "audio_norm": false,
+                "subs": true,
+                "subs_embed": true,
+                "embed_thumb": false,
+                "embed_meta": true,
+                "cookies": ""
+            }),
+        },
+        Preset {
+            name: "Audio MP3 320".into(),
+            settings: json!({
+                "mode": "audio",
+                "quality": "",
+                "direct": "0",
+                "audio_codec": "mp3",
+                "audio_bitrate": "320",
+                "vendor": "cpu",
+                "codec": "h264",
+                "cq": "23",
+                "audio_norm": true,
+                "subs": false,
+                "subs_embed": false,
+                "embed_thumb": true,
+                "embed_meta": true,
+                "cookies": ""
+            }),
+        },
+    ]
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
@@ -55,6 +119,17 @@ impl Config {
             .and_then(|s| serde_json::from_str(&s).ok())
             .unwrap_or_default();
         cfg.history.truncate(100);
+
+        // Los presets por defecto se siembran una sola vez. El marcador evita
+        // que reaparezcan si el usuario decide borrarlos todos.
+        if !cfg.pref_bool("presets_seeded", false) {
+            if cfg.presets.is_empty() {
+                cfg.presets = default_presets();
+            }
+            cfg.set_pref("presets_seeded", Value::Bool(true));
+            cfg.save();
+        }
+
         cfg
     }
 

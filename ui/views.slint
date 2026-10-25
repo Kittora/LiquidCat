@@ -60,12 +60,15 @@ export component DownloadView inherits VerticalLayout {
                 Btn {
                     kind: "primary";
                     icon: S.fetching ? "spinner" : "search";
+                    icon-spin: S.fetching;
                     text: S.fetching ? T.btn-fetch + "..." : T.btn-fetch;
                     enabled: !S.fetching && S.st == 1;
                     clicked => { S.fetch-formats(); }
                 }
             }
-            Text {
+            // Solo reserva la linea cuando hay un titulo; en vacio la
+            // tarjeta de busqueda queda mas compacta.
+            if S.title-line != "": Text {
                 text: S.title-line;
                 color: Pal.muted;
                 font-size: 12px;
@@ -129,8 +132,8 @@ export component DownloadView inherits VerticalLayout {
                         alignment: start;
                         for c in S.pv-chips: Chip { text: c; }
                     }
-                    // Dos lineas: la tarjeta queda compacta y simetrica con la
-                    // miniatura 16:9 (90px de alto).
+                    // Una sola linea con elipsis: las descripciones largas no
+                    // dejan un corte duro y la tarjeta sigue compacta.
                     Rectangle {
                         height: Theme.preview-desc-h;
                         clip: true;
@@ -140,8 +143,9 @@ export component DownloadView inherits VerticalLayout {
                             font-size: 11.5px;
                             width: parent.width;
                             height: parent.height;
-                            wrap: word-wrap;
+                            wrap: no-wrap;
                             overflow: elide;
+                            vertical-alignment: center;
                         }
                     }
                 }
@@ -160,35 +164,51 @@ export component DownloadView inherits VerticalLayout {
                 padding-right: Theme.card-pad-x;
                 spacing: Theme.gap;
                 CardHead { step: S.has-preview ? "3" : "2"; icon: "layers"; title: T.cat-output; tint: Pal.c-layers; }
-                FG {
-                    label: T.field-mode;
-                    Select {
-                        select-id: 2;
-                        options: [T.mode-video, T.mode-audio];
-                        current <=> S.mode-idx;
-                        selected(i) => { S.mode-changed(); }
+                // Dos columnas para que Output & format no alargue la vista:
+                // los cuatro selects caben en dos filas y el modo de
+                // procesado ocupa el ancho completo.
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-mode;
+                        Select {
+                            select-id: 2;
+                            options: [T.mode-video, T.mode-audio];
+                            current <=> S.mode-idx;
+                            selected(i) => { S.mode-changed(); }
+                        }
+                    }
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-quality;
+                        Select {
+                            select-id: 3;
+                            best: 1;
+                            options: [T.q-manual, "4K · 2160p", "1440p", "1080p", "720p", "480p"];
+                            current <=> S.quality-idx;
+                        }
                     }
                 }
-                FG {
-                    label: T.field-quality;
-                    Select {
-                        select-id: 3;
-                        options: [T.q-manual, "4K · 2160p", "1440p", "1080p", "720p", "480p"];
-                        current <=> S.quality-idx;
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-vidfmt;
+                        Select {
+                            select-id: 4;
+                            // Solo marcar la mejor opcion cuando ya hay formatos.
+                            best: S.has-preview ? 0 : -1;
+                            enabled: root.is-video;
+                            options: S.video-opts;
+                            current <=> S.video-idx;
+                        }
                     }
-                }
-                FG {
-                    label: T.field-vidfmt;
-                    Select {
-                        select-id: 4;
-                        enabled: root.is-video;
-                        options: S.video-opts;
-                        current <=> S.video-idx;
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-audfmt;
+                        Select { select-id: 5; best: S.has-preview ? 0 : -1; options: S.audio-opts; current <=> S.audio-idx; }
                     }
-                }
-                FG {
-                    label: T.field-audfmt;
-                    Select { select-id: 5; options: S.audio-opts; current <=> S.audio-idx; }
                 }
                 FG {
                     label: T.field-encmode;
@@ -210,22 +230,27 @@ export component DownloadView inherits VerticalLayout {
                 spacing: Theme.gap;
                 alignment: start;
                 CardHead { step: S.has-preview ? "4" : "3"; icon: "sliders"; title: T.cat-codec; tint: Pal.c-sliders; }
-                FG {
-                    label: T.field-hw;
-                    Select {
-                        select-id: 7;
-                        enabled: root.is-video && !root.is-direct;
-                        options: [T.hw-nvidia, T.hw-amd, T.hw-cpu];
-                        current <=> S.hw-idx;
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-hw;
+                        Select {
+                            select-id: 7;
+                            enabled: root.is-video && !root.is-direct;
+                            options: [T.hw-nvidia, T.hw-amd, T.hw-cpu];
+                            current <=> S.hw-idx;
+                        }
                     }
-                }
-                FG {
-                    label: T.field-vcodec;
-                    Select {
-                        select-id: 8;
-                        enabled: root.is-video && !root.is-direct;
-                        options: [T.codec-h264, T.codec-hevc, T.codec-av1, T.codec-vp9];
-                        current <=> S.codec-idx;
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-vcodec;
+                        Select {
+                            select-id: 8;
+                            enabled: root.is-video && !root.is-direct;
+                            options: [T.codec-h264, T.codec-hevc, T.codec-av1, T.codec-vp9];
+                            current <=> S.codec-idx;
+                        }
                     }
                 }
                 FG {
@@ -257,7 +282,7 @@ export component DownloadView inherits VerticalLayout {
     Panel {
         VerticalLayout {
             Rectangle {
-                height: Theme.control-h + 8px;
+                height: Theme.control-h + 4px;
                 HorizontalLayout {
                     padding-left: Theme.card-pad-x;
                     padding-right: Theme.card-pad-x;
@@ -286,6 +311,7 @@ export component DownloadView inherits VerticalLayout {
                         horizontal-stretch: 1;
                         Select {
                             select-id: 10;
+                            best: 1;
                             options: [T.adv-bitrate-default, "320 kbps", "256 kbps", "192 kbps", "128 kbps", "96 kbps"];
                             current <=> S.abitrate-idx;
                         }
@@ -351,7 +377,8 @@ export component DownloadView inherits VerticalLayout {
             Btn {
                 horizontal-stretch: 1;
                 kind: "success";
-                icon: "play";
+                icon: S.busy ? "spinner" : "play";
+                icon-spin: S.busy;
                 text: root.is-direct ? T.btn-download-direct : T.btn-download-reenc;
                 enabled: S.st == 1 && !S.busy;
                 clicked => { S.start-download(); }
@@ -444,13 +471,18 @@ export component LocalView inherits VerticalLayout {
                 spacing: Theme.gap;
                 alignment: start;
                 CardHead { step: "2"; icon: "sliders"; title: T.cat-codec; tint: Pal.c-sliders; }
-                FG {
-                    label: T.field-hw;
-                    Select { select-id: 14; enabled: root.is-video; options: [T.hw-nvidia, T.hw-amd, T.hw-cpu]; current <=> S.local-hw-idx; }
-                }
-                FG {
-                    label: T.field-vcodec;
-                    Select { select-id: 15; enabled: root.is-video; options: ["H.264", "HEVC / H.265", "AV1", "VP9"]; current <=> S.local-codec-idx; }
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-hw;
+                        Select { select-id: 14; enabled: root.is-video; options: [T.hw-nvidia, T.hw-amd, T.hw-cpu]; current <=> S.local-hw-idx; }
+                    }
+                    FG {
+                        horizontal-stretch: 1;
+                        label: T.field-vcodec;
+                        Select { select-id: 15; enabled: root.is-video; options: ["H.264", "HEVC / H.265", "AV1", "VP9"]; current <=> S.local-codec-idx; }
+                    }
                 }
                 VerticalLayout {
                     spacing: Theme.gap-sm;
@@ -487,7 +519,8 @@ export component LocalView inherits VerticalLayout {
             Btn {
                 horizontal-stretch: 1;
                 kind: "success";
-                icon: "play";
+                icon: S.busy ? "spinner" : "play";
+                icon-spin: S.busy;
                 text: root.is-audio ? T.set-local-to-audio : root.is-gif ? T.set-local-to-gif : T.set-local-go;
                 enabled: !S.busy;
                 clicked => { S.reencode-local(); }
@@ -521,7 +554,7 @@ export component QueueView inherits VerticalLayout {
                 wrap: word-wrap;
             }
             for q in S.queue: Rectangle {
-                height: 42px;
+                height: 38px;
                 border-radius: Pal.radius-sm;
                 border-width: Pal.brutal ? 2px : 1px;
                 border-color: q.status == 1 ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
@@ -580,7 +613,7 @@ export component ActivityCard inherits Panel {
         }
         ProgressBar { value: S.progress; }
         Rectangle {
-            height: 150px;
+            height: 100px;
             border-radius: Pal.radius-sm;
             border-width: 1px;
             border-color: Pal.log-border;

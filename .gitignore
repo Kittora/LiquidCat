@@ -1,5 +1,6 @@
 # Build artifacts
 target/
+dist/
 
 # Local backup files
 Cargo.lock.bak

@@ -79,8 +79,8 @@ pub fn apply(app: &App, id: &str) {
         p.set_a_border(1.0);
         p.set_highlight(Color::from_argb_u8(0, 255, 255, 255));
     } else {
-        p.set_radius(16.0);
-        p.set_radius_sm(10.0);
+        p.set_radius(12.0);
+        p.set_radius_sm(8.0);
         p.set_border_w(1.0);
         p.set_a_panel(0.62);
         p.set_a_soft(0.46);

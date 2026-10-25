@@ -2,16 +2,86 @@ import { Pal, Theme } from "theme.slint";
 import { IconData } from "icon_data.slint";
 import { S } from "state.slint";
 
+// El renderer por software no soporta transformaciones, asi que el spinner
+// no puede usar rotation-angle. En su lugar se precalculan 36 posiciones del
+// mismo arco (10 grados cada una) y un Timer cambia de posicion a 40 fps.
+// Funciona igual en FemtoVG y en software; el Timer solo corre mientras gira.
+global SpinnerData {
+    pure public function arc(phase: int) -> string {
+        if (phase == 0) { return "M20.60 12.00a8.6 8.6 0 1 1 -2.52 -6.08"; }
+        if (phase == 1) { return "M20.47 13.49a8.6 8.6 0 1 1 -1.42 -6.43"; }
+        if (phase == 2) { return "M20.08 14.94a8.6 8.6 0 1 1 -0.29 -6.58"; }
+        if (phase == 3) { return "M19.45 16.30a8.6 8.6 0 1 1 0.86 -6.53"; }
+        if (phase == 4) { return "M18.59 17.53a8.6 8.6 0 1 1 1.98 -6.28"; }
+        if (phase == 5) { return "M17.53 18.59a8.6 8.6 0 1 1 3.04 -5.84"; }
+        if (phase == 6) { return "M16.30 19.45a8.6 8.6 0 1 1 4.01 -5.22"; }
+        if (phase == 7) { return "M14.94 20.08a8.6 8.6 0 1 1 4.85 -4.45"; }
+        if (phase == 8) { return "M13.49 20.47a8.6 8.6 0 1 1 5.55 -3.54"; }
+        if (phase == 9) { return "M12.00 20.60a8.6 8.6 0 1 1 6.08 -2.52"; }
+        if (phase == 10) { return "M10.51 20.47a8.6 8.6 0 1 1 6.43 -1.42"; }
+        if (phase == 11) { return "M9.06 20.08a8.6 8.6 0 1 1 6.58 -0.29"; }
+        if (phase == 12) { return "M7.70 19.45a8.6 8.6 0 1 1 6.53 0.86"; }
+        if (phase == 13) { return "M6.47 18.59a8.6 8.6 0 1 1 6.28 1.98"; }
+        if (phase == 14) { return "M5.41 17.53a8.6 8.6 0 1 1 5.84 3.04"; }
+        if (phase == 15) { return "M4.55 16.30a8.6 8.6 0 1 1 5.22 4.01"; }
+        if (phase == 16) { return "M3.92 14.94a8.6 8.6 0 1 1 4.45 4.85"; }
+        if (phase == 17) { return "M3.53 13.49a8.6 8.6 0 1 1 3.54 5.55"; }
+        if (phase == 18) { return "M3.40 12.00a8.6 8.6 0 1 1 2.52 6.08"; }
+        if (phase == 19) { return "M3.53 10.51a8.6 8.6 0 1 1 1.42 6.43"; }
+        if (phase == 20) { return "M3.92 9.06a8.6 8.6 0 1 1 0.29 6.58"; }
+        if (phase == 21) { return "M4.55 7.70a8.6 8.6 0 1 1 -0.86 6.53"; }
+        if (phase == 22) { return "M5.41 6.47a8.6 8.6 0 1 1 -1.98 6.28"; }
+        if (phase == 23) { return "M6.47 5.41a8.6 8.6 0 1 1 -3.04 5.84"; }
+        if (phase == 24) { return "M7.70 4.55a8.6 8.6 0 1 1 -4.01 5.22"; }
+        if (phase == 25) { return "M9.06 3.92a8.6 8.6 0 1 1 -4.85 4.45"; }
+        if (phase == 26) { return "M10.51 3.53a8.6 8.6 0 1 1 -5.55 3.54"; }
+        if (phase == 27) { return "M12.00 3.40a8.6 8.6 0 1 1 -6.08 2.52"; }
+        if (phase == 28) { return "M13.49 3.53a8.6 8.6 0 1 1 -6.43 1.42"; }
+        if (phase == 29) { return "M14.94 3.92a8.6 8.6 0 1 1 -6.58 0.29"; }
+        if (phase == 30) { return "M16.30 4.55a8.6 8.6 0 1 1 -6.53 -0.86"; }
+        if (phase == 31) { return "M17.53 5.41a8.6 8.6 0 1 1 -6.28 -1.98"; }
+        if (phase == 32) { return "M18.59 6.47a8.6 8.6 0 1 1 -5.84 -3.04"; }
+        if (phase == 33) { return "M19.45 7.70a8.6 8.6 0 1 1 -5.22 -4.01"; }
+        if (phase == 34) { return "M20.08 9.06a8.6 8.6 0 1 1 -4.45 -4.85"; }
+        if (phase == 35) { return "M20.47 10.51a8.6 8.6 0 1 1 -3.54 -5.55"; }
+        return "M20.60 12.00a8.6 8.6 0 1 1 -2.52 -6.08";
+    }
+}
+
 // ---------------------------------------------------------------- Icono
 // Los iconos son trazos vectoriales (Path), sin SVG ni imagenes: casi no cuestan memoria.
 export component Icon inherits Rectangle {
     in property <string> name;
     in property <color> tint: Pal.text;
     in property <length> size: 18px;
+    in property <bool> spin: false;
     min-width: size;
     max-width: size;
     min-height: size;
-    Path {
+    property <bool> show-spinner: root.spin && root.name == "spinner";
+    property <int> spin-phase: 0;
+    changed spin => { if (root.spin) { root.spin-phase = 0; } }
+    // Slint no permite un Timer condicional; se deja inactivo (running:
+    // false) cuando no hay spinner, asi que no consume CPU en reposo.
+    Timer {
+        interval: 25ms;
+        running: root.show-spinner;
+        triggered => { root.spin-phase = root.spin-phase == 35 ? 0 : root.spin-phase + 1; }
+    }
+    if root.show-spinner: Path {
+        x: 0px;
+        y: (parent.height - root.size) / 2;
+        width: root.size;
+        height: root.size;
+        viewbox-width: 24;
+        viewbox-height: 24;
+        commands: SpinnerData.arc(root.spin-phase);
+        stroke: root.tint;
+        stroke-width: root.size / 24 * 1.8;
+        stroke-line-cap: round;
+        stroke-line-join: round;
+    }
+    if !root.show-spinner: Path {
         x: 0px;
         y: (parent.height - root.size) / 2;
         width: root.size;
@@ -58,6 +128,7 @@ export component Btn inherits Rectangle {
     in property <bool> compact: false;
     in property <bool> small: false;
     in property <bool> icon-only: false;
+    in property <bool> icon-spin: false;
     callback clicked();
 
     property <bool> solid: kind == "primary" || kind == "success" || kind == "danger";
@@ -88,6 +159,7 @@ export component Btn inherits Rectangle {
             name: root.icon;
             tint: root.fg;
             size: root.small || root.compact ? 15px : 16px;
+            spin: root.icon-spin;
         }
         if root.text != "": Text {
             text: root.text;
@@ -146,11 +218,14 @@ export component Field inherits Rectangle {
     }
     if ti.text == "": Text {
         x: 10px;
-        y: (parent.height - self.height) / 2;
+        y: 0px;
         width: parent.width - 20px;
+        height: parent.height;
+        z: 1;
         text: root.placeholder;
         color: Pal.muted.with-alpha(root.enabled ? 0.65 : 0.4);
         font-size: Theme.font-body;
+        vertical-alignment: center;
         overflow: elide;
     }
 }
@@ -160,6 +235,8 @@ export component Select inherits Rectangle {
     in property <int> select-id: 0;
     in property <[string]> options;
     in-out property <int> current: 0;
+    // Indice de la opcion recomendada (calidad/bitrate maximos). -1 = ninguna.
+    in property <int> best: -1;
     in property <bool> enabled: true;
     in property <length> h: Theme.control-h;
     callback selected(int);
@@ -187,6 +264,11 @@ export component Select inherits Rectangle {
             vertical-alignment: center;
             overflow: elide;
         }
+        if root.best >= 0 && root.current == root.best: Icon {
+            name: "star";
+            size: 12px;
+            tint: root.enabled ? Pal.warning : Pal.muted.with-alpha(0.55);
+        }
         Icon { name: "chevron-down"; size: 14px; tint: root.enabled ? Pal.accent : Pal.muted.with-alpha(0.55); }
     }
     ta := TouchArea {
@@ -200,6 +282,7 @@ export component Select inherits Rectangle {
             S.dd-h = root.height;
             S.dd-options = root.options;
             S.dd-current = root.current;
+            S.dd-best = root.best;
             S.dd-owner = root.select-id;
         }
     }
@@ -269,7 +352,7 @@ export component Slide inherits Rectangle {
 
     function update(mx: length) {
         if (!root.enabled) { return; }
-        let f = Math.max(0.0, Math.min(1.0, (mx - 9px) / (root.width - 18px)));
+        let f = Math.max(0.0, Math.min(1.0, (mx - 7px) / (root.width - 14px)));
         let v = root.minimum + Math.round(f * (root.maximum - root.minimum));
         if (v != root.value) {
             root.value = v;
@@ -281,23 +364,23 @@ export component Slide inherits Rectangle {
         x: 0px;
         y: (parent.height - self.height) / 2;
         width: parent.width;
-        height: 6px;
-        border-radius: 3px;
+        height: 4px;
+        border-radius: 2px;
         background: root.enabled ? Pal.line-strong : Pal.line-strong.with-alpha(0.5);
         Rectangle {
             x: 0px;
-            width: 9px + (root.width - 18px) * root.frac;
+            width: 7px + (root.width - 14px) * root.frac;
             height: parent.height;
-            border-radius: 3px;
+            border-radius: 2px;
             background: root.enabled ? Pal.accent : Pal.muted.with-alpha(0.55);
         }
     }
     Rectangle {
-        x: (root.width - 18px) * root.frac;
+        x: (root.width - 14px) * root.frac;
         y: (parent.height - self.height) / 2;
-        width: 18px;
-        height: 18px;
-        border-radius: 9px;
+        width: 14px;
+        height: 14px;
+        border-radius: 7px;
         background: root.enabled ? Pal.accent : Pal.muted.with-alpha(0.6);
         border-width: 3px;
         border-color: root.enabled ? Pal.panel : Pal.panel.with-alpha(0.7);
@@ -315,8 +398,8 @@ export component Slide inherits Rectangle {
 // ---------------------------------------------------------------- Barra de progreso
 export component ProgressBar inherits Rectangle {
     in property <float> value: 0;
-    height: 9px;
-    border-radius: 5px;
+    height: 6px;
+    border-radius: 3px;
     border-width: 1px;
     clip: true;
     background: Pal.input.with-alpha(Pal.a-soft);
@@ -385,6 +468,10 @@ export component VScroll inherits Rectangle {
     }
     fl := Flickable {
         width: parent.width - root.rail;
+        // El Flickable debe ocupar exactamente el viewport. Sin altura propia
+        // puede crecer con el contenido y su zona de entrada invade el pie de
+        // los modales (los controles de abajo dejan de responder).
+        height: parent.height;
         interactive: false;
         VerticalLayout {
             alignment: start;
@@ -442,31 +529,32 @@ export component CardHead inherits HorizontalLayout {
     in property <color> tint: Pal.accent;
     spacing: 8px;
     padding-bottom: 8px;
-    if step != "": Rectangle {
-        width: 20px;
-        height: 20px;
-        // CardHead tiene 8px de padding inferior: centra el circulo en la
-        // fila de contenido, no en la caja completa. El +2px compensa la
-        // linea base de la fuente y lo alinea con el icono y el titulo.
-        y: (parent.height - 8px - self.height) / 2 + 2px;
-        border-radius: Pal.brutal ? 0px : 10px;
-        border-width: Pal.brutal ? 2px : 0px;
-        border-color: Pal.line;
-        background: tint;
-        Text {
-            text: step;
-            color: Pal.on-accent;
-            font-size: 11px;
-            font-weight: 700;
-            // El Text debe ocupar todo el circulo para que la alineacion
-            // centre de verdad el numero (1, 2, 3...).
-            width: parent.width;
-            height: parent.height;
-            // El glifo del "1" de Poppins queda a la izquierda de su caja;
-            // este pequeno desplazamiento lo centra visualmente.
-            x: step == "1" ? 3px : 0px;
-            horizontal-alignment: center;
-            vertical-alignment: center;
+    if step != "": VerticalLayout {
+        // El layout centra el circulo en la fila de contenido; el
+        // padding-bottom de CardHead queda fuera y no lo desplaza.
+        alignment: center;
+        Rectangle {
+            width: 20px;
+            height: 20px;
+            border-radius: Pal.brutal ? 0px : 10px;
+            border-width: Pal.brutal ? 2px : 0px;
+            border-color: Pal.line;
+            background: tint;
+            Text {
+                text: step;
+                color: Pal.on-accent;
+                font-size: 11px;
+                font-weight: 700;
+                // El Text ocupa todo el circulo para que la alineacion
+                // centre de verdad el numero (1, 2, 3...).
+                width: parent.width;
+                height: parent.height;
+                // Ajuste optico: el "1" y el "4" de Poppins quedan un poco a
+                // la derecha de su caja; se compensan sin mover el resto.
+                x: step == "1" ? 0px : step == "4" ? -0.5px : 0px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
         }
     }
     Icon { name: icon; size: 18px; tint: root.tint; }

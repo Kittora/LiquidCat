@@ -40,6 +40,21 @@ fn ss(s: &str) -> SharedString {
     SharedString::from(s)
 }
 
+/// Deja la descripcion en una sola linea compacta y corta en un espacio
+/// cercano al limite, para que la vista previa nunca termine a mitad de palabra.
+fn compact_desc(text: &str) -> String {
+    const MAX: usize = 320;
+    if text.chars().count() <= MAX {
+        return text.to_string();
+    }
+    let mut out: String = text.chars().take(MAX).collect();
+    if let Some(pos) = out.rfind(' ') {
+        out.truncate(pos);
+    }
+    out.push('…');
+    out
+}
+
 // ====================================================================
 //  Idioma
 // ====================================================================
@@ -404,12 +419,14 @@ fn fetch(core: &Arc<Core>, app: &App) {
                     // La descripcion de YouTube suele traer lineas vacias;
                     // al quitarlas las dos lineas visibles de la preview
                     // muestran texto real en vez de un hueco cortado.
-                    let desc = res.description
-                        .lines()
-                        .map(str::trim)
-                        .filter(|line| !line.is_empty())
-                        .collect::<Vec<_>>()
-                        .join("\n");
+                    let desc = compact_desc(
+                        &res.description
+                            .lines()
+                            .map(str::trim)
+                            .filter(|line| !line.is_empty())
+                            .collect::<Vec<_>>()
+                            .join(" "),
+                    );
                     s.set_pv_desc(ss(&desc));
                     s.set_pv_chips(ModelRc::new(VecModel::from(res.chips.iter().map(|x| ss(x)).collect::<Vec<_>>())));
                     match thumb {
@@ -422,6 +439,8 @@ fn fetch(core: &Arc<Core>, app: &App) {
                     if no_a { push_log(a, &ui(&lang, "log_no_audio")); }
                     show_toast(a, &ui(&lang, "toast_formats_ok"), 1);
                 });
+                // Aviso sonoro cuando los formatos ya estan disponibles.
+                core.beep(true);
             }
             Err(e) => {
                 core.ui(move |a| {

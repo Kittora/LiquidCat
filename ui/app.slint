@@ -223,17 +223,22 @@ export component App inherits Window {
                 }
                 double-clicked => { S.win-maximize(); }
             }
+            // Nombre de la app centrado en la barra de titulo.
+            Text {
+                x: 0px;
+                y: 0px;
+                width: parent.width;
+                height: parent.height;
+                text: "LiquidCat";
+                color: Pal.muted;
+                font-size: 11.5px;
+                font-weight: 600;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
             HorizontalLayout {
                 padding-left: 12px;
                 spacing: 7px;
-                Image {
-                    source: @image-url("../assets/logo.png");
-                    width: 18px;
-                    height: 18px;
-                    y: (parent.height - self.height) / 2;
-                    image-fit: cover;
-                }
-                Text { text: "LiquidCat"; color: Pal.text; font-weight: 700; font-size: 12.5px; vertical-alignment: center; }
                 Rectangle { horizontal-stretch: 1; }
                 WinButton { icon: "minus"; clicked => { S.win-minimize(); } }
                 WinButton { icon: S.maximized ? "restore" : "maximize"; clicked => { S.win-maximize(); } }
@@ -280,7 +285,27 @@ export component App inherits Window {
                     HorizontalLayout {
                         padding-left: Theme.card-pad-x;
                         padding-right: Theme.card-pad-x;
-                        spacing: 16px;
+                        spacing: 12px;
+                        // Logo de marca en la cabecera; el de la barra de
+                        // titulo se quito para no duplicarlo.
+                        VerticalLayout {
+                            alignment: center;
+                            // Version recortada del logo: sin el borde claro
+                            // que traia el PNG original. Asi no aparece un
+                            // marco dentro de otro, sobre todo en Neo.
+                            Rectangle {
+                                width: 46px;
+                                height: 46px;
+                                border-radius: Pal.brutal ? 2px : 12px;
+                                clip: true;
+                                Image {
+                                    width: parent.width;
+                                    height: parent.height;
+                                    source: @image-url("../assets/logo-clean.png");
+                                    image-fit: cover;
+                                }
+                            }
+                        }
                         VerticalLayout {
                             horizontal-stretch: 1;
                             alignment: center;
@@ -399,11 +424,15 @@ export component App inherits Window {
         }
 
         Rectangle {
-            x: Math.max(6px, Math.min(S.dd-x, ddl.width - S.dd-w - 6px));
-            y: Math.max(6px, ddl.top + ddl.ph <= ddl.height - 6px ? ddl.top : S.dd-y - 5px - ddl.ph);
+            // Alinear a pixeles: un borde fraccionario hace que el texto de
+            // las opciones se vea borroso en el renderer por software.
+            x: Math.round(Math.max(6px, Math.min(S.dd-x, ddl.width - S.dd-w - 6px)) / 1px) * 1px;
+            y: Math.round(Math.max(6px, ddl.top + ddl.ph <= ddl.height - 6px ? ddl.top : S.dd-y - 5px - ddl.ph) / 1px) * 1px;
             width: S.dd-w;
             height: ddl.ph;
-            background: Pal.panel.with-alpha(Pal.a-solid);
+            // Opaco: el fondo semitransparente dejaba ver el texto de debajo y
+            // las opciones parecian desenfocadas.
+            background: Pal.panel;
             border-radius: Pal.radius-sm;
             border-width: Pal.border-w;
             border-color: Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.1));
@@ -413,6 +442,11 @@ export component App inherits Window {
             TouchArea { }
 
             Flickable {
+                // Un Flickable no toma el tamano del padre por si solo: sin
+                // width/height explicitos su contenido (las opciones) queda
+                // recortado y la lista se ve vacia.
+                width: parent.width;
+                height: parent.height;
                 viewport-height: S.dd-options.length * Theme.control-h-sm + 12px;
                 for opt[i] in S.dd-options: Rectangle {
                     x: 6px;
@@ -423,12 +457,24 @@ export component App inherits Window {
                     background: it.has-hover ? Pal.accent.with-alpha(0.22) : i == S.dd-current ? Pal.accent.with-alpha(0.12) : transparent;
                     Text {
                         x: 11px;
-                        width: parent.width - 22px;
+                        y: 0px;
+                        // Reserva espacio para la estrella de "mejor opcion".
+                        width: parent.width - (i == S.dd-best ? 40px : 22px);
+                        height: parent.height;
                         text: opt;
                         color: i == S.dd-current ? Pal.accent : Pal.text;
                         font-size: Theme.font-body;
                         vertical-alignment: center;
                         overflow: elide;
+                    }
+                    if i == S.dd-best: Icon {
+                        x: parent.width - 22px;
+                        y: (parent.height - 13px) / 2;
+                        width: 13px;
+                        height: 13px;
+                        name: "star";
+                        size: 13px;
+                        tint: Pal.warning;
                     }
                     it := TouchArea {
                         mouse-cursor: pointer;

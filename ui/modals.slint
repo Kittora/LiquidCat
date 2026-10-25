@@ -13,15 +13,22 @@ component ModalFrame inherits Rectangle {
     in property <bool> show-discord: true;
     callback close();
     background: #03081099;
-    TouchArea { clicked => { root.close(); } }
-    Panel {
+    // Cierra solo si el clic cae fuera del panel. Un TouchArea dentro del
+    // panel se tragaba los clics de botones y selects (modal "muerto").
+    TouchArea {
+        clicked => {
+            if (self.mouse-x < panel.x || self.mouse-x > panel.x + panel.width
+                || self.mouse-y < panel.y || self.mouse-y > panel.y + panel.height) {
+                root.close();
+            }
+        }
+    }
+    panel := Panel {
         width: Math.min(root.w, root.width - 48px);
         height: Math.min(root.height - 48px, 700px);
         x: (root.width - self.width) / 2;
         y: (root.height - self.height) / 2;
         alpha: Pal.a-strong;
-        // el panel captura clics para no cerrar el modal
-        TouchArea { }
         VerticalLayout {
             padding: 21px;
             spacing: 14px;
@@ -151,7 +158,7 @@ export component AllModals inherits Rectangle {
                         select-id: 17;
                         horizontal-stretch: 1;
                         max-width: 240px;
-                        h: 36px;
+                        h: Theme.control-h;
                         options: ["Español", "English"];
                         current <=> S.lang-idx;
                         selected(i) => { S.set-lang(i == 0 ? "es" : "en"); }
@@ -173,7 +180,7 @@ export component AllModals inherits Rectangle {
                             select-id: 16;
                             horizontal-stretch: 1;
                             max-width: 240px;
-                            h: 36px;
+                            h: Theme.control-h;
                             options: [T.adv-cookies-none, "Chrome", "Edge", "Firefox", "Brave", "Opera", "Vivaldi"];
                             current <=> S.pref-cookies-idx;
                             selected(i) => { S.cookies-idx = i; S.prefs-changed(); S.test-cookies(); }
@@ -468,7 +475,11 @@ export component AllModals inherits Rectangle {
         background: #03081099;
         TouchArea { }
         Panel {
-            width: 440px;
+            // Los dialogos de error/aviso no necesitan ocupar todo el alto:
+            // antes el Panel se estiraba y el mensaje quedaba en un panel
+            // enorme. El prompt de texto necesita un poco mas de altura.
+            width: S.dlg == 3 ? 420px : 440px;
+            height: S.dlg == 5 ? 290px : S.dlg == 4 ? 250px : 230px;
             x: (parent.width - self.width) / 2;
             y: (parent.height - self.height) / 2;
             alpha: Pal.a-strong;

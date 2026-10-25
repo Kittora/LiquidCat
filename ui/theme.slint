@@ -35,8 +35,8 @@ export global Pal {
     in-out property <color> c-file: #94e2d5;
     in-out property <color> c-terminal: #a6e3a1;
 
-    in-out property <length> radius: 16px;
-    in-out property <length> radius-sm: 10px;
+    in-out property <length> radius: 12px;
+    in-out property <length> radius-sm: 8px;
     in-out property <length> border-w: 1px;
 
     // "Cristal": transparencias de paneles, piezas pequenas, cabeceras y modales.
@@ -57,24 +57,24 @@ export global Pal {
 // Los radios se derivan de Pal para que los temas (Neo Brutalist) sigan mandando.
 export global Theme {
     // Alturas de control
-    out property <length> control-h: 38px;
-    out property <length> control-h-sm: 32px;
-    out property <length> header-h: 54px;
-    out property <length> tab-h: 40px;
+    out property <length> control-h: 32px;
+    out property <length> control-h-sm: 26px;
+    out property <length> header-h: 50px;
+    out property <length> tab-h: 32px;
 
     // Espaciado
-    out property <length> gap: 8px;
+    out property <length> gap: 6px;
     out property <length> gap-sm: 5px;
     out property <length> gap-lg: 10px;
-    out property <length> card-pad: 10px;
-    out property <length> card-pad-x: 12px;
+    out property <length> card-pad: 8px;
+    out property <length> card-pad-x: 10px;
     out property <length> ctrl-pad-x: 10px;
-    out property <length> btn-pad-x: 12px;
+    out property <length> btn-pad-x: 10px;
 
     // Vista previa compacta (miniatura 16:9 + dos lineas de descripcion).
     out property <length> preview-thumb-w: 160px;
     out property <length> preview-thumb-h: 90px;
-    out property <length> preview-desc-h: 40px;
+    out property <length> preview-desc-h: 18px;
     out property <length> font-preview-title: 15px;
     out property <length> chip-h: 22px;
 
@@ -87,9 +87,9 @@ export global Theme {
 
     // Tipografia
     out property <length> font-label: 11px;
-    out property <length> font-body: 12.5px;
-    out property <length> font-btn: 12px;
-    out property <length> font-title: 12.5px;
+    out property <length> font-body: 12px;
+    out property <length> font-btn: 11.5px;
+    out property <length> font-title: 13px;
 
     // Rueda del raton: multiplicador constante sobre el delta del evento.
     out property <float> wheel-step: 2.2;
