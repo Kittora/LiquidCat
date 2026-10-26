@@ -493,7 +493,8 @@ export component AllModals inherits Rectangle {
                     border-radius: 18px;
                     background: S.dlg == 3 ? Pal.danger : S.dlg == 2 ? Pal.success : Pal.accent;
                     Icon {
-                        x: 9px;
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
                         name: S.dlg == 3 ? "error" : S.dlg == 2 ? "check" : S.dlg == 4 ? "warning" : "info";
                         size: 18px;
                         tint: S.dlg == 3 ? #ffffff : Pal.on-accent;
