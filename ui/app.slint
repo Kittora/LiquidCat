@@ -424,12 +424,14 @@ export component App inherits Window {
         }
 
         Rectangle {
-            // Alinear a pixeles: un borde fraccionario hace que el texto de
-            // las opciones se vea borroso en el renderer por software.
-            x: Math.round(Math.max(6px, Math.min(S.dd-x, ddl.width - S.dd-w - 6px)) / 1px) * 1px;
-            y: Math.round(Math.max(6px, ddl.top + ddl.ph <= ddl.height - 6px ? ddl.top : S.dd-y - 5px - ddl.ph) / 1px) * 1px;
-            width: S.dd-w;
-            height: ddl.ph;
+            // Alinear a pixeles FISICOS (phx), no logicos: con escala 125 %/150 %
+            // un px logico entero cae en medio de un pixel fisico y el texto
+            // se ve borroso (a 100 % ambos coinciden, por eso solo fallaba
+            // en la pantalla del laptop).
+            x: Math.round(Math.max(6px, Math.min(S.dd-x, ddl.width - S.dd-w - 6px)) / 1phx) * 1phx;
+            y: Math.round(Math.max(6px, ddl.top + ddl.ph <= ddl.height - 6px ? ddl.top : S.dd-y - 5px - ddl.ph) / 1phx) * 1phx;
+            width: Math.round(S.dd-w / 1phx) * 1phx;
+            height: Math.round(ddl.ph / 1phx) * 1phx;
             // Opaco: el fondo semitransparente dejaba ver el texto de debajo y
             // las opciones parecian desenfocadas.
             background: Pal.panel;
@@ -449,10 +451,10 @@ export component App inherits Window {
                 height: parent.height;
                 viewport-height: S.dd-options.length * Theme.control-h-sm + 12px;
                 for opt[i] in S.dd-options: Rectangle {
-                    x: 6px;
-                    y: 6px + i * Theme.control-h-sm;
-                    width: parent.width - 12px;
-                    height: Theme.control-h-sm;
+                    x: Math.round(6px / 1phx) * 1phx;
+                    y: Math.round((6px + i * Theme.control-h-sm) / 1phx) * 1phx;
+                    width: Math.round((parent.width - 12px) / 1phx) * 1phx;
+                    height: Math.round(Theme.control-h-sm / 1phx) * 1phx;
                     border-radius: Math.max(2px, Pal.radius-sm - 3px);
                     background: it.has-hover ? Pal.accent.with-alpha(0.22) : i == S.dd-current ? Pal.accent.with-alpha(0.12) : transparent;
                     Text {

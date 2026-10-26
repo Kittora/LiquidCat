@@ -433,8 +433,8 @@ export component AllModals inherits Rectangle {
         Panel {
             width: 440px;
             height: 230px;
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
+            x: Math.round((parent.width - self.width) / 2 / 1phx) * 1phx;
+            y: Math.round((parent.height - self.height) / 2 / 1phx) * 1phx;
             alpha: Pal.a-strong;
             VerticalLayout {
                 padding: 22px;
@@ -480,8 +480,8 @@ export component AllModals inherits Rectangle {
             // enorme. El prompt de texto necesita un poco mas de altura.
             width: S.dlg == 3 ? 420px : 440px;
             height: S.dlg == 5 ? 290px : S.dlg == 4 ? 250px : 230px;
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
+            x: Math.round((parent.width - self.width) / 2 / 1phx) * 1phx;
+            y: Math.round((parent.height - self.height) / 2 / 1phx) * 1phx;
             alpha: Pal.a-strong;
             VerticalLayout {
                 padding: 22px;
@@ -495,6 +495,10 @@ export component AllModals inherits Rectangle {
                         border-radius: 18px;
                         background: S.dlg == 3 ? Pal.danger : S.dlg == 2 ? Pal.success : Pal.accent;
                         Icon {
+                            // Fuera de un layout min/max-width no se aplican: sin
+                            // tamano explicito el Icon medía 36px y x/y daban 0.
+                            width: 18px;
+                            height: 18px;
                             x: (parent.width - self.width) / 2;
                             y: (parent.height - self.height) / 2;
                             name: S.dlg == 3 ? "error" : S.dlg == 2 ? "check" : S.dlg == 4 ? "warning" : "info";
