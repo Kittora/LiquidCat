@@ -40,6 +40,9 @@ pub struct Payload {
     pub cookies_browser: String,
     pub meta_title: String,
     pub meta_artist: String,
+    pub meta_description: String,
+    pub meta_date: String,
+    pub meta_url: String,
     pub thumb_url: String,
     pub q_title: String,
 }
@@ -68,6 +71,8 @@ pub struct FormatsResult {
     pub description: String,
     pub thumbnail: String,
     pub uploader: String,
+    pub upload_date: String,
+    pub webpage_url: String,
 }
 
 // ====================================================================
@@ -114,6 +119,7 @@ pub fn fetch_formats(core: &Core, url: &str, cookies: &str) -> Result<FormatsRes
 
     let s = |k: &str| data.get(k).and_then(Value::as_str).unwrap_or("").to_string();
     let uploader = if !s("uploader").is_empty() { s("uploader") } else { s("channel") };
+    let webpage_url = if !s("webpage_url").is_empty() { s("webpage_url") } else if !s("original_url").is_empty() { s("original_url") } else { url.to_string() };
     let es = lang != "en";
     let mut chips = Vec::new();
     if !uploader.is_empty() {
@@ -137,9 +143,11 @@ pub fn fetch_formats(core: &Core, url: &str, cookies: &str) -> Result<FormatsRes
         video,
         audio,
         chips,
-        description: s("description").chars().take(400).collect(),
+        description: s("description"),
         thumbnail: s("thumbnail"),
         uploader,
+        upload_date: ud,
+        webpage_url,
     })
 }
 
@@ -209,7 +217,14 @@ pub fn enqueue_playlist(core: &Arc<Core>, url: &str, base: &Payload) -> Result<(
         p.q_title = e.get("title").and_then(Value::as_str).map(str::to_string).unwrap_or(vurl);
         p.video_id = None;
         p.audio_id = None;
-        p.meta_title = String::new();
+        p.meta_title = e.get("title").and_then(Value::as_str).unwrap_or("").to_string();
+        p.meta_artist = e.get("uploader").or_else(|| e.get("channel")).and_then(Value::as_str).unwrap_or("").to_string();
+        p.meta_description = String::new();
+        p.meta_date = e.get("upload_date").and_then(Value::as_str).unwrap_or("").to_string();
+        // La URL vacía hace que download_worker consulte los metadatos completos
+        // de esta entrada antes de descargarla.
+        p.meta_url = String::new();
+        p.thumb_url = e.get("thumbnail").and_then(Value::as_str).unwrap_or("").to_string();
         enqueue(core, p);
         count += 1;
     }
@@ -468,16 +483,40 @@ fn video_format(p: &Payload) -> String {
     p.video_id.clone().filter(|v| !v.is_empty()).unwrap_or_else(|| "bestvideo".into())
 }
 
-fn metadata_args(embed: bool, title: &str, artist: &str) -> Vec<String> {
-    let mut a = Vec::new();
-    if embed {
-        if !title.trim().is_empty() {
-            a.extend(["-metadata".to_string(), format!("title={}", title.trim())]);
-        }
-        if !artist.trim().is_empty() {
-            a.extend(["-metadata".to_string(), format!("artist={}", artist.trim())]);
-        }
+fn push_meta(a: &mut Vec<String>, key: &str, value: &str) {
+    let v = value.trim().replace('\0', "");
+    if !v.is_empty() {
+        a.extend(["-metadata".to_string(), format!("{key}={v}")]);
     }
+}
+
+fn format_meta_date(raw: &str) -> String {
+    let s = raw.trim();
+    if s.len() == 8 && s.chars().all(|c| c.is_ascii_digit()) {
+        format!("{}-{}-{}", &s[0..4], &s[4..6], &s[6..8])
+    } else {
+        s.to_string()
+    }
+}
+
+fn metadata_args(embed: bool, p: &Payload) -> Vec<String> {
+    if !embed {
+        return Vec::new();
+    }
+    let mut a = Vec::new();
+    // La descripción puede ser muy larga; 4000 caracteres bastan para que
+    // reproductores y exploradores la muestren sin inflar el archivo.
+    let desc: String = p.meta_description.trim().chars().take(4000).collect();
+    let url = if p.meta_url.trim().is_empty() { p.url.trim() } else { p.meta_url.trim() };
+    push_meta(&mut a, "title", &p.meta_title);
+    push_meta(&mut a, "artist", &p.meta_artist);
+    push_meta(&mut a, "album_artist", &p.meta_artist);
+    push_meta(&mut a, "album", &p.meta_artist);
+    push_meta(&mut a, "comment", &desc);
+    push_meta(&mut a, "description", &desc);
+    push_meta(&mut a, "synopsis", &desc);
+    push_meta(&mut a, "date", &format_meta_date(&p.meta_date));
+    push_meta(&mut a, "purl", url);
     a
 }
 
@@ -495,6 +534,24 @@ fn strs<const N: usize>(a: [&str; N]) -> Vec<String> {
 //  Descarga + reencode
 // ====================================================================
 pub fn download_worker(core: &Arc<Core>, p: &Payload) {
+    // Si el usuario descarga sin pulsar "Consultar formatos" (o si viene de
+    // una playlist), no hay metadatos en el payload. Se consultan una vez
+    // aquí para que el archivo final no salga sin título/descripción.
+    let mut payload = p.clone();
+    if payload.meta_url.trim().is_empty() {
+        if let Ok(res) = fetch_formats(core, &payload.url, &payload.cookies_browser) {
+            payload.meta_title = res.title;
+            payload.meta_artist = res.uploader;
+            payload.meta_description = res.description;
+            payload.meta_date = res.upload_date;
+            payload.meta_url = res.webpage_url;
+            payload.thumb_url = res.thumbnail;
+            if payload.q_title.trim().is_empty() {
+                payload.q_title = payload.meta_title.clone();
+            }
+        }
+    }
+    let p = &payload;
     let lang = if p.lang.is_empty() { core.lang() } else { p.lang.clone() };
     let t = |k: &str| tr(&lang, k);
     *core.last_output.lock().unwrap() = String::new();
@@ -503,6 +560,9 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
         m.title = p.meta_title.clone();
         m.artist = p.meta_artist.clone();
         m.thumb = p.thumb_url.clone();
+        m.description = p.meta_description.clone();
+        m.date = p.meta_date.clone();
+        m.url = if p.meta_url.trim().is_empty() { p.url.clone() } else { p.meta_url.clone() };
     }
     let bins = core.bins();
     let (Some(ytdlp), Some(ffmpeg)) = (bins.yt_dlp.clone(), bins.ffmpeg.clone()) else {
@@ -566,6 +626,7 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
                 let ext = audio_file.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or("m4a".into());
                 let out = util::unique_path(&out_dir.join(format!("{title}.{ext}")));
                 std::fs::copy(&audio_file, &out).map_err(|e| e.to_string())?;
+                embed_audio_tags(core, &ffmpeg, &out, p, &tmp);
                 core.finish_done(&out, "audio", None);
                 return Ok(());
             }
@@ -577,7 +638,7 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
             args.extend(["-y".to_string(), "-i".into(), audio_file.to_string_lossy().to_string()]);
             args.extend(trim_out(&p.trim_end));
             args.extend(ac);
-            args.extend(strs(["-progress", "pipe:1", "-nostats"]));
+            args.extend(strs(["-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));
             args.push(out.to_string_lossy().to_string());
             let label = trf(&lang, "conv_audio", &[("fmt", &p.audio_codec)]);
             core.progress(Some(0.0), Some(label.clone()));
@@ -585,7 +646,7 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
             if rc != 0 || cancelled() {
                 return Err(t("failed_conv_audio"));
             }
-            embed_audio_tags(&ffmpeg, &out, p, &tmp);
+            embed_audio_tags(core, &ffmpeg, &out, p, &tmp);
             core.finish_done(&out, "audio", duration);
             return Ok(());
         }
@@ -613,8 +674,8 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
             let out = util::unique_path(&out_dir.join(format!("{title}.{ext}")));
             let mut args = strs(["-y", "-i"]);
             args.extend([vs, "-i".into(), au]);
-            args.extend(strs(["-map", "0:v:0", "-map", "1:a:0", "-c", "copy", "-movflags", "+faststart"]));
-            args.extend(metadata_args(p.embed_meta, &p.meta_title, &p.meta_artist));
+            args.extend(strs(["-map", "0:v:0", "-map", "1:a:0", "-c", "copy", "-movflags", "+faststart", "-map_metadata", "0"]));
+            args.extend(metadata_args(p.embed_meta, p));
             args.push(out.to_string_lossy().to_string());
             core.progress(Some(0.0), Some("Muxing…".into()));
             let rc = run_ffmpeg(core, ffmpeg_cmd(&ffmpeg, &args), None, "Muxing");
@@ -640,8 +701,8 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
         args.extend(strs(["-map", "0:v:0", "-map", "1:a:0"]));
         args.extend(enc);
         args.extend(audio_out);
-        args.extend(strs(["-movflags", "+faststart"]));
-        args.extend(metadata_args(p.embed_meta, &p.meta_title, &p.meta_artist));
+        args.extend(strs(["-movflags", "+faststart", "-map_metadata", "0"]));
+        args.extend(metadata_args(p.embed_meta, p));
         args.extend(strs(["-progress", "pipe:1", "-nostats"]));
         args.push(out.to_string_lossy().to_string());
         core.progress(Some(0.0), Some(t("reencode")));
@@ -660,15 +721,27 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
     let _ = std::fs::remove_dir_all(&tmp);
 }
 
-/// Incrusta caratula y/o metadatos en un audio ya generado (best-effort).
-fn embed_audio_tags(ffmpeg: &Path, audio: &Path, p: &Payload, tmp: &Path) {
-    if !(p.embed_meta || p.embed_thumb) {
-        return;
+fn supports_cover(ext: &str) -> bool {
+    matches!(ext, "mp3" | "m4a" | "flac")
+}
+
+fn cover_urls(url: &str) -> Vec<String> {
+    let u = url.trim();
+    if u.is_empty() {
+        return Vec::new();
     }
-    let ext = audio.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
-    let mut cover: Option<PathBuf> = None;
-    if p.embed_thumb && !p.thumb_url.is_empty() && matches!(ext.as_str(), "mp3" | "m4a" | "flac") {
-        if let Some(bytes) = crate::deps::fetch_bytes(&p.thumb_url, 8_000_000) {
+    let mut v = vec![u.to_string()];
+    // maxresdefault/sddefault no existen para todos los videos: hqdefault sí.
+    let fallback = u.replace("maxresdefault", "hqdefault").replace("sddefault", "hqdefault");
+    if fallback != u {
+        v.push(fallback);
+    }
+    v
+}
+
+fn fetch_cover(p: &Payload, tmp: &Path) -> Option<PathBuf> {
+    for url in cover_urls(&p.thumb_url) {
+        if let Some(bytes) = crate::deps::fetch_bytes(&url, 8_000_000) {
             let dest = tmp.join("cover.jpg");
             // se normaliza a JPEG por si la miniatura llega en WebP
             let ok = image::load_from_memory(&bytes)
@@ -676,18 +749,32 @@ fn embed_audio_tags(ffmpeg: &Path, audio: &Path, p: &Payload, tmp: &Path) {
                 .map(|img| img.to_rgb8().save_with_format(&dest, image::ImageFormat::Jpeg).is_ok())
                 .unwrap_or(false);
             if ok {
-                cover = Some(dest);
+                return Some(dest);
             }
         }
     }
-    if !p.embed_meta && cover.is_none() {
-        return;
+    None
+}
+
+fn replace_file(src: &Path, dst: &Path) -> bool {
+    if std::fs::rename(src, dst).is_ok() {
+        return true;
     }
+    // En Windows el rename puede fallar si otro proceso tiene el archivo
+    // abierto; se intenta sobrescribir sin borrar el original primero.
+    let ok = std::fs::copy(src, dst).is_ok();
+    let _ = std::fs::remove_file(src);
+    ok
+}
+
+/// Añade metadatos y/o carátula a un audio, conservando los tags existentes.
+/// Si la carátula falla, reintenta solo con metadatos para no perderlos.
+fn tag_audio(ffmpeg: &Path, audio: &Path, ext: &str, meta: &[String], cover: Option<&Path>) -> Result<(), String> {
     let stem = audio.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default();
     let tagged = audio.with_file_name(format!("{stem}_tagged.{ext}"));
     let mut args = strs(["-y", "-i"]);
     args.push(audio.to_string_lossy().to_string());
-    if let Some(c) = &cover {
+    if let Some(c) = cover {
         args.extend(["-i".to_string(), c.to_string_lossy().to_string()]);
         args.extend(strs(["-map", "0:a", "-map", "1:v", "-c", "copy", "-disposition:v", "attached_pic"]));
         if ext == "mp3" {
@@ -696,14 +783,120 @@ fn embed_audio_tags(ffmpeg: &Path, audio: &Path, p: &Payload, tmp: &Path) {
     } else {
         args.extend(strs(["-c", "copy"]));
     }
-    args.extend(metadata_args(p.embed_meta, &p.meta_title, &p.meta_artist));
+    args.extend(strs(["-map_metadata", "0"]));
+    args.extend_from_slice(meta);
     args.push(tagged.to_string_lossy().to_string());
-    let ok = util::cmd(ffmpeg).args(&args).output().map(|o| o.status.success()).unwrap_or(false);
-    if ok && tagged.exists() {
-        let _ = std::fs::rename(&tagged, audio);
-    } else {
-        let _ = std::fs::remove_file(&tagged);
+    let out = util::cmd(ffmpeg).args(&args).output().map_err(|e| e.to_string())?;
+    if out.status.success() && tagged.exists() {
+        if replace_file(&tagged, audio) {
+            return Ok(());
+        }
+        return Err("no se pudo reemplazar el archivo final".into());
     }
+    let err = String::from_utf8_lossy(&out.stderr)
+        .lines()
+        .rev()
+        .find(|l| !l.trim().is_empty())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    let _ = std::fs::remove_file(&tagged);
+    Err(if err.is_empty() { "ffmpeg falló".into() } else { err })
+}
+
+/// Incrusta caratula y/o metadatos en un audio ya generado (best-effort).
+fn embed_audio_tags(core: &Core, ffmpeg: &Path, audio: &Path, p: &Payload, tmp: &Path) {
+    if !(p.embed_meta || p.embed_thumb) {
+        return;
+    }
+    let lang = core.lang();
+    let ext = audio.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+    let meta = metadata_args(p.embed_meta, p);
+    let mut cover: Option<PathBuf> = None;
+    if p.embed_thumb {
+        if !supports_cover(&ext) {
+            if ext == "wav" {
+                core.log(&core.t("cover_wav"));
+            }
+        } else if !p.thumb_url.trim().is_empty() {
+            cover = fetch_cover(p, tmp);
+            if cover.is_none() {
+                core.log(&trf(&lang, "cover_failed", &[("msg", &tr(&lang, "cover_thumb"))]));
+            }
+        }
+    }
+    if meta.is_empty() && cover.is_none() {
+        return;
+    }
+    if let Some(c) = cover.as_deref() {
+        match tag_audio(ffmpeg, audio, &ext, &meta, Some(c)) {
+            Ok(()) => return,
+            Err(e) => {
+                core.log(&trf(&lang, "cover_failed", &[("msg", &e.chars().take(200).collect::<String>())]));
+                if meta.is_empty() {
+                    return;
+                }
+            }
+        }
+    }
+    if !meta.is_empty() {
+        if let Err(e) = tag_audio(ffmpeg, audio, &ext, &meta, None) {
+            core.log(&trf(&lang, "tags_failed", &[("msg", &e.chars().take(200).collect::<String>())]));
+        }
+    }
+}
+
+/// Índice global del stream de carátula incrustada, si existe.
+fn attached_pic_index(ffprobe: &Path, media: &Path) -> Option<u32> {
+    let out = util::cmd(ffprobe)
+        .args(["-v", "error", "-select_streams", "v", "-show_entries", "stream=index:stream_disposition=attached_pic", "-of", "json"])
+        .arg(media)
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let data: Value = serde_json::from_slice(&out.stdout).ok()?;
+    data.get("streams")?.as_array()?.iter().find_map(|s| {
+        let attached = s.get("disposition").and_then(|d| d.get("attached_pic")).and_then(Value::as_i64).unwrap_or(0) == 1;
+        if !attached {
+            return None;
+        }
+        s.get("index").and_then(Value::as_u64).map(|v| v as u32)
+    })
+}
+
+fn extract_cover(ffmpeg: &Path, src: &Path, stream: u32, dest: &Path) -> bool {
+    util::cmd(ffmpeg)
+        .args(["-y", "-hide_banner", "-loglevel", "error", "-i"])
+        .arg(src)
+        .args(["-map", &format!("0:{stream}"), "-frames:v", "1", "-c:v", "mjpeg", "-q:v", "2"])
+        .arg(dest)
+        .output()
+        .map(|o| o.status.success() && dest.exists())
+        .unwrap_or(false)
+}
+
+/// Conserva la carátula de un archivo local al reencodearlo a un formato que la soporta.
+fn attach_local_cover(core: &Core, ffmpeg: &Path, ffprobe: &Path, src: &Path, audio: &Path) {
+    let ext = audio.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+    if !supports_cover(&ext) {
+        return;
+    }
+    let Some(stream) = attached_pic_index(ffprobe, src) else { return };
+    let cover = std::env::temp_dir().join(format!(
+        "liquidcat_cover_{}_{}.jpg",
+        std::process::id(),
+        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0)
+    ));
+    if !extract_cover(ffmpeg, src, stream, &cover) {
+        return;
+    }
+    if let Err(e) = tag_audio(ffmpeg, audio, &ext, &[], Some(&cover)) {
+        let lang = core.lang();
+        core.log(&trf(&lang, "cover_failed", &[("msg", &e.chars().take(200).collect::<String>())]));
+    }
+    let _ = std::fs::remove_file(&cover);
 }
 
 /// Descarga subtitulos y los incrusta (mp4) o los deja junto al archivo (best-effort).
@@ -736,7 +929,7 @@ fn handle_subtitles(core: &Core, ytdlp: &Path, ffmpeg: &Path, url: &str, p: &Pay
             .arg(out)
             .arg("-i")
             .arg(first)
-            .args(["-map", "0", "-map", "1", "-c", "copy", "-c:s", "mov_text"])
+            .args(["-map", "0", "-map", "1", "-c", "copy", "-c:s", "mov_text", "-map_metadata", "0"])
             .arg(&tmp_out)
             .output()
             .map(|o| o.status.success())
@@ -816,7 +1009,7 @@ pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
             args.extend(trim_out(&p.trim_end));
             args.push("-vn".into());
             args.extend(ac);
-            args.extend(strs(["-sn", "-dn", "-progress", "pipe:1", "-nostats"]));
+            args.extend(strs(["-sn", "-dn", "-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));
             args.push(out.to_string_lossy().to_string());
             let label = trf(&lang, "conv_audio", &[("fmt", &p.audio_codec)]);
             core.progress(Some(0.0), Some(label.clone()));
@@ -825,6 +1018,7 @@ pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
                 core.finish(false, &t("failed_conv_audio"));
                 return;
             }
+            attach_local_cover(core, &ffmpeg, &ffprobe, &src, &out);
             core.finish_done(&out, "audio", duration);
         }
         _ => {
@@ -838,7 +1032,7 @@ pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
             args.extend(trim_out(&p.trim_end));
             args.extend(enc);
             args.extend(audio_out);
-            args.extend(strs(["-movflags", "+faststart", "-progress", "pipe:1", "-nostats"]));
+            args.extend(strs(["-movflags", "+faststart", "-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));
             args.push(out.to_string_lossy().to_string());
             core.progress(Some(0.0), Some(t("reencode")));
             let rc = run_ffmpeg(core, ffmpeg_cmd(&ffmpeg, &args), duration, &t("reencode"));

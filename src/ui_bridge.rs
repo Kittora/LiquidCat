@@ -316,6 +316,15 @@ fn set_url(core: &Arc<Core>, app: &App, url: &str, auto_fetch: bool) {
 fn on_url_edited(core: &Arc<Core>, app: &App, url: &str, auto_fetch: bool) {
     let s = app.global::<S>();
     s.set_is_playlist(url.contains("list="));
+    // Al cambiar de URL no deben reutilizarse los formatos ni los metadatos
+    // del video anterior.
+    {
+        let mut f = core.formats.lock().unwrap();
+        f.loaded = false;
+        f.video_ids.clear();
+        f.audio_ids.clear();
+    }
+    *core.meta.lock().unwrap() = Default::default();
     update_bg(core, app, url);
     if auto_fetch && is_http(url) && s.get_st() == 1 && !s.get_fetching() {
         let weak = app.as_weak();
@@ -397,7 +406,14 @@ fn fetch(core: &Arc<Core>, app: &App) {
                     f.audio_ids = res.audio.iter().map(|(i, _)| i.clone()).collect();
                     f.loaded = true;
                 }
-                *core.meta.lock().unwrap() = crate::core::Meta { title: res.title.clone(), artist: res.uploader.clone(), thumb: res.thumbnail.clone() };
+                *core.meta.lock().unwrap() = crate::core::Meta {
+                    title: res.title.clone(),
+                    artist: res.uploader.clone(),
+                    thumb: res.thumbnail.clone(),
+                    description: res.description.clone(),
+                    date: res.upload_date.clone(),
+                    url: res.webpage_url.clone(),
+                };
                 let no_v = res.video.is_empty();
                 let no_a = res.audio.is_empty();
                 let mut vopts: Vec<String> = res.video.iter().map(|(_, l)| l.clone()).collect();
@@ -491,6 +507,9 @@ fn build_payload(core: &Core, app: &App) -> Payload {
         cookies_browser: pick(&COOKIES, s.get_cookies_idx()).into(),
         meta_title: meta.title.clone(),
         meta_artist: meta.artist,
+        meta_description: meta.description,
+        meta_date: meta.date,
+        meta_url: meta.url,
         thumb_url: meta.thumb,
         q_title: meta.title,
     }

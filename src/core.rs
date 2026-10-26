@@ -24,6 +24,9 @@ pub struct Meta {
     pub title: String,
     pub artist: String,
     pub thumb: String,
+    pub description: String,
+    pub date: String,
+    pub url: String,
 }
 
 #[derive(Default)]
