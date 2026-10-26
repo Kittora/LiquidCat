@@ -49,6 +49,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Download
 
 - Download video or audio from links supported by yt-dlp
+- Batch import: paste many links at once or load them from a `.txt`
 - Choose format, resolution and quality
 - Include subtitles, thumbnails and metadata
 - Select the destination folder before processing
@@ -59,7 +60,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Convert
 
 - Convert media to MP3, M4A, FLAC and other formats
-- Re-encode local video and audio files
+- Re-encode local video and audio files (pick or drag several at once)
 - Use FFmpeg with hardware acceleration (NVENC/AMF/CPU)
 - Trim a specific segment without leaving the app
 
@@ -73,7 +74,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 - Manage multiple jobs through a processing queue
 - Review completed and previous jobs in history
 - Track each task from preparation to completion
-- Start with three built-in presets: 4K Original, 1080p MP4 and Audio MP3 320
+- Start with eight built-in presets, including **H.264 compatible** (best H.264 + AAC with no re-encode, plays everywhere)
 - Keep your existing presets and history (fully compatible with the old `config.json`)
 
 </td>
@@ -84,7 +85,8 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 - Open the resulting file immediately
 - Jump directly to its destination folder
 - Keep the complete workflow inside one interface
-- 14 built-in themes (including Catppuccin)
+- 14 built-in themes (including Catppuccin), each with its own cat icon
+- Available in English, Spanish, Portuguese, French, German and Italian
 
 </td>
 </tr>
@@ -122,7 +124,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Windows
 
 1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
-2. Download the latest `LiquidCat-0.2.5-windows-x86_64.exe`.
+2. Download the latest `LiquidCat-0.3.0-windows-x86_64.exe`.
 3. Run `LiquidCat.exe`. 
 
 *Note: **Python is not required.** LiquidCat automatically downloads and manages yt-dlp (which bundles its own runtime) and FFmpeg/ffprobe in the background.*
@@ -154,9 +156,9 @@ Open the finished file or its destination folder
 - [x] Processing queue and job history
 - [x] Self-contained runtime for end users
 - [x] Reusable download and conversion presets
-- [ ] Batch import for links and local files
+- [x] Batch import for links and local files
+- [x] Additional application languages (PT, FR, DE, IT)
 - [ ] Expanded accessibility and keyboard navigation
-- [ ] Additional application languages
 
 Roadmap items may change as LiquidCat evolves.
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Genera los assets derivados (fuentes, banderas, iconos Slint, textos i18n).
+Los textos se editan en tools/i18n/*.json (ver tools/gen_i18n.py).
 
 Uso:  python tools/gen.py <carpeta del proyecto original LiquidCat>
 Requiere: fonttools, brotli, cairosvg  (pip install fonttools brotli cairosvg) y Node.js.
@@ -84,28 +85,9 @@ def make_icons():
 def plain(s): return re.sub(r"<[^>]+>", "", s)
 def rs_str(s): return json.dumps(s, ensure_ascii=False)
 def make_i18n():
-    subprocess.run(["node", str(ROOT / "tools/extract_i18n.js"), str(SRC / "assets/script.js")], check=True)
-    d = json.loads((ROOT / "tools/i18n.json").read_text(encoding="utf-8"))
-    keys = list(d["es"].keys())
-    sl = ["// GENERADO por tools/gen.py: textos de la interfaz (se rellenan desde Rust al cambiar de idioma).",
-          "export global T {"]
-    for k in keys: sl.append(f"    in property <string> {k.replace('_', '-')};")
-    sl.append("}")
-    (ROOT / "ui" / "i18n.slint").write_text("\n".join(sl) + "\n", encoding="utf-8")
-    rs = ["// GENERADO por tools/gen.py. No editar a mano.", "use crate::{App, T};", "use slint::ComponentHandle;", ""]
-    for lang in ("es", "en"):
-        rs.append(f"pub static {lang.upper()}: &[(&str, &str)] = &[")
-        for k in keys: rs.append(f"    ({rs_str(k)}, {rs_str(plain(d[lang][k]))}),")
-        rs.append("];\n")
-    rs += ["/// Rellena el global `T` de la interfaz con el idioma indicado.",
-           "pub fn apply(app: &App, lang: &str) {",
-           "    let t = app.global::<T>();",
-           "    let table = if lang == \"en\" { EN } else { ES };",
-           "    for (k, v) in table.iter() {", "        match *k {"]
-    for k in keys: rs.append(f"            {rs_str(k)} => t.set_{k}((*v).into()),")
-    rs += ["            _ => {}", "        }", "    }", "}"]
-    (ROOT / "src" / "i18n_data.rs").write_text("\n".join(rs) + "\n", encoding="utf-8")
-    print("i18n keys", len(keys))
+    # Los textos ya no salen del script.js original: viven en tools/i18n/*.json
+    # (un archivo por idioma) y los genera tools/gen_i18n.py.
+    subprocess.run([sys.executable, str(ROOT / "tools/gen_i18n.py")], check=True)
 
 if __name__ == "__main__":
     make_fonts(); make_flags(); make_icons(); make_i18n()

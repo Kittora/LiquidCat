@@ -10,9 +10,22 @@ export global S {
     // ---- ventana / navegacion
     in-out property <bool> maximized: false;
     in-out property <string> lang: "es";
-    // 0 = Espanol, 1 = English (indice del selector de idioma en Ajustes).
+    // Selector de idioma de Ajustes: nombres nativos y codigos (los rellena
+    // Rust desde i18n_data::LANGS) e indice del idioma activo.
+    // Indices de la opcion recomendada en las listas de formatos (estrella).
+    in-out property <int> video-best: 0;
+    in-out property <int> audio-best: 0;
+    // Actividad: trabajo en curso (0 sin trabajo, 1 en curso, 2 listo, 3 fallo)
+    // y si se ve el registro tecnico completo.
+    in-out property <string> current-title;
+    in-out property <int> current-state: 0;
+    in-out property <bool> log-details: false;
+    in-out property <[string]> lang-names;
+    in-out property <[string]> lang-codes;
     in-out property <int> lang-idx: 0;
     in-out property <string> theme: "catppuccin";
+    // Icono de la cabecera del tema activo (lo pone themes.rs).
+    in-out property <image> logo: @image-url("../assets/theme-icons/catppuccin.png");
     in-out property <int> tab: 0;
     // 0 ninguno, 1 ajustes, 2 creditos, 3 wiki, 4 historial
     in-out property <int> modal: 0;
@@ -23,9 +36,6 @@ export global S {
     in-out property <string> gpu: "cpu";
 
     // ---- fondo dinamico (miniatura difuminada)
-    in-out property <image> bg-image;
-    in-out property <bool> bg-on: false;
-    in-out property <bool> bg-gradient: false;
 
     // ---- descargador
     in-out property <string> url;
@@ -115,7 +125,8 @@ export global S {
     in-out property <bool> dep-show: false;
     in-out property <bool> dep-prep: false;
 
-    // ---- dialogo generico: 0 ninguno, 1 info, 2 ok, 3 error, 4 confirmar, 5 pedir texto
+    // ---- dialogo generico: 0 ninguno, 1 info, 2 ok, 3 error, 4 confirmar, 5 pedir texto,
+    //      6 pedir varias lineas (importar enlaces en lote)
     in-out property <int> dlg: 0;
     in-out property <string> dlg-title;
     in-out property <string> dlg-msg;
@@ -173,6 +184,10 @@ export global S {
     callback history-opened();
     callback prefs-changed();
     callback test-cookies();
+    // importacion en lote: abrir el dialogo y cargar enlaces desde un .txt
+    callback quality-changed();
+    callback batch-import();
+    callback batch-load-file();
     callback dep-action(string, string);       // dependencia, accion
     callback redownload-deps();
     callback queue-open(int);

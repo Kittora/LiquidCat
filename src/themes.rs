@@ -1,6 +1,6 @@
 //! Aplica un tema (paleta + parametros de cristal/brutalismo) al global `Pal` de la UI.
 use crate::{App, Pal, ThemeEntry};
-use slint::{Color, ComponentHandle, ModelRc, SharedString, VecModel};
+use slint::{Color, ComponentHandle, ModelRc, Rgba8Pixel, SharedPixelBuffer, SharedString, VecModel};
 
 include!("themes_data.rs");
 
@@ -30,6 +30,68 @@ pub fn entries() -> ModelRc<ThemeEntry> {
         })
         .collect();
     ModelRc::new(VecModel::from(v))
+}
+
+/// Icono de la cabecera dibujado para cada tema (assets/theme-icons).
+fn theme_icon_png(id: &str) -> &'static [u8] {
+    match id {
+        "catppuccin-macchiato" => include_bytes!("../assets/theme-icons/catppuccin-macchiato.png"),
+        "catppuccin-frappe" => include_bytes!("../assets/theme-icons/catppuccin-frappe.png"),
+        "catppuccin-latte" => include_bytes!("../assets/theme-icons/catppuccin-latte.png"),
+        "dracula" => include_bytes!("../assets/theme-icons/dracula.png"),
+        "amoled" => include_bytes!("../assets/theme-icons/amoled.png"),
+        "dark" => include_bytes!("../assets/theme-icons/dark.png"),
+        "light" => include_bytes!("../assets/theme-icons/light.png"),
+        "fluent" => include_bytes!("../assets/theme-icons/fluent.png"),
+        "gruvbox" => include_bytes!("../assets/theme-icons/gruvbox.png"),
+        "nord" => include_bytes!("../assets/theme-icons/nord.png"),
+        "tokyo-night" => include_bytes!("../assets/theme-icons/tokyo-night.png"),
+        "neo-brutalist-light" => include_bytes!("../assets/theme-icons/neo-brutalist-light.png"),
+        "neo-brutalist-dark" => include_bytes!("../assets/theme-icons/neo-brutalist-dark.png"),
+        _ => include_bytes!("../assets/theme-icons/catppuccin.png"),
+    }
+}
+
+/// Lado del recuadro del logo en la cabecera, en px logicos (ver app.slint).
+const LOGO_PX: f32 = 46.0;
+
+/// Slint reduce las imagenes con un filtro bilineal sin mipmaps: pasar de
+/// 256 px a 46 dejaba el contorno en dientes de sierra. Se entrega ya reducida
+/// con Lanczos al tamano exacto en pixeles fisicos, asi se pinta 1:1.
+fn theme_icon_rgba(id: &str, px: u32) -> Option<image::RgbaImage> {
+    let img = image::load_from_memory(theme_icon_png(id)).ok()?;
+    Some(img.resize_exact(px, px, image::imageops::FilterType::Lanczos3).to_rgba8())
+}
+
+fn theme_icon(id: &str, px: u32) -> slint::Image {
+    match theme_icon_rgba(id, px) {
+        Some(img) => {
+            let (w, h) = img.dimensions();
+            slint::Image::from_rgba8(SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(img.as_raw(), w, h))
+        }
+        None => slint::Image::default(),
+    }
+}
+
+/// Icono de la ventana y de la barra de tareas con el gato del tema (solo
+/// mientras la app esta abierta: el del .exe es fijo, assets/icon.ico).
+/// Va directo a winit porque Slint no reaplica la propiedad `icon` de la
+/// ventana una vez creada, y solo pone el icono pequeno; la barra de tareas
+/// usa el grande (set_taskbar_icon).
+fn set_window_icons(app: &App, id: &str) {
+    use slint::winit_030::{winit, WinitWindowAccessor};
+    let icon = |px: u32| theme_icon_rgba(id, px).and_then(|i| winit::window::Icon::from_rgba(i.into_raw(), px, px).ok());
+    let (small, big) = (icon(SMALL_ICON_PX), icon(BIG_ICON_PX));
+    app.window().with_winit_window(move |w| {
+        w.set_window_icon(small);
+        #[cfg(windows)]
+        {
+            use winit::platform::windows::WindowExtWindows;
+            w.set_taskbar_icon(big);
+        }
+        #[cfg(not(windows))]
+        let _ = big;
+    });
 }
 
 pub fn apply(app: &App, id: &str) {
@@ -89,5 +151,23 @@ pub fn apply(app: &App, id: &str) {
         p.set_a_border(0.36);
         p.set_highlight(Color::from_argb_u8(18, 255, 255, 255));
     }
-    app.global::<crate::S>().set_theme(SharedString::from(t.id));
+    let s = app.global::<crate::S>();
+    s.set_theme(SharedString::from(t.id));
+    refresh_logo(app);
+}
+
+/// Lados de los iconos de la ventana: Windows los ajusta a 16-24 px (pequeno)
+/// y 32-48 px (barra de tareas) segun la escala; asi solo reduce un poco.
+const SMALL_ICON_PX: u32 = 32;
+const BIG_ICON_PX: u32 = 64;
+
+/// Vuelve a generar el logo para el tema y la escala actuales (al cambiar de
+/// tema, al mostrar la ventana y al moverla a una pantalla con otro DPI), y
+/// el icono de la ventana / barra de tareas con el mismo gato.
+pub fn refresh_logo(app: &App) {
+    let s = app.global::<crate::S>();
+    let id = find(&s.get_theme()).id;
+    let px = (LOGO_PX * app.window().scale_factor()).round().max(1.0) as u32;
+    s.set_logo(theme_icon(id, px));
+    set_window_icons(app, id);
 }

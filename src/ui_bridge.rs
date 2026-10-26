@@ -14,7 +14,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 const MODES: [&str; 2] = ["video", "audio"];
-const QUALITIES: [&str; 6] = ["", "2160", "1440", "1080", "720", "480"];
+// "h264": mejor video H.264 + audio AAC (mp4 compatible con todo).
+const QUALITIES: [&str; 7] = ["", "2160", "1440", "1080", "720", "480", "h264"];
 const VENDORS: [&str; 3] = ["nvidia", "amd", "cpu"];
 const CODECS: [&str; 4] = ["h264", "hevc", "av1", "vp9"];
 const ACODECS: [&str; 6] = ["mp3", "aac", "opus", "ogg", "flac", "wav"];
@@ -26,6 +27,13 @@ thread_local! {
     static CORE: RefCell<Option<Arc<Core>>> = const { RefCell::new(None) };
     static HIST: RefCell<Option<Rc<VecModel<HItem>>>> = const { RefCell::new(None) };
     static URL_TIMER: slint::Timer = slint::Timer::default();
+    // Archivos locales elegidos (uno o varios). El campo de la vista solo
+    // muestra un resumen; la lista real vive aqui.
+    static LOCAL_FILES: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+    // Al soltar varios archivos winit manda un evento por archivo: se juntan
+    // y se aplican cuando dejan de llegar.
+    static DROPPED: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+    static DROP_TIMER: slint::Timer = slint::Timer::default();
 }
 
 fn idx_of(list: &[&str], v: &str) -> i32 {
@@ -63,7 +71,8 @@ pub fn apply_lang(core: &Core, app: &App) {
     i18n_data::apply(app, &lang);
     let s = app.global::<S>();
     s.set_lang(ss(&lang));
-    s.set_lang_idx(if lang == "en" { 1 } else { 0 });
+    let idx = i18n_data::LANGS.iter().position(|(code, _)| *code == lang).unwrap_or(0);
+    s.set_lang_idx(idx as i32);
     if !core.formats.lock().unwrap().loaded {
         let ph = ui(&lang, "fmt_first");
         s.set_video_opts(ModelRc::new(VecModel::from(vec![ss(&ph)])));
@@ -161,6 +170,8 @@ pub fn load_initial(core: &Arc<Core>, app: &App) {
         )
     };
     s.set_themes(themes::entries());
+    s.set_lang_names(ModelRc::new(VecModel::from(i18n_data::LANGS.iter().map(|(_, n)| ss(n)).collect::<Vec<_>>())));
+    s.set_lang_codes(ModelRc::new(VecModel::from(i18n_data::LANGS.iter().map(|(c, _)| ss(c)).collect::<Vec<_>>())));
     themes::apply(app, &theme);
     {
         let cfg = core.cfg.lock().unwrap();
@@ -282,21 +293,6 @@ fn load_thumb(url: &str, w: u32, h: u32) -> Option<(Vec<u8>, u32, u32)> {
 // ====================================================================
 //  Utilidades de URL
 // ====================================================================
-fn youtube_id(url: &str) -> Option<String> {
-    let u = url.trim();
-    let take = |s: &str| -> Option<String> {
-        let id: String = s.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_' || *c == '-').collect();
-        (id.len() == 11).then_some(id)
-    };
-    if let Some(i) = u.find("youtu.be/") { return take(&u[i + 9..]); }
-    for key in ["v=", "/shorts/", "/embed/", "/live/"] {
-        if let Some(i) = u.find(key) {
-            if u.contains("youtube.") { return take(&u[i + key.len()..]); }
-        }
-    }
-    None
-}
-
 fn is_http(u: &str) -> bool {
     let u = u.trim();
     (u.starts_with("http://") || u.starts_with("https://")) && u.len() > 12 && u.contains('.') && !u.contains(' ')
@@ -323,9 +319,10 @@ fn on_url_edited(core: &Arc<Core>, app: &App, url: &str, auto_fetch: bool) {
         f.loaded = false;
         f.video_ids.clear();
         f.audio_ids.clear();
+        f.video_info.clear();
+        f.audio_info.clear();
     }
     *core.meta.lock().unwrap() = Default::default();
-    update_bg(core, app, url);
     if auto_fetch && is_http(url) && s.get_st() == 1 && !s.get_fetching() {
         let weak = app.as_weak();
         let core = core.clone();
@@ -339,40 +336,6 @@ fn on_url_edited(core: &Arc<Core>, app: &App, url: &str, auto_fetch: bool) {
                 }
             });
         });
-    }
-}
-
-fn update_bg(core: &Arc<Core>, app: &App, url: &str) {
-    let s = app.global::<S>();
-    if !is_http(url) {
-        s.set_bg_on(false);
-        return;
-    }
-    match youtube_id(url) {
-        Some(id) => {
-            let c = core.clone();
-            std::thread::spawn(move || {
-                let u = format!("https://i.ytimg.com/vi/{id}/hqdefault.jpg");
-                if let Some(bytes) = crate::deps::fetch_bytes(&u, 3_000_000) {
-                    if let Ok(img) = image::load_from_memory(&bytes) {
-                        // se reduce mucho y se difumina: Slint lo escala suavemente (ahorra memoria)
-                        let small = image::imageops::blur(&img.resize_to_fill(64, 36, image::imageops::FilterType::Triangle).to_rgba8(), 1.5);
-                        let (w, h) = small.dimensions();
-                        let raw = small.into_raw();
-                        c.ui(move |a| {
-                            let st = a.global::<S>();
-                            st.set_bg_image(buf_to_image(&raw, w, h));
-                            st.set_bg_gradient(false);
-                            st.set_bg_on(true);
-                        });
-                    }
-                }
-            });
-        }
-        None => {
-            s.set_bg_gradient(true);
-            s.set_bg_on(true);
-        }
     }
 }
 
@@ -404,6 +367,8 @@ fn fetch(core: &Arc<Core>, app: &App) {
                     let mut f = core.formats.lock().unwrap();
                     f.video_ids = res.video.iter().map(|(i, _)| i.clone()).collect();
                     f.audio_ids = res.audio.iter().map(|(i, _)| i.clone()).collect();
+                    f.video_info = res.video_info.clone();
+                    f.audio_info = res.audio_info.clone();
                     f.loaded = true;
                 }
                 *core.meta.lock().unwrap() = crate::core::Meta {
@@ -428,8 +393,9 @@ fn fetch(core: &Arc<Core>, app: &App) {
                     s.set_fetching(false);
                     s.set_video_opts(ModelRc::new(VecModel::from(vopts.iter().map(|x| ss(x)).collect::<Vec<_>>())));
                     s.set_audio_opts(ModelRc::new(VecModel::from(aopts.iter().map(|x| ss(x)).collect::<Vec<_>>())));
-                    s.set_video_idx(0);
-                    s.set_audio_idx(0);
+                    if let Some(c) = CORE.with(|c| c.borrow().clone()) {
+                        sync_formats_to_quality(&c, a);
+                    }
                     s.set_title_line(ss(&res.title));
                     s.set_pv_title(ss(&res.title));
                     // La descripcion de YouTube suele traer lineas vacias;
@@ -512,7 +478,25 @@ fn build_payload(core: &Core, app: &App) -> Payload {
         meta_url: meta.url,
         thumb_url: meta.thumb,
         q_title: meta.title,
+        playlist: false,
     }
+}
+
+/// Marca y selecciona en las listas de formatos lo que corresponde a la
+/// calidad rapida (p. ej. con "H.264 + AAC" se eligen las pistas avc1/mp4a),
+/// para que lo que se ve coincida con lo que se va a descargar.
+fn sync_formats_to_quality(core: &Core, app: &App) {
+    let s = app.global::<S>();
+    let f = core.formats.lock().unwrap();
+    if !f.loaded {
+        return;
+    }
+    let quality = pick(&QUALITIES, s.get_quality_idx());
+    let (v, a) = jobs::pick_for_quality(quality, &f.video_info, &f.audio_info);
+    s.set_video_idx(v as i32);
+    s.set_audio_idx(a as i32);
+    s.set_video_best(v as i32);
+    s.set_audio_best(a as i32);
 }
 
 fn pick_folder(initial: &str) -> Option<String> {
@@ -722,11 +706,38 @@ fn resize_dir(i: i32) -> winit::window::ResizeDirection {
     match i { 0 => West, 1 => East, 2 => South, 3 => North, 4 => SouthEast, _ => SouthWest }
 }
 
-fn local_pick_set(core: &Arc<Core>, app: &App, path: &str) {
+fn local_pick_set(core: &Arc<Core>, app: &App, paths: Vec<String>) {
+    if paths.is_empty() {
+        return;
+    }
+    let lang = core.lang();
     let s = app.global::<S>();
-    s.set_local_file(ss(path));
+    let shown = if paths.len() == 1 {
+        paths[0].clone()
+    } else {
+        let names: Vec<String> = paths
+            .iter()
+            .map(|p| std::path::Path::new(p).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| p.clone()))
+            .collect();
+        uif(&lang, "local_n_files", &[("n", &paths.len().to_string()), ("list", &names.join(", "))])
+    };
+    s.set_local_file(ss(&shown));
     s.set_tab(1);
-    show_toast(app, &ui(&core.lang(), "toast_file_loaded"), 1);
+    let toast = if paths.len() == 1 { ui(&lang, "toast_file_loaded") } else { uif(&lang, "toast_files_loaded", &[("n", &paths.len().to_string())]) };
+    LOCAL_FILES.with(|f| *f.borrow_mut() = paths);
+    show_toast(app, &toast, 1);
+}
+
+/// Enlaces http(s) de un texto (uno por linea), sin repetir y en orden.
+fn parse_links(text: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for line in text.lines() {
+        let l = line.trim();
+        if is_http(l) && !out.iter().any(|u| u == l) {
+            out.push(l.to_string());
+        }
+    }
+    out
 }
 
 // ====================================================================
@@ -761,13 +772,16 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     cb!(on_toggle_lang, |a, c| {
         {
             let mut l = c.lang.lock().unwrap();
-            *l = if *l == "es" { "en".into() } else { "es".into() };
+            // pasa al siguiente idioma de la lista
+            let langs = i18n_data::LANGS;
+            let i = langs.iter().position(|(code, _)| *code == l.as_str()).unwrap_or(0);
+            *l = langs[(i + 1) % langs.len()].0.to_string();
         }
         apply_lang(&c, &a);
         save_prefs(&c, &a);
     });
     cb!(on_set_lang, |a, c, lang: SharedString| {
-        let lang = if lang == "en" { "en" } else { "es" };
+        let lang = if crate::lang::supported(&lang) { lang.as_str() } else { crate::lang::DEFAULT };
         {
             let mut l = c.lang.lock().unwrap();
             *l = lang.into();
@@ -788,7 +802,6 @@ pub fn setup(core: &Arc<Core>, app: &App) {
         s.set_has_preview(false);
         s.set_title_line(ss(""));
         s.set_is_playlist(false);
-        s.set_bg_on(false);
     });
     cb!(on_paste_url, |a, c| {
         if let Ok(text) = arboard::Clipboard::new().and_then(|mut cb| cb.get_text()) {
@@ -800,6 +813,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
         }
     });
     cb!(on_fetch_formats, |a, c| { fetch(&c, &a); });
+    cb!(on_quality_changed, |a, c| { sync_formats_to_quality(&c, &a); });
 
     // ---- descargas
     cb!(on_start_download, |a, c| {
@@ -807,25 +821,18 @@ pub fn setup(core: &Arc<Core>, app: &App) {
         let s = a.global::<S>();
         if s.get_st() != 1 { dialog(&a, 3, &ui(&lang, "err_no_deps"), "", ""); return; }
         if s.get_url().trim().is_empty() { return; }
-        if c.running.swap(true, Ordering::SeqCst) {
-            show_toast(&a, &ui(&lang, "toast_enqueued"), 0);
-            jobs::enqueue(&c, build_payload(&c, &a));
-            return;
-        }
         let payload = build_payload(&c, &a);
-        c.cancel.store(false, Ordering::SeqCst);
-        s.set_busy(true);
-        s.set_progress(0.0);
-        s.set_can_open_folder(false);
-        push_log(&a, &format!("$ {}", payload.url));
-        show_toast(&a, &ui(&lang, "toast_start"), 0);
         save_prefs(&c, &a);
-        let c2 = c.clone();
-        std::thread::spawn(move || {
-            c2.queue.lock().unwrap().current = None;
-            jobs::download_worker(&c2, &payload);
-            c2.running.store(false, Ordering::SeqCst);
-        });
+        // Todo pasa por la cola (un solo hilo): si ya hay un trabajo en marcha,
+        // este espera su turno en vez de ejecutarse a la vez.
+        if c.running.load(Ordering::SeqCst) {
+            show_toast(&a, &ui(&lang, "toast_enqueued"), 0);
+        } else {
+            s.set_progress(0.0);
+            push_log(&a, &format!("$ {}", payload.url));
+            show_toast(&a, &ui(&lang, "toast_start"), 0);
+        }
+        jobs::enqueue(&c, payload);
     });
     cb!(on_enqueue, |a, c| {
         let lang = c.lang();
@@ -850,6 +857,21 @@ pub fn setup(core: &Arc<Core>, app: &App) {
         });
     });
     cb!(on_cancel, |_a, c| { jobs::cancel_all(&c); });
+    cb!(on_batch_import, |a, c| {
+        let lang = c.lang();
+        if a.global::<S>().get_st() != 1 { dialog(&a, 3, &ui(&lang, "err_no_deps"), "", ""); return; }
+        dialog(&a, 6, &ui(&lang, "batch_title"), &ui(&lang, "batch_hint"), "batch-links");
+    });
+    cb!(on_batch_load_file, |a, _c| {
+        if let Some(f) = rfd::FileDialog::new().add_filter("Text", &["txt", "csv", "list"]).pick_file() {
+            if let Ok(text) = std::fs::read_to_string(&f) {
+                let s = a.global::<S>();
+                let cur = s.get_dlg_input().to_string();
+                let joined = if cur.trim().is_empty() { text } else { format!("{}\n{}", cur.trim_end(), text) };
+                s.set_dlg_input(ss(&joined));
+            }
+        }
+    });
 
     // ---- carpetas
     cb!(on_choose_folder, |a, c, which: i32| {
@@ -870,19 +892,19 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     cb!(on_pick_local, |a, c| {
         if let Some(f) = rfd::FileDialog::new()
             .add_filter("Media", &["mp4", "mkv", "webm", "mov", "avi", "flv", "wmv", "m4v", "ts", "mp3", "m4a", "aac", "wav", "flac", "ogg", "opus", "gif"])
-            .pick_file()
+            .pick_files()
         {
-            local_pick_set(&c, &a, &f.to_string_lossy());
+            local_pick_set(&c, &a, f.iter().map(|p| p.to_string_lossy().to_string()).collect());
         }
     });
     cb!(on_reencode_local, |a, c| {
         let lang = c.lang();
         let s = a.global::<S>();
         if s.get_st() != 1 { dialog(&a, 3, &ui(&lang, "err_no_deps"), "", ""); return; }
-        if s.get_local_file().is_empty() { return; }
-        if c.running.swap(true, Ordering::SeqCst) { return; }
+        let files = LOCAL_FILES.with(|f| f.borrow().clone());
+        if files.is_empty() { return; }
         let p = LocalPayload {
-            input: s.get_local_file().to_string(),
+            input: String::new(),
             out_dir: s.get_local_out_dir().to_string(),
             mode: pick(&LOCAL_MODES, s.get_local_mode_idx()).into(),
             audio_codec: pick(&ACODECS, s.get_local_acodec_idx()).into(),
@@ -895,16 +917,21 @@ pub fn setup(core: &Arc<Core>, app: &App) {
             gif_fps: s.get_local_gif_fps().to_string(),
             gif_width: s.get_local_gif_width().to_string(),
         };
-        s.set_busy(true);
-        s.set_progress(0.0);
-        s.set_can_open_folder(false);
-        push_log(&a, &format!("$ ffmpeg -i \"{}\"", p.input));
         save_prefs(&c, &a);
-        let c2 = c.clone();
-        std::thread::spawn(move || {
-            jobs::local_worker(&c2, &p);
-            c2.running.store(false, Ordering::SeqCst);
-        });
+        let busy = c.running.load(Ordering::SeqCst);
+        if files.len() > 1 {
+            show_toast(&a, &uif(&lang, "toast_files_enqueued", &[("n", &files.len().to_string())]), 1);
+        } else if busy {
+            show_toast(&a, &ui(&lang, "toast_enqueued"), 0);
+        }
+        if !busy {
+            s.set_progress(0.0);
+        }
+        // Un trabajo por archivo, todos con los mismos ajustes.
+        for f in files {
+            push_log(&a, &format!("$ ffmpeg -i \"{f}\""));
+            jobs::enqueue_local(&c, LocalPayload { input: f, ..p.clone() });
+        }
     });
 
     // ---- presets
@@ -915,6 +942,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
         let settings = c.cfg.lock().unwrap().presets.get(i as usize - 1).map(|p| p.settings.clone());
         if let Some(v) = settings {
             apply_settings(&a, &v);
+            sync_formats_to_quality(&c, &a);
             show_toast(&a, &ui(&lang, "toast_preset_applied"), 1);
         }
     });
@@ -952,6 +980,34 @@ pub fn setup(core: &Arc<Core>, app: &App) {
                 }
                 refresh_presets(&c, &a, Some(&name));
                 show_toast(&a, &ui(&lang, "toast_preset_saved"), 1);
+            }
+            "batch-links" => {
+                let links = parse_links(&text);
+                if links.is_empty() {
+                    show_toast(&a, &ui(&lang, "toast_batch_none"), 2);
+                    return;
+                }
+                save_prefs(&c, &a);
+                // Cada enlace con los ajustes actuales, pero sin los formatos
+                // ni metadatos del video consultado: el trabajo los pide solo.
+                let base = build_payload(&c, &a);
+                let n = links.len();
+                for url in links {
+                    jobs::enqueue(&c, Payload {
+                        q_title: url.clone(),
+                        url,
+                        video_id: None,
+                        audio_id: None,
+                        meta_title: String::new(),
+                        meta_artist: String::new(),
+                        meta_description: String::new(),
+                        meta_date: String::new(),
+                        meta_url: String::new(),
+                        thumb_url: String::new(),
+                        ..base.clone()
+                    });
+                }
+                show_toast(&a, &uif(&lang, "toast_batch_added", &[("n", &n.to_string())]), 1);
             }
             "clear-history" => {
                 {
@@ -1029,7 +1085,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     // ---- varios
     cb!(on_open_link, |_a, _c, u: SharedString| { let _ = open::that(u.as_str()); });
     cb!(on_soon, |a, c, _k: SharedString| {
-        show_toast(&a, if c.lang() == "en" { "Coming soon" } else { "Próximamente" }, 0);
+        show_toast(&a, &ui(&c.lang(), "soon"), 0);
     });
     cb!(on_mode_changed, |_a, _c| {});
 
@@ -1042,7 +1098,16 @@ pub fn setup(core: &Arc<Core>, app: &App) {
             match ev {
                 WindowEvent::DroppedFile(p) => {
                     a.global::<S>().set_local_dragging(false);
-                    local_pick_set(&c2, &a, &p.to_string_lossy());
+                    DROPPED.with(|d| d.borrow_mut().push(p.to_string_lossy().to_string()));
+                    let (w, c) = (w2.clone(), c2.clone());
+                    DROP_TIMER.with(|t| {
+                        t.start(slint::TimerMode::SingleShot, Duration::from_millis(150), move || {
+                            let paths = DROPPED.with(|d| std::mem::take(&mut *d.borrow_mut()));
+                            if let Some(a) = w.upgrade() {
+                                local_pick_set(&c, &a, paths);
+                            }
+                        });
+                    });
                 }
                 WindowEvent::HoveredFile(_) => a.global::<S>().set_local_dragging(true),
                 WindowEvent::HoveredFileCancelled => a.global::<S>().set_local_dragging(false),
@@ -1057,6 +1122,15 @@ pub fn setup(core: &Arc<Core>, app: &App) {
                             }
                         }
                     }
+                }
+                WindowEvent::ScaleFactorChanged { .. } => {
+                    // Slint aplica la escala nueva despues de este evento.
+                    let w = w2.clone();
+                    slint::Timer::single_shot(Duration::ZERO, move || {
+                        if let Some(a) = w.upgrade() {
+                            themes::refresh_logo(&a);
+                        }
+                    });
                 }
                 WindowEvent::Resized(_) => {
                     let m = with_win(&a, |w| w.is_maximized()).unwrap_or(false);

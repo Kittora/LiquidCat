@@ -40,9 +40,18 @@ component ModalFrame inherits Rectangle {
                     Text { text: "LIQUIDCAT"; color: Pal.accent; font-size: 10px; font-weight: 800; }
                     Text { text: root.title; color: Pal.text; font-size: 22px; font-weight: 700; }
                 }
-                if root.show-links: Btn { small: true; icon: "github"; text: T.credit-btn-repo; clicked => { S.open-link("https://github.com/Kittora/LiquidCat"); } }
-                if root.show-links && root.show-discord: Btn { small: true; icon: "discord"; text: T.credit-btn-discord; clicked => { S.soon("discord"); } }
-                Btn { icon-only: true; icon: "x"; clicked => { root.close(); } }
+                // Los botones van centrados en su propia columna: dentro de la
+                // fila se estiraban al alto del titulo y la X quedaba en un
+                // recuadro alargado.
+                VerticalLayout {
+                    alignment: center;
+                    HorizontalLayout {
+                        spacing: 8px;
+                        if root.show-links: Btn { small: true; icon: "github"; text: T.credit-btn-repo; clicked => { S.open-link("https://github.com/Kittora/LiquidCat"); } }
+                        if root.show-links && root.show-discord: Btn { small: true; icon: "discord"; text: T.credit-btn-discord; clicked => { S.soon("discord"); } }
+                        Btn { icon-only: true; icon: "x"; clicked => { root.close(); } }
+                    }
+                }
             }
             Rectangle { height: 1px; background: Pal.line; }
             @children
@@ -159,9 +168,9 @@ export component AllModals inherits Rectangle {
                         horizontal-stretch: 1;
                         max-width: 240px;
                         h: Theme.control-h;
-                        options: ["Español", "English"];
+                        options: S.lang-names;
                         current <=> S.lang-idx;
-                        selected(i) => { S.set-lang(i == 0 ? "es" : "en"); }
+                        selected(i) => { S.set-lang(S.lang-codes[i]); }
                     }
                 }
 
@@ -294,6 +303,7 @@ export component AllModals inherits Rectangle {
                             Link { text: "gyan.dev/ffmpeg/builds"; url: "https://www.gyan.dev/ffmpeg/builds/"; }
                             Text { text: T.credit-license + ": GPL v3"; color: Pal.muted; font-size: 12px; }
                             VerticalLayout { padding-top: 8px; Text { text: "Slint"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
+                            Text { text: T.credit-slint-desc; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                             Link { text: "slint.dev"; url: "https://slint.dev"; }
                             Text { text: T.credit-license + ": GPL-3.0 / Royalty-free"; color: Pal.muted; font-size: 12px; }
                             VerticalLayout { padding-top: 8px; Text { text: "Poppins"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
@@ -357,6 +367,7 @@ export component AllModals inherits Rectangle {
                         spacing: 12px;
                         alignment: start;
                         WikiItem { icon: "layers"; head: T.wiki-h-output; body: T.wiki-p-output; }
+                        WikiItem { icon: "check"; head: T.wiki-h-presets; body: T.wiki-p-presets; }
                         WikiItem { icon: "settings"; head: T.wiki-h-advanced; body: T.wiki-p-advanced; }
                         WikiItem { icon: "file-video"; head: T.wiki-h-local; body: T.wiki-p-local; }
                         WikiItem { icon: "terminal"; head: T.wiki-h-activity; body: T.wiki-p-activity; }
@@ -478,8 +489,8 @@ export component AllModals inherits Rectangle {
             // Los dialogos de error/aviso no necesitan ocupar todo el alto:
             // antes el Panel se estiraba y el mensaje quedaba en un panel
             // enorme. El prompt de texto necesita un poco mas de altura.
-            width: S.dlg == 3 ? 420px : 440px;
-            height: S.dlg == 5 ? 290px : S.dlg == 4 ? 250px : 230px;
+            width: S.dlg == 6 ? 580px : S.dlg == 3 ? 420px : 440px;
+            height: S.dlg == 6 ? 430px : S.dlg == 5 ? 290px : S.dlg == 4 ? 250px : 230px;
             x: Math.round((parent.width - self.width) / 2 / 1phx) * 1phx;
             y: Math.round((parent.height - self.height) / 2 / 1phx) * 1phx;
             alpha: Pal.a-strong;
@@ -513,15 +524,48 @@ export component AllModals inherits Rectangle {
                     text <=> S.dlg-input;
                     accepted(t) => { S.dialog-accept(S.dlg-action, t); }
                 }
+                // Varias lineas (un enlace por linea): Enter salta de linea.
+                if S.dlg == 6: Rectangle {
+                    height: 190px;
+                    border-radius: Pal.radius-sm;
+                    border-width: Pal.border-w;
+                    border-color: batch-ti.has-focus ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
+                    background: Pal.input.with-alpha(Pal.a-soft);
+                    clip: true;
+                    batch-ti := TextInput {
+                        x: 10px;
+                        y: 8px;
+                        width: parent.width - 20px;
+                        height: parent.height - 16px;
+                        single-line: false;
+                        wrap: char-wrap;
+                        text <=> S.dlg-input;
+                        color: Pal.text;
+                        font-size: 12.5px;
+                        selection-background-color: Pal.accent.with-alpha(0.45);
+                        selection-foreground-color: Pal.text;
+                        // Sin focus() en init: Slint aun esta calculando el
+                        // layout del dialogo y pedir el foco ahi provoca un
+                        // panic ("Recursion detected"). Se enfoca al hacer clic.
+                    }
+                    if S.dlg-input == "": Text {
+                        x: 10px;
+                        y: 8px;
+                        text: T.batch-placeholder;
+                        color: Pal.muted.with-alpha(0.65);
+                        font-size: 12.5px;
+                    }
+                }
                 HorizontalLayout {
                     alignment: center;
                     spacing: 10px;
                     padding-top: 6px;
+                    if S.dlg == 6: Btn { kind: "secondary"; icon: "folder"; text: T.batch-load; clicked => { S.batch-load-file(); } }
                     if S.dlg >= 4: Btn { kind: "secondary"; text: T.btn-cancel; clicked => { S.dialog-cancel(); } }
                     Btn {
                         kind: "primary";
                         min-width: 120px;
-                        text: S.dlg >= 4 ? "OK" : T.btn-close;
+                        text: S.dlg == 6 ? T.batch-add : S.dlg >= 4 ? "OK" : T.btn-close;
                         clicked => { S.dialog-accept(S.dlg-action, S.dlg-input); }
                     }
                 }

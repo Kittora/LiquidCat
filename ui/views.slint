@@ -36,66 +36,81 @@ export component DownloadView inherits VerticalLayout {
     property <bool> is-video: S.mode-idx == 0;
     property <bool> is-direct: S.direct-idx == 1;
 
-    // ---- 1. Busqueda
-    Panel {
-        border: Pal.line-strong;
-        VerticalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap-sm;
-            CardHead { step: "1"; icon: "search"; title: T.cat-search; tint: Pal.c-search; }
-            FieldLabel { text: T.field-url; }
-            HorizontalLayout {
-                spacing: Theme.gap;
-                url-field := Field {
-                    horizontal-stretch: 1;
-                    placeholder: "https://www.youtube.com/watch?v=...";
-                    text <=> S.url;
-                    edited(t) => { S.url-edited(t); }
-                    accepted(t) => { S.fetch-formats(); }
-                    changed has-focus => { S.url-has-focus = self.has-focus; }
+    // ---- 1. Busqueda  |  Presets (lado a lado, como Salida | Codificacion)
+    HorizontalLayout {
+        spacing: Theme.gap;
+        Panel {
+            horizontal-stretch: 1;
+            // Mismo minimo y preferido en todas las mitades: asi el reparto lo
+            // decide solo el stretch y las columnas quedan alineadas entre filas.
+            min-width: 0px;
+            preferred-width: 0px;
+            VerticalLayout {
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap-sm;
+                alignment: start;
+                CardHead { step: "1"; icon: "search"; title: T.cat-search; tint: Pal.c-search; }
+                FieldLabel { text: T.field-url; }
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    url-field := Field {
+                        horizontal-stretch: 1;
+                        placeholder: "https://www.youtube.com/watch?v=...";
+                        text <=> S.url;
+                        edited(t) => { S.url-edited(t); }
+                        accepted(t) => { S.fetch-formats(); }
+                        changed has-focus => { S.url-has-focus = self.has-focus; }
+                    }
+                    Btn { icon-only: true; icon: "x"; kind: "normal"; clicked => { S.clear-url(); } }
+                    Btn {
+                        kind: "primary";
+                        icon: S.fetching ? "spinner" : "search";
+                        icon-spin: S.fetching;
+                        text: S.fetching ? T.btn-fetch + "..." : T.btn-fetch;
+                        enabled: !S.fetching && S.st == 1;
+                        clicked => { S.fetch-formats(); }
+                    }
                 }
-                Btn { icon-only: true; icon: "x"; kind: "normal"; clicked => { S.clear-url(); } }
-                Btn {
-                    kind: "primary";
-                    icon: S.fetching ? "spinner" : "search";
-                    icon-spin: S.fetching;
-                    text: S.fetching ? T.btn-fetch + "..." : T.btn-fetch;
-                    enabled: !S.fetching && S.st == 1;
-                    clicked => { S.fetch-formats(); }
+                // Solo reserva la linea cuando hay un titulo; en vacio la
+                // tarjeta de busqueda queda mas compacta.
+                if S.title-line != "": Text {
+                    text: S.title-line;
+                    color: Pal.muted;
+                    font-size: 12px;
+                    min-height: 17px;
+                    overflow: elide;
                 }
-            }
-            // Solo reserva la linea cuando hay un titulo; en vacio la
-            // tarjeta de busqueda queda mas compacta.
-            if S.title-line != "": Text {
-                text: S.title-line;
-                color: Pal.muted;
-                font-size: 12px;
-                min-height: 17px;
-                overflow: elide;
             }
         }
-    }
-
-    // ---- Presets
-    Panel {
-        HorizontalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap;
-            Icon { name: "layers"; size: 18px; tint: Pal.c-layers; }
-            Text { text: T.cat-presets; color: Pal.text; font-size: Theme.font-title; font-weight: 700; vertical-alignment: center; }
-            Select {
-                select-id: 1;
-                horizontal-stretch: 1;
-                options: S.preset-opts;
-                current <=> S.preset-idx;
+        Panel {
+            horizontal-stretch: 1;
+            // Mismo minimo y preferido en todas las mitades: asi el reparto lo
+            // decide solo el stretch y las columnas quedan alineadas entre filas.
+            min-width: 0px;
+            preferred-width: 0px;
+            VerticalLayout {
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap-sm;
+                alignment: start;
+                CardHead { icon: "layers"; title: T.cat-presets; tint: Pal.c-layers; }
+                FieldLabel { text: T.preset-label; }
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    Select {
+                        select-id: 1;
+                        horizontal-stretch: 1;
+                        options: S.preset-opts;
+                        current <=> S.preset-idx;
+                    }
+                    Btn { kind: "normal"; text: T.preset-apply; clicked => { S.apply-preset(); } }
+                    Btn { kind: "normal"; icon: "check"; text: T.preset-save; clicked => { S.save-preset(); } }
+                    Btn { kind: "normal"; text: T.preset-del; clicked => { S.delete-preset(); } }
+                }
             }
-            Btn { small: true; kind: "normal"; text: T.preset-apply; clicked => { S.apply-preset(); } }
-            Btn { small: true; kind: "normal"; icon: "check"; text: T.preset-save; clicked => { S.save-preset(); } }
-            Btn { small: true; kind: "normal"; text: T.preset-del; clicked => { S.delete-preset(); } }
         }
     }
 
@@ -158,11 +173,16 @@ export component DownloadView inherits VerticalLayout {
         spacing: Theme.gap;
         Panel {
             horizontal-stretch: 1;
+            // Mismo minimo y preferido en todas las mitades: asi el reparto lo
+            // decide solo el stretch y las columnas quedan alineadas entre filas.
+            min-width: 0px;
+            preferred-width: 0px;
             VerticalLayout {
                 padding: Theme.card-pad;
                 padding-left: Theme.card-pad-x;
                 padding-right: Theme.card-pad-x;
                 spacing: Theme.gap;
+                alignment: start;
                 CardHead { step: S.has-preview ? "3" : "2"; icon: "layers"; title: T.cat-output; tint: Pal.c-layers; }
                 // Dos columnas para que Output & format no alargue la vista:
                 // los cuatro selects caben en dos filas y el modo de
@@ -185,8 +205,9 @@ export component DownloadView inherits VerticalLayout {
                         Select {
                             select-id: 3;
                             best: 1;
-                            options: [T.q-manual, "4K · 2160p", "1440p", "1080p", "720p", "480p"];
+                            options: [T.q-manual, "4K · 2160p", "1440p", "1080p", "720p", "480p", T.q-h264];
                             current <=> S.quality-idx;
+                            selected(i) => { S.quality-changed(); }
                         }
                     }
                 }
@@ -198,7 +219,7 @@ export component DownloadView inherits VerticalLayout {
                         Select {
                             select-id: 4;
                             // Solo marcar la mejor opcion cuando ya hay formatos.
-                            best: S.has-preview ? 0 : -1;
+                            best: S.has-preview ? S.video-best : -1;
                             enabled: root.is-video;
                             options: S.video-opts;
                             current <=> S.video-idx;
@@ -207,7 +228,7 @@ export component DownloadView inherits VerticalLayout {
                     FG {
                         horizontal-stretch: 1;
                         label: T.field-audfmt;
-                        Select { select-id: 5; best: S.has-preview ? 0 : -1; options: S.audio-opts; current <=> S.audio-idx; }
+                        Select { select-id: 5; best: S.has-preview ? S.audio-best : -1; options: S.audio-opts; current <=> S.audio-idx; }
                     }
                 }
                 FG {
@@ -223,6 +244,10 @@ export component DownloadView inherits VerticalLayout {
         }
         Panel {
             horizontal-stretch: 1;
+            // Mismo minimo y preferido en todas las mitades: asi el reparto lo
+            // decide solo el stretch y las columnas quedan alineadas entre filas.
+            min-width: 0px;
+            preferred-width: 0px;
             VerticalLayout {
                 padding: Theme.card-pad;
                 padding-left: Theme.card-pad-x;
@@ -278,34 +303,53 @@ export component DownloadView inherits VerticalLayout {
         }
     }
 
-    // ---- Opciones avanzadas (colapsable)
+    // ---- Destino (todo el ancho)
     Panel {
         VerticalLayout {
-            Rectangle {
-                height: Theme.control-h + 4px;
-                HorizontalLayout {
-                    padding-left: Theme.card-pad-x;
-                    padding-right: Theme.card-pad-x;
-                    spacing: Theme.gap;
-                    Icon { name: "sliders"; size: 18px; tint: Pal.c-sliders; }
-                    Text { text: T.cat-advanced; color: Pal.text; font-size: Theme.font-title; font-weight: 700; vertical-alignment: center; }
-                    Text { text: T.adv-hint; color: Pal.muted; font-size: 10.5px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
-                    Icon { name: "chevron-down"; size: 15px; tint: Pal.muted; }
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap-sm;
+            CardHead { step: S.has-preview ? "5" : "4"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
+            FieldLabel { text: T.field-folder; }
+            HorizontalLayout {
+                spacing: Theme.gap;
+                Field {
+                    horizontal-stretch: 1;
+                    placeholder: "...";
+                    text <=> S.out-dir;
+                    edited(t) => { S.out-dir-edited(); }
                 }
-                TouchArea { mouse-cursor: pointer; clicked => { S.adv-open = !S.adv-open; } }
+                Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(0); } }
+            }
+            Text { text: S.space-hint; color: S.space-low ? Pal.warning : Pal.muted; font-size: 11.5px; min-height: 16px; }
+        }
+    }
+
+    // ---- Opciones avanzadas (todo el ancho, plegable). Abiertas usan dos
+    // filas cortas: los cuatro campos juntos y debajo las casillas.
+    Panel {
+        VerticalLayout {
+            padding: Theme.card-pad;
+            padding-left: Theme.card-pad-x;
+            padding-right: Theme.card-pad-x;
+            spacing: Theme.gap-sm;
+            // CardHead normal (misma forma que las demas cabeceras); el
+            // TouchArea de abajo la hace plegable.
+            adv-head := CardHead {
+                padding-bottom: S.adv-open ? 8px : 0px;
+                icon: "sliders";
+                title: T.cat-advanced;
+                tint: Pal.c-sliders;
+                Text { text: T.adv-hint; color: Pal.muted; font-size: 10.5px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
+                Icon { name: "chevron-down"; size: 15px; tint: Pal.muted; }
             }
             if S.adv-open: VerticalLayout {
-                padding-left: Theme.card-pad-x;
-                padding-right: Theme.card-pad-x;
-                padding-bottom: Theme.card-pad;
                 spacing: Theme.gap-lg;
                 HorizontalLayout {
                     spacing: Theme.gap-lg;
                     FG { label: T.adv-trim-start; horizontal-stretch: 1; Field { placeholder: "0:00"; text <=> S.trim-start; } }
                     FG { label: T.adv-trim-end; horizontal-stretch: 1; Field { placeholder: "—"; text <=> S.trim-end; } }
-                }
-                HorizontalLayout {
-                    spacing: Theme.gap-lg;
                     FG {
                         label: T.adv-bitrate;
                         horizontal-stretch: 1;
@@ -330,9 +374,9 @@ export component DownloadView inherits VerticalLayout {
                 HorizontalLayout {
                     spacing: 18px;
                     alignment: start;
-                    Check { text: T.adv-norm; checked <=> S.audio-norm; }
                     Check { text: T.adv-subs; checked <=> S.subs; }
                     Check { text: T.adv-subs-embed; checked <=> S.subs-embed; }
+                    Check { text: T.adv-norm; checked <=> S.audio-norm; }
                 }
                 HorizontalLayout {
                     spacing: 18px;
@@ -342,28 +386,11 @@ export component DownloadView inherits VerticalLayout {
                 }
             }
         }
-    }
-
-    // ---- 4. Destino
-    Panel {
-        VerticalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap-sm;
-            CardHead { step: S.has-preview ? "5" : "4"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
-            FieldLabel { text: T.field-folder; }
-            HorizontalLayout {
-                spacing: Theme.gap;
-                Field {
-                    horizontal-stretch: 1;
-                    placeholder: "...";
-                    text <=> S.out-dir;
-                    edited(t) => { S.out-dir-edited(); }
-                }
-                Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(0); } }
-            }
-            Text { text: S.space-hint; color: S.space-low ? Pal.warning : Pal.muted; font-size: 11.5px; min-height: 16px; }
+        TouchArea {
+            y: 0px;
+            height: Theme.card-pad + adv-head.height;
+            mouse-cursor: pointer;
+            clicked => { S.adv-open = !S.adv-open; }
         }
     }
 
@@ -384,6 +411,7 @@ export component DownloadView inherits VerticalLayout {
                 clicked => { S.start-download(); }
             }
             Btn { kind: "secondary"; icon: "layers"; text: T.btn-enqueue; enabled: S.st == 1; clicked => { S.enqueue(); } }
+            Btn { kind: "secondary"; icon: "list-plus"; text: T.btn-batch; enabled: S.st == 1; clicked => { S.batch-import(); } }
             if S.is-playlist: Btn { kind: "secondary"; icon: "download"; text: T.btn-playlist; enabled: S.st == 1; clicked => { S.enqueue-playlist(); } }
             Btn { kind: "danger"; icon: "stop"; text: T.btn-cancel; enabled: S.busy; clicked => { S.cancel(); } }
         }
@@ -399,71 +427,80 @@ export component LocalView inherits VerticalLayout {
     property <bool> is-audio: S.local-mode-idx == 1;
     property <bool> is-gif: S.local-mode-idx == 2;
 
-    Panel {
-        border: Pal.line-strong;
-        VerticalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap-sm;
-            CardHead { step: "1"; icon: "file-video"; title: T.set-local; tint: Pal.c-file; }
-            FieldLabel { text: T.set-local-hint; }
-            HorizontalLayout {
-                spacing: Theme.gap;
-                Field {
-                    horizontal-stretch: 1;
-                    read-only: true;
-                    placeholder: "...";
-                    text <=> S.local-file;
-                    border-color: S.local-dragging ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
-                }
-                Btn { kind: "secondary"; icon: "folder"; text: T.set-browse; clicked => { S.pick-local(); } }
-            }
-            Text { text: T.set-drop-hint; color: Pal.muted; font-size: 11px; }
-            VerticalLayout {
-                spacing: Theme.gap-lg;
-                padding-top: 8px;
-                HorizontalLayout {
-                    spacing: Theme.gap-lg;
-                    FG {
-                        label: T.set-local-type;
-                        horizontal-stretch: 1;
-                        Select {
-                            select-id: 12;
-                            options: [T.mode-video, T.mode-audio, T.mode-gif];
-                            current <=> S.local-mode-idx;
-                        }
-                    }
-                    FG {
-                        label: T.field-acodec;
-                        horizontal-stretch: 1;
-                        Select {
-                            select-id: 13;
-                            enabled: root.is-audio;
-                            options: ["MP3", "AAC", "Opus", T.acodec-ogg, T.acodec-flac, T.acodec-wav];
-                            current <=> S.local-acodec-idx;
-                        }
-                    }
-                }
-                HorizontalLayout {
-                    spacing: Theme.gap-lg;
-                    FG { label: T.adv-trim-start; horizontal-stretch: 1; Field { placeholder: "0:00"; text <=> S.local-trim-start; } }
-                    FG { label: T.adv-trim-end; horizontal-stretch: 1; Field { placeholder: "—"; text <=> S.local-trim-end; } }
-                }
-                if root.is-gif: HorizontalLayout {
-                    spacing: Theme.gap-lg;
-                    FG { label: T.gif-fps; horizontal-stretch: 1; Field { text <=> S.local-gif-fps; input-type: InputType.number; } }
-                    FG { label: T.gif-width; horizontal-stretch: 1; Field { text <=> S.local-gif-width; input-type: InputType.number; } }
-                }
-                Check { text: T.adv-norm; enabled: root.is-audio; checked <=> S.local-audio-norm; }
-            }
-        }
-    }
-
+    // ---- 1. Archivo y opciones  |  2. Codificacion (lado a lado)
     HorizontalLayout {
         spacing: Theme.gap;
         Panel {
             horizontal-stretch: 1;
+            // Mismo minimo y preferido en todas las mitades: asi el reparto lo
+            // decide solo el stretch y las columnas quedan alineadas entre filas.
+            min-width: 0px;
+            preferred-width: 0px;
+            VerticalLayout {
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap-sm;
+                alignment: start;
+                CardHead { step: "1"; icon: "file-video"; title: T.set-local; tint: Pal.c-file; }
+                FieldLabel { text: T.set-local-hint; wrap: word-wrap; }
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    Field {
+                        horizontal-stretch: 1;
+                        read-only: true;
+                        placeholder: "...";
+                        text <=> S.local-file;
+                        border-color: S.local-dragging ? Pal.accent : Pal.line.with-alpha(Pal.a-border);
+                    }
+                    Btn { kind: "secondary"; icon: "folder"; text: T.set-browse; clicked => { S.pick-local(); } }
+                }
+                Text { text: T.set-drop-hint; color: Pal.muted; font-size: 11px; }
+                VerticalLayout {
+                    spacing: Theme.gap-lg;
+                    padding-top: 8px;
+                    HorizontalLayout {
+                        spacing: Theme.gap-lg;
+                        FG {
+                            label: T.set-local-type;
+                            horizontal-stretch: 1;
+                            Select {
+                                select-id: 12;
+                                options: [T.mode-video, T.mode-audio, T.mode-gif];
+                                current <=> S.local-mode-idx;
+                            }
+                        }
+                        FG {
+                            label: T.field-acodec;
+                            horizontal-stretch: 1;
+                            Select {
+                                select-id: 13;
+                                enabled: root.is-audio;
+                                options: ["MP3", "AAC", "Opus", T.acodec-ogg, T.acodec-flac, T.acodec-wav];
+                                current <=> S.local-acodec-idx;
+                            }
+                        }
+                    }
+                    HorizontalLayout {
+                        spacing: Theme.gap-lg;
+                        FG { label: T.adv-trim-start; horizontal-stretch: 1; Field { placeholder: "0:00"; text <=> S.local-trim-start; } }
+                        FG { label: T.adv-trim-end; horizontal-stretch: 1; Field { placeholder: "—"; text <=> S.local-trim-end; } }
+                    }
+                    if root.is-gif: HorizontalLayout {
+                        spacing: Theme.gap-lg;
+                        FG { label: T.gif-fps; horizontal-stretch: 1; Field { text <=> S.local-gif-fps; input-type: InputType.number; } }
+                        FG { label: T.gif-width; horizontal-stretch: 1; Field { text <=> S.local-gif-width; input-type: InputType.number; } }
+                    }
+                    Check { text: T.adv-norm; enabled: root.is-audio; checked <=> S.local-audio-norm; }
+                }
+            }
+        }
+        Panel {
+            horizontal-stretch: 1;
+            // Mismo minimo y preferido en todas las mitades: asi el reparto lo
+            // decide solo el stretch y las columnas quedan alineadas entre filas.
+            min-width: 0px;
+            preferred-width: 0px;
             VerticalLayout {
                 padding: Theme.card-pad;
                 padding-left: Theme.card-pad-x;
@@ -491,7 +528,6 @@ export component LocalView inherits VerticalLayout {
                 }
             }
         }
-        Rectangle { horizontal-stretch: 1; }
     }
 
     Panel {
@@ -567,7 +603,9 @@ export component QueueView inherits VerticalLayout {
                     spacing: Theme.gap-lg;
                     Rectangle {
                         width: 96px;
-                        border-radius: 999px;
+                        // Igual que Chip: recuadro redondeado. Un radio enorme
+                        // (999px) no se recorta a la mitad del alto y sale un ovalo.
+                        border-radius: Pal.brutal ? 2px : 6px;
                         background: q.status == 2 ? Pal.success : q.status == 3 ? Pal.danger : q.status == 1 ? Pal.accent : Pal.panel-strong;
                         Text {
                             text: q.status == 0 ? T.q-pending : q.status == 1 ? T.q-running : q.status == 2 ? T.q-done : T.q-failed;
@@ -594,44 +632,136 @@ export component QueueView inherits VerticalLayout {
 //  Actividad (progreso + consola)
 // ======================================================================
 export component ActivityCard inherits Panel {
+    // Color del estado del trabajo actual.
+    property <color> st-color: S.current-state == 2 ? Pal.success : S.current-state == 3 ? Pal.danger : Pal.accent;
     VerticalLayout {
         padding: Theme.card-pad;
         padding-left: Theme.card-pad-x;
         padding-right: Theme.card-pad-x;
         spacing: 8px;
         CardHead {
-            icon: "terminal";
+            icon: "play";
             title: T.cat-activity;
             tint: Pal.c-terminal;
             Rectangle { horizontal-stretch: 1; }
+            Btn {
+                small: true;
+                icon: "terminal";
+                kind: S.log-details ? "primary" : "normal";
+                text: T.act-details;
+                clicked => { S.log-details = !S.log-details; }
+            }
             if S.can-open-folder: Btn { small: true; icon: "folder"; text: T.btn-open-folder; clicked => { S.open-last-folder(); } }
             Btn { small: true; icon: "hard-drive"; text: T.btn-history; clicked => { S.modal = 4; S.history-opened(); } }
         }
-        HorizontalLayout {
-            Text { text: S.progress-label; color: Pal.muted; font-size: 12px; horizontal-stretch: 1; overflow: elide; }
-            Text { text: Math.round(S.progress * 100) + "%"; color: Pal.text; font-size: 12px; font-weight: 700; }
+        // ---- trabajo actual
+        Rectangle {
+            height: 52px;
+            border-radius: Pal.radius-sm;
+            border-width: Pal.border-w;
+            border-color: Pal.line.with-alpha(Pal.a-border);
+            background: Pal.input.with-alpha(Pal.a-soft);
+            HorizontalLayout {
+                padding-left: 10px;
+                padding-right: 12px;
+                spacing: 12px;
+                VerticalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 32px;
+                        height: 32px;
+                        border-radius: Pal.brutal ? 2px : 16px;
+                        background: root.st-color.with-alpha(0.18);
+                        Icon {
+                            x: (parent.width - 16px) / 2;
+                            y: (parent.height - 16px) / 2;
+                            width: 16px;
+                            height: 16px;
+                            size: 16px;
+                            name: S.current-state == 1 ? "spinner" : S.current-state == 2 ? "check" : S.current-state == 3 ? "error" : "download";
+                            spin: S.current-state == 1;
+                            tint: root.st-color;
+                        }
+                    }
+                }
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    alignment: center;
+                    spacing: 2px;
+                    Text {
+                        text: S.current-title != "" ? S.current-title : T.act-idle;
+                        color: Pal.text;
+                        font-size: 13px;
+                        font-weight: 700;
+                        overflow: elide;
+                    }
+                    Text {
+                        text: S.current-state == 0 ? T.act-idle-hint : S.progress-label;
+                        color: Pal.muted;
+                        font-size: 11.5px;
+                        overflow: elide;
+                    }
+                }
+                if S.current-state != 0: Text {
+                    text: Math.round(S.progress * 100) + "%";
+                    color: root.st-color;
+                    font-size: 18px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                }
+            }
         }
         ProgressBar { value: S.progress; }
+        // ---- eventos: amigables por defecto; "Detalles" muestra el registro tecnico
         Rectangle {
-            height: 100px;
+            height: 104px;
             border-radius: Pal.radius-sm;
-            border-width: 1px;
+            border-width: S.log-details ? 1px : 0px;
             border-color: Pal.log-border;
-            background: Pal.log-bg;
+            background: S.log-details ? Pal.log-bg : transparent;
+            if S.log.length == 0: Text {
+                x: 4px;
+                y: 6px;
+                width: parent.width - 8px;
+                text: T.act-empty;
+                color: Pal.muted;
+                font-size: 12px;
+                wrap: word-wrap;
+            }
             log-scroll := VScroll {
                 x: 0px;
-                y: 8px;
+                y: 4px;
                 width: parent.width;
-                height: parent.height - 16px;
+                height: parent.height - 8px;
                 VerticalLayout {
-                    padding-left: 12px;
+                    padding-left: S.log-details ? 10px : 2px;
                     padding-right: 6px;
-                    spacing: 1px;
-                    for l in S.log: Text {
-                        text: l.text;
-                        wrap: word-wrap;
-                        font-size: 12px;
-                        color: l.level == 1 ? Pal.log-cmd : l.level == 2 ? Pal.log-ok : l.level == 3 ? Pal.log-err : l.level == 4 ? Pal.log-info : Pal.log-text;
+                    spacing: 0px;
+                    for l in S.log: VerticalLayout {
+                        if S.log-details || l.level >= 2: HorizontalLayout {
+                            spacing: 8px;
+                            padding-top: l.level == 5 && !S.log-details ? 6px : 2px;
+                            padding-bottom: 2px;
+                            if !S.log-details: VerticalLayout {
+                                alignment: start;
+                                padding-top: 1px;
+                                Icon {
+                                    size: 14px;
+                                    name: l.level == 2 ? "check" : l.level == 3 ? "warning" : l.level == 5 ? "play" : "info";
+                                    tint: l.level == 2 ? Pal.success : l.level == 3 ? Pal.danger : l.level == 5 ? Pal.accent : Pal.muted;
+                                }
+                            }
+                            Text {
+                                horizontal-stretch: 1;
+                                text: l.text;
+                                wrap: word-wrap;
+                                font-size: S.log-details ? 11.5px : 12.5px;
+                                font-weight: l.level == 5 && !S.log-details ? 700 : 400;
+                                color: S.log-details
+                                    ? (l.level == 1 ? Pal.log-cmd : l.level == 2 ? Pal.log-ok : l.level == 3 ? Pal.log-err : l.level == 4 ? Pal.log-info : Pal.log-text)
+                                    : (l.level == 3 ? Pal.danger : l.level == 5 ? Pal.text : Pal.text.with-alpha(0.85));
+                            }
+                        }
                     }
                 }
             }
@@ -647,7 +777,9 @@ export component ActivityCard inherits Panel {
                 width: 0px;
                 height: 0px;
                 property <int> rev: S.log-rev;
+                property <bool> det: S.log-details;
                 changed rev => { scroll-timer.running = true; }
+                changed det => { scroll-timer.running = true; }
             }
         }
     }

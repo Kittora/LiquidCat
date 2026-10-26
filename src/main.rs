@@ -55,6 +55,8 @@ fn main() {
     ui_bridge::startup_deps(&core, first_run);
     // La ventana debe existir antes de pedir el HWND a DWM.
     app.show().expect("no se pudo mostrar la ventana");
+    // La escala real de la pantalla solo se conoce con la ventana creada.
+    themes::refresh_logo(&app);
     #[cfg(windows)]
     {
         round_window(&app);
@@ -64,6 +66,7 @@ fn main() {
         slint::Timer::single_shot(std::time::Duration::from_millis(120), move || {
             if let Some(app) = weak.upgrade() {
                 round_window(&app);
+                themes::refresh_logo(&app);
             }
         });
     }

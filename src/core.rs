@@ -33,6 +33,8 @@ pub struct Meta {
 pub struct Formats {
     pub video_ids: Vec<String>,
     pub audio_ids: Vec<String>,
+    pub video_info: Vec<crate::jobs::FmtInfo>,
+    pub audio_info: Vec<crate::jobs::FmtInfo>,
     pub loaded: bool,
 }
 
@@ -42,7 +44,7 @@ pub struct Job {
     pub title: String,
     pub status: i32, // 0 espera, 1 procesando, 2 listo, 3 fallo
     pub output: String,
-    pub payload: crate::jobs::Payload,
+    pub task: crate::jobs::Task,
 }
 
 #[derive(Default)]
@@ -82,21 +84,17 @@ pub fn init_models(app: &App) {
     LOG.with(|l| *l.borrow_mut() = Some(m));
 }
 
+/// Nivel de una linea: 0 detalle, 1 comando, 2 ok, 3 error/aviso, 4 info,
+/// 5 inicio de un trabajo. La vista amigable de Actividad solo muestra 2..5;
+/// el prefijo se quita porque el nivel ya se ve con un icono.
 pub fn push_log(app: &App, text: &str) {
-    let level = if text.starts_with("$ ") {
-        1
-    } else if text.starts_with("[OK]") {
-        2
-    } else if text.starts_with("[ERROR]") || text.starts_with("[!]") {
-        3
-    } else if text.starts_with("[i]") {
-        4
-    } else {
-        0
-    };
+    let (level, shown) = [("$ ", 1), ("[OK] ", 2), ("[OK]", 2), ("[ERROR] ", 3), ("[!] ", 3), ("[i] ", 4), ("[>] ", 5)]
+        .iter()
+        .find_map(|(p, lv)| text.strip_prefix(p).map(|rest| (*lv, if *lv == 1 { text } else { rest })))
+        .unwrap_or((0, text));
     LOG.with(|l| {
         if let Some(m) = l.borrow().as_ref() {
-            m.push(LogLine { text: SharedString::from(text), level });
+            m.push(LogLine { text: SharedString::from(shown), level });
             while m.row_count() > 400 {
                 m.remove(0);
             }
@@ -126,7 +124,7 @@ impl Core {
         let cfg = Config::load();
         let lang = {
             let l = cfg.pref_str("lang");
-            if l == "en" || l == "es" { l } else { "es".to_string() }
+            if crate::lang::supported(&l) { l } else { crate::lang::DEFAULT.to_string() }
         };
         Arc::new(Core {
             ui,
@@ -211,14 +209,12 @@ impl Core {
         b.ffprobe = self.resolve("ffprobe");
     }
 
-    pub fn cookies_args(&self, browser_override: &str) -> Vec<String> {
-        let b = if browser_override.trim().is_empty() {
-            self.cfg.lock().unwrap().pref_str("cookies_browser")
-        } else {
-            browser_override.trim().to_string()
-        };
-        if ["chrome", "edge", "firefox", "brave", "opera", "vivaldi", "chromium"].contains(&b.as_str()) {
-            vec!["--cookies-from-browser".into(), b]
+    /// `browser` es lo elegido en la interfaz y manda siempre: vacio significa
+    /// "Ninguna", no "usar el de Ajustes" (si no, elegir Ninguna no tenia efecto).
+    pub fn cookies_args(&self, browser: &str) -> Vec<String> {
+        let b = browser.trim();
+        if ["chrome", "edge", "firefox", "brave", "opera", "vivaldi", "chromium"].contains(&b) {
+            vec!["--cookies-from-browser".into(), b.to_string()]
         } else {
             vec![]
         }
@@ -308,21 +304,25 @@ impl Core {
         self.emit_queue();
         let label = if ok { self.t("done") } else { self.t("stopped") };
         let toast = if ok { 1 } else { 3 };
-        let toast_msg = if self.lang() == "en" {
-            if ok { "Download complete!" } else { "Download stopped" }
-        } else if ok {
-            "¡Descarga completada!"
-        } else {
-            "Descarga detenida"
+        // Los trabajos locales no tienen URL de origen: su aviso habla de
+        // conversion, no de descarga.
+        let local = self.meta.lock().unwrap().url.is_empty();
+        let toast_key = match (ok, local) {
+            (true, false) => "toast_done",
+            (false, false) => "toast_stopped",
+            (true, true) => "toast_conv_done",
+            (false, true) => "toast_conv_stopped",
         };
+        let toast_msg = crate::lang::ui(&self.lang(), toast_key);
         self.ui(move |a| {
             let s = a.global::<S>();
             s.set_busy(false);
+            s.set_current_state(if ok { 2 } else { 3 });
             s.set_progress_label(SharedString::from(label));
             if ok && !out.is_empty() {
                 s.set_can_open_folder(true);
             }
-            show_toast(a, toast_msg, toast);
+            show_toast(a, &toast_msg, toast);
         });
     }
 

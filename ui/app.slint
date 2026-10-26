@@ -11,20 +11,31 @@ import { AllModals } from "modals.slint";
 export { S, T, Pal }
 export { LogLine, QItem, HItem, DepInfo, ThemeEntry } from "state.slint";
 
-// Boton de la barra de titulo (minimizar / maximizar / cerrar).
+// Boton de la barra de titulo (minimizar / maximizar / cerrar): pastilla
+// redondeada que se ilumina al pasar el raton; cerrar se pone roja.
 component WinButton inherits Rectangle {
     in property <string> icon;
     in property <bool> is-close: false;
     callback clicked();
-    width: 44px;
-    background: ta.has-hover ? (is-close ? #d9384e : Pal.panel-strong) : transparent;
+    width: 38px;
+    height: 26px;
+    border-radius: Pal.brutal ? 2px : 7px;
+    border-width: Pal.brutal && ta.has-hover ? 2px : 0px;
+    border-color: Pal.line;
+    background: ta.pressed ? (is-close ? #b82c40 : Pal.panel-strong.with-alpha(0.95))
+        : ta.has-hover ? (is-close ? #e5484d : Pal.panel-strong.with-alpha(0.75))
+        : Pal.input.with-alpha(0.35);
+    animate background { duration: 120ms; }
     Icon {
         name: root.icon;
-        size: 14px;
+        size: 13px;
         tint: ta.has-hover && root.is-close ? #ffffff : ta.has-hover ? Pal.text : Pal.muted;
-        x: (parent.width - 14px) / 2;
+        x: (parent.width - 13px) / 2;
+        y: (parent.height - 13px) / 2;
+        width: 13px;
+        height: 13px;
     }
-    ta := TouchArea { clicked => { root.clicked(); } }
+    ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
 }
 
 // Boton plano del grupo de controles del header.
@@ -163,6 +174,7 @@ component StatusPill inherits Rectangle {
 
 export component App inherits Window {
     title: "LiquidCat";
+    // Icono inicial; themes::refresh_logo lo cambia por el del tema.
     icon: @image-url("../assets/logo.png");
     no-frame: true;
     min-width: 860px;
@@ -209,15 +221,15 @@ export component App inherits Window {
     VerticalLayout {
         // ------------------------------------------------ barra de titulo
         Rectangle {
-            // Barra compacta (estilo AB Download Manager): 34 px, icono y
-            // tipografia mas pequenos, botones de ventana de 44 px.
-            height: 34px;
+            // Barra de 38 px: nombre de la app mas visible y botones de
+            // ventana en pastillas redondeadas.
+            height: 38px;
             border-top-left-radius: root.corner-radius;
             border-top-right-radius: root.corner-radius;
             background: Pal.surface.with-alpha(Pal.a-strong);
             Rectangle { y: parent.height - Pal.border-w; height: Pal.border-w; background: Pal.line.with-alpha(Pal.a-border); }
             TouchArea {
-                width: parent.width - 132px;
+                width: parent.width - 140px;
                 pointer-event(e) => {
                     if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) { S.win-drag(); }
                 }
@@ -230,19 +242,21 @@ export component App inherits Window {
                 width: parent.width;
                 height: parent.height;
                 text: "LiquidCat";
-                color: Pal.muted;
-                font-size: 11.5px;
-                font-weight: 600;
+                color: Pal.text;
+                font-size: 14px;
+                font-weight: 700;
                 horizontal-alignment: center;
                 vertical-alignment: center;
             }
             HorizontalLayout {
                 padding-left: 12px;
-                spacing: 7px;
+                padding-right: 6px;
+                spacing: 4px;
+                alignment: end;
                 Rectangle { horizontal-stretch: 1; }
-                WinButton { icon: "minus"; clicked => { S.win-minimize(); } }
-                WinButton { icon: S.maximized ? "restore" : "maximize"; clicked => { S.win-maximize(); } }
-                WinButton { icon: "x"; is-close: true; clicked => { S.win-close(); } }
+                WinButton { y: (parent.height - self.height) / 2; icon: "minus"; clicked => { S.win-minimize(); } }
+                WinButton { y: (parent.height - self.height) / 2; icon: S.maximized ? "restore" : "maximize"; clicked => { S.win-maximize(); } }
+                WinButton { y: (parent.height - self.height) / 2; icon: "x"; is-close: true; clicked => { S.win-close(); } }
             }
         }
 
@@ -253,22 +267,6 @@ export component App inherits Window {
             border-bottom-right-radius: root.corner-radius;
             background: @linear-gradient(145deg, Pal.bg-accent 0%, Pal.bg 54%);
             clip: true;
-
-            // fondo dinamico: miniatura ya reducida y suavizada desde Rust
-            if S.bg-on && !S.bg-gradient: Image {
-                x: -70px;
-                y: -70px;
-                width: parent.width + 140px;
-                height: parent.height + 140px;
-                source: S.bg-image;
-                image-fit: cover;
-                opacity: 0.5;
-                colorize: #00000050;
-            }
-            if S.bg-on && S.bg-gradient: Rectangle {
-                background: @linear-gradient(135deg, Pal.accent 0%, Pal.accent2 100%);
-                opacity: 0.18;
-            }
 
             VerticalLayout {
                 padding-left: Theme.card-pad-x;
@@ -290,9 +288,8 @@ export component App inherits Window {
                         // titulo se quito para no duplicarlo.
                         VerticalLayout {
                             alignment: center;
-                            // Version recortada del logo: sin el borde claro
-                            // que traia el PNG original. Asi no aparece un
-                            // marco dentro de otro, sobre todo en Neo.
+                            // Icono propio de cada tema (assets/theme-icons), sin
+                            // marco: llena el recuadro hasta la orilla.
                             Rectangle {
                                 width: 46px;
                                 height: 46px;
@@ -301,7 +298,7 @@ export component App inherits Window {
                                 Image {
                                     width: parent.width;
                                     height: parent.height;
-                                    source: @image-url("../assets/logo-clean.png");
+                                    source: S.logo;
                                     image-fit: cover;
                                 }
                             }
@@ -310,13 +307,20 @@ export component App inherits Window {
                             horizontal-stretch: 1;
                             alignment: center;
                             spacing: 1px;
-                            if Pal.brutal: Rectangle {
-                                height: 17px;
-                                width: 164px;
-                                background: Pal.accent;
-                                border-width: 2px;
-                                border-color: Pal.line;
-                                Text { text: "OZO MEDIA WORKSPACE"; color: Pal.on-accent; font-size: 10px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+                            // El badge va en una fila con relleno elastico: un hijo
+                            // de ancho fijo directo en el VerticalLayout le pondria
+                            // a toda la columna ese ancho maximo (164px), el titulo
+                            // se cortaba y el grupo de estado se estiraba.
+                            if Pal.brutal: HorizontalLayout {
+                                Rectangle {
+                                    height: 17px;
+                                    width: 164px;
+                                    background: Pal.accent;
+                                    border-width: 2px;
+                                    border-color: Pal.line;
+                                    Text { text: "OZO MEDIA WORKSPACE"; color: Pal.on-accent; font-size: 10px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+                                }
+                                Rectangle { horizontal-stretch: 1; }
                             }
                             Text { text: "LiquidCat"; color: Pal.text; font-size: 19px; font-weight: 700; }
                             Text { text: T.app-subtitle; color: Pal.muted; font-size: 11.5px; overflow: elide; }
@@ -415,6 +419,9 @@ export component App inherits Window {
     // PopupWindow) para que abrir/cerrar no deje zonas sin repintar.
     if S.dd-owner != 0: ddl := Rectangle {
         property <length> ph: Math.min(S.dd-options.length * Theme.control-h-sm + 12px, 280px);
+        // La lista puede ser mas ancha que su selector: en media columna las
+        // opciones largas (formatos) se cortaban.
+        property <length> pw: Math.min(Math.max(S.dd-w, 340px), ddl.width - 12px);
         property <length> top: S.dd-y + S.dd-h + 5px;
 
         // Clic fuera del panel: cierra. La rueda no mueve la pagina de fondo.
@@ -428,9 +435,9 @@ export component App inherits Window {
             // un px logico entero cae en medio de un pixel fisico y el texto
             // se ve borroso (a 100 % ambos coinciden, por eso solo fallaba
             // en la pantalla del laptop).
-            x: Math.round(Math.max(6px, Math.min(S.dd-x, ddl.width - S.dd-w - 6px)) / 1phx) * 1phx;
+            x: Math.round(Math.max(6px, Math.min(S.dd-x, ddl.width - ddl.pw - 6px)) / 1phx) * 1phx;
             y: Math.round(Math.max(6px, ddl.top + ddl.ph <= ddl.height - 6px ? ddl.top : S.dd-y - 5px - ddl.ph) / 1phx) * 1phx;
-            width: Math.round(S.dd-w / 1phx) * 1phx;
+            width: Math.round(ddl.pw / 1phx) * 1phx;
             height: Math.round(ddl.ph / 1phx) * 1phx;
             // Opaco: el fondo semitransparente dejaba ver el texto de debajo y
             // las opciones parecian desenfocadas.

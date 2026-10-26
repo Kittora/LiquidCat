@@ -45,6 +45,10 @@ pub struct Payload {
     pub meta_url: String,
     pub thumb_url: String,
     pub q_title: String,
+    /// Entrada de una playlist: se espera un poco antes de descargarla para no
+    /// disparar el limite de peticiones del sitio.
+    #[serde(default)]
+    pub playlist: bool,
 }
 
 #[derive(Clone, Default)]
@@ -63,10 +67,29 @@ pub struct LocalPayload {
     pub gif_width: String,
 }
 
+/// Lo que ejecuta un trabajo de la cola. Todo pasa por la misma cola (un solo
+/// hilo), porque los trabajos comparten la cancelacion, el progreso y la
+/// ultima salida de `Core`.
+#[derive(Clone)]
+pub enum Task {
+    Download(Box<Payload>),
+    Local(Box<LocalPayload>),
+}
+
+/// Datos de un formato para elegirlo segun la calidad rapida.
+#[derive(Clone, Default)]
+pub struct FmtInfo {
+    pub codec: String,
+    pub height: i64,
+    pub ext: String,
+}
+
 pub struct FormatsResult {
     pub title: String,
     pub video: Vec<(String, String)>,
     pub audio: Vec<(String, String)>,
+    pub video_info: Vec<FmtInfo>,
+    pub audio_info: Vec<FmtInfo>,
     pub chips: Vec<String>,
     pub description: String,
     pub thumbnail: String,
@@ -91,6 +114,8 @@ pub fn fetch_formats(core: &Core, url: &str, cookies: &str) -> Result<FormatsRes
     let data: Value = serde_json::from_slice(&out.stdout).map_err(|e| e.to_string())?;
     let mut video = Vec::new();
     let mut audio = Vec::new();
+    let mut video_info = Vec::new();
+    let mut audio_info = Vec::new();
     for f in data.get("formats").and_then(Value::as_array).into_iter().flatten() {
         let vcodec = f.get("vcodec").and_then(Value::as_str).unwrap_or("none");
         let acodec = f.get("acodec").and_then(Value::as_str).unwrap_or("none");
@@ -104,44 +129,55 @@ pub fn fetch_formats(core: &Core, url: &str, cookies: &str) -> Result<FormatsRes
                 .and_then(Value::as_str)
                 .map(str::to_string)
                 .unwrap_or_else(|| format!("{}p", f.get("height").and_then(Value::as_i64).map(|h| h.to_string()).unwrap_or("?".into())));
-            let fps = f.get("fps").and_then(Value::as_f64).map(|v| format!("{}fps", v as i64)).unwrap_or_default();
-            let label = format!("{res} {fps} · {size_txt} · {ext}").replace("  ", " ");
-            video.push((fid.clone(), label.trim_matches(|c| c == ' ' || c == '·').to_string()));
+            let fps = f.get("fps").and_then(Value::as_f64).filter(|v| *v > 30.0).map(|v| format!("{}", v as i64)).unwrap_or_default();
+            // Corto para que quepa en media columna: "1080p60 · H.264 · 12.3MB · mp4"
+            let label = format!("{res}{fps} · {} · {size_txt} · {ext}", codec_name(vcodec));
+            video.push((fid.clone(), label));
+            video_info.push(FmtInfo {
+                codec: vcodec.to_string(),
+                height: f.get("height").and_then(Value::as_i64).unwrap_or(0),
+                ext: ext.to_string(),
+            });
         }
         if acodec != "none" && vcodec == "none" {
-            let abr = f.get("abr").and_then(Value::as_f64).map(|v| format!("{}kbps", v as i64)).unwrap_or_default();
-            let label = format!("Audio {acodec} {abr} · {size_txt} · {ext}").replace("  ", " ");
-            audio.push((fid, label.trim_matches(|c| c == ' ' || c == '·').to_string()));
+            let abr = f.get("abr").and_then(Value::as_f64).map(|v| format!(" {}k", v as i64)).unwrap_or_default();
+            let label = format!("{}{abr} · {size_txt} · {ext}", codec_name(acodec));
+            audio.push((fid, label));
+            audio_info.push(FmtInfo { codec: acodec.to_string(), height: 0, ext: ext.to_string() });
         }
     }
     video.reverse();
     audio.reverse();
+    video_info.reverse();
+    audio_info.reverse();
 
     let s = |k: &str| data.get(k).and_then(Value::as_str).unwrap_or("").to_string();
     let uploader = if !s("uploader").is_empty() { s("uploader") } else { s("channel") };
     let webpage_url = if !s("webpage_url").is_empty() { s("webpage_url") } else if !s("original_url").is_empty() { s("original_url") } else { url.to_string() };
-    let es = lang != "en";
+    let label = |k: &str| crate::lang::ui(&lang, k);
     let mut chips = Vec::new();
     if !uploader.is_empty() {
-        chips.push(format!("{}{}", if es { "Canal: " } else { "Channel: " }, uploader));
+        chips.push(format!("{}{}", label("chips_uploader"), uploader));
     }
     if let Some(d) = data.get("duration").and_then(Value::as_f64) {
-        chips.push(format!("{}{}", if es { "Duración: " } else { "Duration: " }, util::fmt_duration(d)));
+        chips.push(format!("{}{}", label("chips_duration"), util::fmt_duration(d)));
     }
     if let Some(v) = data.get("view_count").and_then(Value::as_u64).filter(|v| *v > 0) {
-        chips.push(format!("{}{}", if es { "Vistas: " } else { "Views: " }, util::fmt_count(v)));
+        chips.push(format!("{}{}", label("chips_views"), util::fmt_count(v)));
     }
     let ud = s("upload_date");
     if ud.len() == 8 && ud.chars().all(|c| c.is_ascii_digit()) {
-        chips.push(format!("{}{}/{}/{}", if es { "Fecha: " } else { "Date: " }, &ud[6..8], &ud[4..6], &ud[0..4]));
+        chips.push(format!("{}{}/{}/{}", label("chips_date"), &ud[6..8], &ud[4..6], &ud[0..4]));
     }
     if let Some(v) = data.get("like_count").and_then(Value::as_u64).filter(|v| *v > 0) {
-        chips.push(format!("{}{}", if es { "Me gusta: " } else { "Likes: " }, util::fmt_count(v)));
+        chips.push(format!("{}{}", label("chips_like"), util::fmt_count(v)));
     }
     Ok(FormatsResult {
         title: s("title"),
         video,
         audio,
+        video_info,
+        audio_info,
         chips,
         description: s("description"),
         thumbnail: s("thumbnail"),
@@ -149,6 +185,59 @@ pub fn fetch_formats(core: &Core, url: &str, cookies: &str) -> Result<FormatsRes
         upload_date: ud,
         webpage_url,
     })
+}
+
+/// Nombre corto y conocido de un codec de yt-dlp ("avc1.640028" -> "H.264").
+fn codec_name(c: &str) -> String {
+    let l = c.to_lowercase();
+    let name = if l.starts_with("avc") || l.starts_with("h264") {
+        "H.264"
+    } else if l.starts_with("hev") || l.starts_with("hvc") || l.starts_with("h265") {
+        "HEVC"
+    } else if l.starts_with("av01") || l == "av1" {
+        "AV1"
+    } else if l.starts_with("vp09") || l.starts_with("vp9") {
+        "VP9"
+    } else if l.starts_with("vp8") {
+        "VP8"
+    } else if l.starts_with("mp4a") || l == "aac" {
+        "AAC"
+    } else if l.starts_with("opus") {
+        "Opus"
+    } else if l.starts_with("vorbis") {
+        "Vorbis"
+    } else if l.starts_with("mp3") {
+        "MP3"
+    } else if l.starts_with("flac") {
+        "FLAC"
+    } else {
+        return c.split('.').next().unwrap_or(c).to_string();
+    };
+    name.to_string()
+}
+
+/// Indices (video, audio) que corresponden a la calidad rapida elegida, sobre
+/// listas ordenadas de mejor a peor. "" = manual: el mejor de cada lista.
+pub fn pick_for_quality(quality: &str, video: &[FmtInfo], audio: &[FmtInfo]) -> (usize, usize) {
+    let q = quality.trim();
+    if q == "h264" {
+        let v = video
+            .iter()
+            .position(|f| f.codec.starts_with("avc1") && f.ext == "mp4")
+            .or_else(|| video.iter().position(|f| f.codec.starts_with("avc1")))
+            .unwrap_or(0);
+        let a = audio
+            .iter()
+            .position(|f| f.codec.starts_with("mp4a"))
+            .or_else(|| audio.iter().position(|f| f.ext == "m4a"))
+            .unwrap_or(0);
+        return (v, a);
+    }
+    if let Ok(h) = q.parse::<i64>() {
+        let v = video.iter().position(|f| f.height > 0 && f.height <= h).unwrap_or(0);
+        return (v, 0);
+    }
+    (0, 0)
 }
 
 struct Output {
@@ -225,6 +314,7 @@ pub fn enqueue_playlist(core: &Arc<Core>, url: &str, base: &Payload) -> Result<(
         // de esta entrada antes de descargarla.
         p.meta_url = String::new();
         p.thumb_url = e.get("thumbnail").and_then(Value::as_str).unwrap_or("").to_string();
+        p.playlist = true;
         enqueue(core, p);
         count += 1;
     }
@@ -235,13 +325,22 @@ pub fn enqueue_playlist(core: &Arc<Core>, url: &str, base: &Payload) -> Result<(
 //  Cola
 // ====================================================================
 pub fn enqueue(core: &Arc<Core>, payload: Payload) -> i32 {
+    let title = if !payload.q_title.is_empty() { payload.q_title.clone() } else { payload.url.clone() };
+    enqueue_task(core, title, Task::Download(Box::new(payload)))
+}
+
+pub fn enqueue_local(core: &Arc<Core>, payload: LocalPayload) -> i32 {
+    let title = Path::new(&payload.input).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| payload.input.clone());
+    enqueue_task(core, title, Task::Local(Box::new(payload)))
+}
+
+fn enqueue_task(core: &Arc<Core>, title: String, task: Task) -> i32 {
     let id = {
         let mut q = core.queue.lock().unwrap();
         q.cancelled = false; // un trabajo nuevo reactiva la cola
         q.seq += 1;
         let id = q.seq;
-        let title = if !payload.q_title.is_empty() { payload.q_title.clone() } else { payload.url.clone() };
-        q.jobs.push(Job { id, title, status: 0, output: String::new(), payload });
+        q.jobs.push(Job { id, title, status: 0, output: String::new(), task });
         id
     };
     core.emit_queue();
@@ -286,13 +385,26 @@ fn queue_run(core: Arc<Core>) {
         core.emit_queue();
         core.cancel.store(false, Ordering::SeqCst);
         core.running.store(true, Ordering::SeqCst);
+        core.log(&format!("[>] {}", job.title));
+        {
+            let title = job.title.clone();
+            core.ui(move |a| {
+                use slint::ComponentHandle;
+                let s = a.global::<crate::S>();
+                s.set_current_title(title.as_str().into());
+                s.set_current_state(1);
+            });
+        }
         core.ui(|a| {
             use slint::ComponentHandle;
             let s = a.global::<crate::S>();
             s.set_busy(true);
             s.set_can_open_folder(false);
         });
-        download_worker(&core, &job.payload);
+        match &job.task {
+            Task::Download(p) => download_worker(&core, p),
+            Task::Local(p) => local_worker(&core, p),
+        }
         core.queue.lock().unwrap().current = None;
         core.running.store(false, Ordering::SeqCst);
     }
@@ -453,14 +565,19 @@ fn run_ffmpeg(core: &Core, cmd: Command, duration: Option<f64>, label: &str) -> 
 // ====================================================================
 //  Auxiliares de argumentos
 // ====================================================================
-fn trim_pre(start: &str) -> Vec<String> {
-    let s = start.trim();
-    if s.is_empty() { vec![] } else { vec!["-ss".into(), s.into()] }
-}
-
-fn trim_out(end: &str) -> Vec<String> {
-    let e = end.trim();
-    if e.is_empty() { vec![] } else { vec!["-to".into(), e.into()] }
+/// Recorte como opciones de ENTRADA (van antes de cada `-i`). Con `-ss` de
+/// entrada, un `-to` de salida se mide desde el inicio del recorte y acaba
+/// funcionando como una duracion; como opcion de entrada es una posicion absoluta.
+fn trim_in(start: &str, end: &str) -> Vec<String> {
+    let (s, e) = (start.trim(), end.trim());
+    let mut a = Vec::new();
+    if !s.is_empty() {
+        a.extend(["-ss".to_string(), s.to_string()]);
+    }
+    if !e.is_empty() {
+        a.extend(["-to".to_string(), e.to_string()]);
+    }
+    a
 }
 
 fn download_sections(p: &Payload) -> Vec<String> {
@@ -475,7 +592,17 @@ fn download_sections(p: &Payload) -> Vec<String> {
     ]
 }
 
+/// Calidad "h264": se pide la mejor pista H.264 (avc1) y el mejor audio AAC
+/// (mp4a/m4a), asi el mp4 final se reproduce en cualquier dispositivo aunque se
+/// descargue tal cual, sin reencode.
+fn h264_compat(p: &Payload) -> bool {
+    p.quality.trim() == "h264"
+}
+
 fn video_format(p: &Payload) -> String {
+    if h264_compat(p) {
+        return "bestvideo[vcodec^=avc1][ext=mp4]/bestvideo[vcodec^=avc1]/bestvideo[ext=mp4]/bestvideo".into();
+    }
     let q = p.quality.trim();
     if !q.is_empty() && q.chars().all(|c| c.is_ascii_digit()) {
         return format!("bestvideo[height<={q}]/best[height<={q}]");
@@ -581,18 +708,28 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
 
     let result = (|| -> Result<(), String> {
         let video_sel = video_format(p);
-        let audio_sel = p.audio_id.clone().filter(|a| !a.is_empty()).unwrap_or_else(|| "bestaudio".into());
+        let audio_sel = if h264_compat(p) {
+            "bestaudio[acodec^=mp4a]/bestaudio[ext=m4a]/bestaudio".to_string()
+        } else {
+            p.audio_id.clone().filter(|a| !a.is_empty()).unwrap_or_else(|| "bestaudio".into())
+        };
         let sections = if p.direct { download_sections(p) } else { vec![] };
-        let mut ytd: Vec<String> = strs(["--retries", "15", "--fragment-retries", "15", "--sleep-interval", "3", "--max-sleep-interval", "10"]);
+        let mut ytd: Vec<String> = strs(["--retries", "15", "--fragment-retries", "15"]);
         ytd.extend(core.cookies_args(&p.cookies_browser));
         if let Some(dir) = ffmpeg.parent() {
             if !dir.as_os_str().is_empty() {
                 ytd.extend(["--ffmpeg-location".to_string(), dir.to_string_lossy().to_string()]);
             }
         }
-        let ytcmd = |fmt: &str, out: &Path| {
+        // La espera aleatoria solo se usa con playlists, y solo en la primera
+        // descarga de cada entrada: en un trabajo suelto es tiempo perdido.
+        let ytcmd = |fmt: &str, out: &Path, sleep: bool| {
             let mut c = util::cmd(&ytdlp);
-            c.args(["-f", fmt, "-o"]).arg(out).args(&ytd).args(&sections).args(["--newline", "--no-playlist"]).arg(&p.url);
+            c.args(["-f", fmt, "-o"]).arg(out).args(&ytd).args(&sections).args(["--newline", "--no-playlist"]);
+            if sleep {
+                c.args(["--sleep-interval", "3", "--max-sleep-interval", "10"]);
+            }
+            c.arg(&p.url);
             c
         };
         let find = |prefix: &str| -> Option<PathBuf> {
@@ -616,7 +753,7 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
         // ---------------- modo solo audio ----------------
         if p.mode == "audio" {
             core.progress(Some(0.0), Some(t("dl_audio_only")));
-            let rc = run_ytdlp(core, ytcmd(&audio_sel, &tmp.join("audio_src.%(ext)s")), &t("dl_audio_only"));
+            let rc = run_ytdlp(core, ytcmd(&audio_sel, &tmp.join("audio_src.%(ext)s"), p.playlist), &t("dl_audio_only"));
             if rc != 0 || cancelled() {
                 return Err(t("failed_dl_audio"));
             }
@@ -634,9 +771,8 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
             let (ac, ext) = media::audio_output(&p.audio_codec);
             let ac = media::audio_args(ac, &p.audio_codec, &p.audio_bitrate, p.audio_norm);
             let out = util::unique_path(&out_dir.join(format!("{title}.{ext}")));
-            let mut args = trim_pre(&p.trim_start);
+            let mut args = trim_in(&p.trim_start, &p.trim_end);
             args.extend(["-y".to_string(), "-i".into(), audio_file.to_string_lossy().to_string()]);
-            args.extend(trim_out(&p.trim_end));
             args.extend(ac);
             args.extend(strs(["-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));
             args.push(out.to_string_lossy().to_string());
@@ -653,12 +789,12 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
 
         // ---------------- modo video ----------------
         core.progress(Some(0.0), Some(t("dl_video")));
-        let rc = run_ytdlp(core, ytcmd(&video_sel, &tmp.join("video_src.%(ext)s")), &t("dl_video"));
+        let rc = run_ytdlp(core, ytcmd(&video_sel, &tmp.join("video_src.%(ext)s"), p.playlist), &t("dl_video"));
         if rc != 0 || cancelled() {
             return Err(t("failed_no_video"));
         }
         core.progress(Some(0.0), Some(t("dl_audio")));
-        let rc = run_ytdlp(core, ytcmd(&audio_sel, &tmp.join("audio_src.%(ext)s")), &t("dl_audio"));
+        let rc = run_ytdlp(core, ytcmd(&audio_sel, &tmp.join("audio_src.%(ext)s"), false), &t("dl_audio"));
         if rc != 0 || cancelled() {
             return Err(t("failed_dl_audio"));
         }
@@ -693,11 +829,10 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
         let enc = media::video_encoder_args(&ffmpeg, &p.vendor, &p.codec, p.cq);
         let audio_out = if out_ext == "webm" { strs(["-c:a", "libopus", "-b:a", "192k"]) } else { strs(["-c:a", "aac", "-b:a", "192k"]) };
         let mut args = strs(["-y"]);
-        args.extend(trim_pre(&p.trim_start));
+        args.extend(trim_in(&p.trim_start, &p.trim_end));
         args.extend(["-i".to_string(), vs]);
-        args.extend(trim_pre(&p.trim_start));
+        args.extend(trim_in(&p.trim_start, &p.trim_end));
         args.extend(["-i".to_string(), au]);
-        args.extend(trim_out(&p.trim_end));
         args.extend(strs(["-map", "0:v:0", "-map", "1:a:0"]));
         args.extend(enc);
         args.extend(audio_out);
@@ -954,10 +1089,8 @@ fn handle_subtitles(core: &Core, ytdlp: &Path, ffmpeg: &Path, url: &str, p: &Pay
 //  Archivo local
 // ====================================================================
 pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
-    core.cancel.store(false, Ordering::SeqCst);
     *core.last_output.lock().unwrap() = String::new();
     *core.meta.lock().unwrap() = Default::default();
-    core.queue.lock().unwrap().current = None;
     let lang = core.lang();
     let t = |k: &str| tr(&lang, k);
     let bins = core.bins();
@@ -985,9 +1118,8 @@ pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
             let out = util::unique_path(&out_dir.join(format!("{stem}.gif")));
             let vf = format!("fps={fps},scale={width}:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse");
             let mut args = strs(["-y"]);
-            args.extend(trim_pre(&p.trim_start));
+            args.extend(trim_in(&p.trim_start, &p.trim_end));
             args.extend(["-i".to_string(), input]);
-            args.extend(trim_out(&p.trim_end));
             args.extend(["-vf".to_string(), vf]);
             args.extend(strs(["-loop", "0", "-progress", "pipe:1", "-nostats"]));
             args.push(out.to_string_lossy().to_string());
@@ -1004,9 +1136,8 @@ pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
             let ac = media::audio_args(ac, &p.audio_codec, "", p.audio_norm);
             let out = util::unique_path(&out_dir.join(format!("{stem}.{ext}")));
             let mut args = strs(["-y"]);
-            args.extend(trim_pre(&p.trim_start));
+            args.extend(trim_in(&p.trim_start, &p.trim_end));
             args.extend(["-i".to_string(), input]);
-            args.extend(trim_out(&p.trim_end));
             args.push("-vn".into());
             args.extend(ac);
             args.extend(strs(["-sn", "-dn", "-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));
@@ -1027,9 +1158,8 @@ pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
             let out = util::unique_path(&out_dir.join(format!("{stem}.{out_ext}")));
             let audio_out = if out_ext == "webm" { strs(["-c:a", "libopus", "-b:a", "192k"]) } else { strs(["-c:a", "aac", "-b:a", "192k"]) };
             let mut args = strs(["-y"]);
-            args.extend(trim_pre(&p.trim_start));
+            args.extend(trim_in(&p.trim_start, &p.trim_end));
             args.extend(["-i".to_string(), input]);
-            args.extend(trim_out(&p.trim_end));
             args.extend(enc);
             args.extend(audio_out);
             args.extend(strs(["-movflags", "+faststart", "-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));

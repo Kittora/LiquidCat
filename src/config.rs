@@ -13,69 +13,64 @@ pub struct Preset {
     pub settings: Value,
 }
 
-/// Presets que acompanan a una instalacion nueva. Son deliberadamente pocos:
-/// cubren maxima calidad, un MP4 compatible y extraccion de audio.
+/// Un preset a partir de sus ajustes. Solo se guardan las claves que fija:
+/// al aplicarlo, lo demas (p. ej. la GPU detectada) se queda como esta.
+fn preset(name: &str, settings: Value) -> Preset {
+    Preset { name: name.into(), settings }
+}
+
+/// Presets que acompanan a una instalacion: cubren los usos tipicos sin
+/// tener que tocar cada ajuste.
 pub fn default_presets() -> Vec<Preset> {
     vec![
-        Preset {
-            name: "4K Original".into(),
-            settings: json!({
-                "mode": "video",
-                "quality": "2160",
-                "direct": "1",
-                "audio_codec": "aac",
-                "audio_bitrate": "320",
-                "vendor": "cpu",
-                "codec": "h264",
-                "cq": "20",
-                "audio_norm": false,
-                "subs": false,
-                "subs_embed": false,
-                "embed_thumb": false,
-                "embed_meta": true,
-                "cookies": ""
-            }),
-        },
-        Preset {
-            name: "1080p MP4".into(),
-            settings: json!({
-                "mode": "video",
-                "quality": "1080",
-                "direct": "0",
-                "audio_codec": "aac",
-                "audio_bitrate": "192",
-                "vendor": "cpu",
-                "codec": "h264",
-                "cq": "23",
-                "audio_norm": false,
-                "subs": true,
-                "subs_embed": true,
-                "embed_thumb": false,
-                "embed_meta": true,
-                "cookies": ""
-            }),
-        },
-        Preset {
-            name: "Audio MP3 320".into(),
-            settings: json!({
-                "mode": "audio",
-                "quality": "",
-                "direct": "0",
-                "audio_codec": "mp3",
-                "audio_bitrate": "320",
-                "vendor": "cpu",
-                "codec": "h264",
-                "cq": "23",
-                "audio_norm": true,
-                "subs": false,
-                "subs_embed": false,
-                "embed_thumb": true,
-                "embed_meta": true,
-                "cookies": ""
-            }),
-        },
+        // Lo mejor disponible, sin convertir: maxima calidad y lo mas rapido.
+        preset("Original · max quality", json!({
+            "mode": "video", "quality": "", "direct": "1",
+            "subs": false, "subs_embed": false, "embed_thumb": false, "embed_meta": true
+        })),
+        // Mejor H.264 + AAC tal cual: mp4 que se reproduce en cualquier sitio.
+        preset("H.264 compatible", json!({
+            "mode": "video", "quality": "h264", "direct": "1",
+            "subs": false, "subs_embed": false, "embed_thumb": false, "embed_meta": true
+        })),
+        // 1080p reencodeado a H.264 con subtitulos incrustados.
+        preset("1080p H.264 + subtitles", json!({
+            "mode": "video", "quality": "1080", "direct": "0", "codec": "h264", "cq": "21",
+            "audio_codec": "aac", "audio_bitrate": "192",
+            "subs": true, "subs_embed": true, "embed_thumb": false, "embed_meta": true
+        })),
+        // Archivos pequenos para compartir o guardar: 720p en HEVC.
+        preset("720p light (HEVC)", json!({
+            "mode": "video", "quality": "720", "direct": "0", "codec": "hevc", "cq": "28",
+            "audio_codec": "aac", "audio_bitrate": "128",
+            "subs": false, "subs_embed": false, "embed_thumb": false, "embed_meta": true
+        })),
+        // Musica: MP3 320 con caratula y etiquetas.
+        preset("Music MP3 320", json!({
+            "mode": "audio", "direct": "0", "audio_codec": "mp3", "audio_bitrate": "320",
+            "audio_norm": false, "embed_thumb": true, "embed_meta": true
+        })),
+        // Audio AAC original (m4a) sin reconvertir: sin perdida extra.
+        preset("Audio M4A · no re-encode", json!({
+            "mode": "audio", "quality": "h264", "direct": "1",
+            "embed_thumb": true, "embed_meta": true
+        })),
+        // Archivo sin perdida para editar o archivar.
+        preset("FLAC lossless", json!({
+            "mode": "audio", "direct": "0", "audio_codec": "flac",
+            "audio_norm": false, "embed_thumb": true, "embed_meta": true
+        })),
+        // Voz (podcasts, clases): MP3 ligero con volumen normalizado.
+        preset("Podcast / voice", json!({
+            "mode": "audio", "direct": "0", "audio_codec": "mp3", "audio_bitrate": "128",
+            "audio_norm": true, "embed_thumb": true, "embed_meta": true
+        })),
     ]
 }
+
+/// Nombres de los presets que traian las versiones anteriores; se quitan al
+/// actualizar (los presets propios del usuario se conservan).
+const OLD_PRESETS: &[&str] = &["4K Original", "1080p MP4", "Audio MP3 320"];
 
 #[derive(Clone, Serialize, Deserialize, Default)]
 pub struct HistoryEntry {
@@ -127,6 +122,18 @@ impl Config {
                 cfg.presets = default_presets();
             }
             cfg.set_pref("presets_seeded", Value::Bool(true));
+            cfg.save();
+        }
+        // Instalaciones anteriores: una sola vez se quitan los presets viejos de
+        // la app y se anaden los nuevos (sin tocar los que creo el usuario).
+        if !cfg.pref_bool("presets_v3", false) {
+            cfg.presets.retain(|p| !OLD_PRESETS.contains(&p.name.as_str()));
+            for p in default_presets() {
+                if !cfg.presets.iter().any(|x| x.name == p.name) {
+                    cfg.presets.push(p);
+                }
+            }
+            cfg.set_pref("presets_v3", Value::Bool(true));
             cfg.save();
         }
 
