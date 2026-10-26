@@ -122,7 +122,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Windows
 
 1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
-2. Download the latest `LiquidCat-0.2.3-windows-x86_64.exe`.
+2. Download the latest `LiquidCat-0.2.4-windows-x86_64.exe`.
 3. Run `LiquidCat.exe`. 
 
 *Note: **Python is not required.** LiquidCat automatically downloads and manages yt-dlp (which bundles its own runtime) and FFmpeg/ffprobe in the background.*

@@ -487,17 +487,20 @@ export component AllModals inherits Rectangle {
                 padding: 22px;
                 spacing: 12px;
                 alignment: center;
-                Rectangle {
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 18px;
-                    background: S.dlg == 3 ? Pal.danger : S.dlg == 2 ? Pal.success : Pal.accent;
-                    Icon {
-                        x: (parent.width - self.width) / 2;
-                        y: (parent.height - self.height) / 2;
-                        name: S.dlg == 3 ? "error" : S.dlg == 2 ? "check" : S.dlg == 4 ? "warning" : "info";
-                        size: 18px;
-                        tint: S.dlg == 3 ? #ffffff : Pal.on-accent;
+                HorizontalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 18px;
+                        background: S.dlg == 3 ? Pal.danger : S.dlg == 2 ? Pal.success : Pal.accent;
+                        Icon {
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            name: S.dlg == 3 ? "error" : S.dlg == 2 ? "check" : S.dlg == 4 ? "warning" : "info";
+                            size: 18px;
+                            tint: S.dlg == 3 ? #ffffff : Pal.on-accent;
+                        }
                     }
                 }
                 Text { text: S.dlg-title; color: Pal.text; font-size: 14px; font-weight: 700; horizontal-alignment: center; wrap: word-wrap; }
