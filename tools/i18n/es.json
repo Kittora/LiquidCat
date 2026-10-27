@@ -222,7 +222,7 @@
   "wiki_h_output": "Salida y formato",
   "wiki_p_output": "Tipo de salida: video o solo audio. Formato de video/audio: la pista concreta a descargar. Modo de procesado: Reencodar (reconvierte con tus ajustes) o Descargar sin conversión (más rápido, tal cual).",
   "wiki_h_encode": "Codificación",
-  "wiki_p_encode": "Aceleración por hardware: NVIDIA, AMD o solo CPU. Códec de video: H.264, HEVC, AV1 o VP9. Códec de audio: MP3, AAC, Opus, etc. Calidad (CQ/CRF): menor valor = mejor calidad y más peso.",
+  "wiki_p_encode": "Aceleración por hardware: NVIDIA, AMD, Intel o solo CPU. Códec de video: H.264, HEVC, AV1 o VP9. Códec de audio: MP3, AAC, Opus, etc. Calidad (CQ/CRF): menor valor = mejor calidad y más peso.",
   "wiki_h_advanced": "Opciones avanzadas",
   "wiki_p_advanced": "Recorte (inicio/fin), subtítulos (descargar o incrustar), metadatos (título, artista y descripción) y carátula en MP3/M4A/FLAC (WAV solo metadatos), y cookies del navegador para contenido restringido (se verifican al elegirlas).",
   "wiki_h_dest": "Destino",
@@ -236,7 +236,7 @@
   "wiki_h_history": "Historial",
   "wiki_p_history": "Guarda los archivos generados con su miniatura e información (título, canal y duración). Puedes abrir cada archivo, ir a su carpeta o limpiar el historial (con confirmación).",
   "wiki_h_settings": "Ajustes",
-  "wiki_p_settings": "Cambia entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, CPU en azul).",
+  "wiki_p_settings": "Cambia entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, Intel en celeste, CPU en azul).",
   "wiki_h_lang": "Idioma y créditos",
   "wiki_p_lang": "Selector de idioma en Ajustes (español, inglés, portugués, francés, alemán e italiano), y Créditos con los desarrolladores, el software usado y los autores de los temas.",
   "set_lang": "Idioma",
@@ -275,7 +275,9 @@
   "about_notes": "Notas de esta versión",
   "upd_title": "Hay una nueva versión de LiquidCat",
   "upd_whats_new": "NOVEDADES",
-  "upd_later": "Más tarde"
+  "upd_later": "Más tarde",
+  "hw_intel": "Intel (Quick Sync)",
+  "gpu_intel": "GPU Intel detectada"
  },
  "backend": {
   "dl_video": "Tomando video…",

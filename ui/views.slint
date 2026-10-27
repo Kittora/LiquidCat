@@ -263,7 +263,7 @@ export component DownloadView inherits VerticalLayout {
                         Select {
                             select-id: 7;
                             enabled: root.is-video && !root.is-direct;
-                            options: [T.hw-nvidia, T.hw-amd, T.hw-cpu];
+                            options: [T.hw-nvidia, T.hw-amd, T.hw-intel, T.hw-cpu];
                             current <=> S.hw-idx;
                         }
                     }
@@ -525,7 +525,7 @@ export component LocalView inherits VerticalLayout {
                     FG {
                         horizontal-stretch: 1;
                         label: T.field-hw;
-                        Select { select-id: 14; enabled: root.is-video; options: [T.hw-nvidia, T.hw-amd, T.hw-cpu]; current <=> S.local-hw-idx; }
+                        Select { select-id: 14; enabled: root.is-video; options: [T.hw-nvidia, T.hw-amd, T.hw-intel, T.hw-cpu]; current <=> S.local-hw-idx; }
                     }
                     FG {
                         horizontal-stretch: 1;

@@ -553,6 +553,7 @@ fn encode_video(
     let gpu = match vendor {
         "nvidia" => "NVIDIA",
         "amd" => "AMD",
+        "intel" => "Intel",
         other => other,
     };
     core.log(&trf(&core.lang(), "gpu_fallback", &[("gpu", gpu)]));

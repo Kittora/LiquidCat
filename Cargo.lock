@@ -2544,6 +2544,7 @@ dependencies = [
  "slint",
  "slint-build",
  "ureq",
+ "windows",
  "windows-sys 0.59.0",
  "winresource",
  "zip",

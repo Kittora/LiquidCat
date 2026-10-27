@@ -234,7 +234,7 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("wiki_h_output", "Salida y formato"),
     ("wiki_p_output", "Tipo de salida: video o solo audio. Formato de video/audio: la pista concreta a descargar. Modo de procesado: Reencodar (reconvierte con tus ajustes) o Descargar sin conversión (más rápido, tal cual)."),
     ("wiki_h_encode", "Codificación"),
-    ("wiki_p_encode", "Aceleración por hardware: NVIDIA, AMD o solo CPU. Códec de video: H.264, HEVC, AV1 o VP9. Códec de audio: MP3, AAC, Opus, etc. Calidad (CQ/CRF): menor valor = mejor calidad y más peso."),
+    ("wiki_p_encode", "Aceleración por hardware: NVIDIA, AMD, Intel o solo CPU. Códec de video: H.264, HEVC, AV1 o VP9. Códec de audio: MP3, AAC, Opus, etc. Calidad (CQ/CRF): menor valor = mejor calidad y más peso."),
     ("wiki_h_advanced", "Opciones avanzadas"),
     ("wiki_p_advanced", "Recorte (inicio/fin), subtítulos (descargar o incrustar), metadatos (título, artista y descripción) y carátula en MP3/M4A/FLAC (WAV solo metadatos), y cookies del navegador para contenido restringido (se verifican al elegirlas)."),
     ("wiki_h_dest", "Destino"),
@@ -248,7 +248,7 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("wiki_h_history", "Historial"),
     ("wiki_p_history", "Guarda los archivos generados con su miniatura e información (título, canal y duración). Puedes abrir cada archivo, ir a su carpeta o limpiar el historial (con confirmación)."),
     ("wiki_h_settings", "Ajustes"),
-    ("wiki_p_settings", "Cambia entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, CPU en azul)."),
+    ("wiki_p_settings", "Cambia entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, Intel en celeste, CPU en azul)."),
     ("wiki_h_lang", "Idioma y créditos"),
     ("wiki_p_lang", "Selector de idioma en Ajustes (español, inglés, portugués, francés, alemán e italiano), y Créditos con los desarrolladores, el software usado y los autores de los temas."),
     ("set_lang", "Idioma"),
@@ -288,6 +288,8 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("upd_title", "Hay una nueva versión de LiquidCat"),
     ("upd_whats_new", "NOVEDADES"),
     ("upd_later", "Más tarde"),
+    ("hw_intel", "Intel (Quick Sync)"),
+    ("gpu_intel", "GPU Intel detectada"),
 ];
 
 pub static UI_EN: &[(&str, &str)] = &[
@@ -512,7 +514,7 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("wiki_h_output", "Output & format"),
     ("wiki_p_output", "Output type: video or audio only. Video/audio format: the specific track to download. Processing mode: Re-encode (reconverts with your settings) or Download as-is (faster, no conversion)."),
     ("wiki_h_encode", "Encoding"),
-    ("wiki_p_encode", "Hardware acceleration: NVIDIA, AMD or CPU only. Video codec: H.264, HEVC, AV1 or VP9. Audio codec: MP3, AAC, Opus, etc. Quality (CQ/CRF): lower value = better quality and larger size."),
+    ("wiki_p_encode", "Hardware acceleration: NVIDIA, AMD, Intel or CPU only. Video codec: H.264, HEVC, AV1 or VP9. Audio codec: MP3, AAC, Opus, etc. Quality (CQ/CRF): lower value = better quality and larger size."),
     ("wiki_h_advanced", "Advanced options"),
     ("wiki_p_advanced", "Trim (start/end), subtitles (download or embed), metadata (title, artist and description) and cover art in MP3/M4A/FLAC (WAV metadata only), and browser cookies for restricted content (verified when picked)."),
     ("wiki_h_dest", "Destination"),
@@ -526,7 +528,7 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("wiki_h_history", "History"),
     ("wiki_p_history", "Keeps your generated files with their thumbnail and info (title, channel and duration). Open each file, jump to its folder, or clear the history (with confirmation)."),
     ("wiki_h_settings", "Settings"),
-    ("wiki_p_settings", "Switch between 14 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, blue CPU)."),
+    ("wiki_p_settings", "Switch between 14 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, cyan Intel, blue CPU)."),
     ("wiki_h_lang", "Language & credits"),
     ("wiki_p_lang", "Language selector in Settings (Spanish, English, Portuguese, French, German and Italian), and Credits with the developers, the software used and the theme authors."),
     ("set_lang", "Language"),
@@ -566,6 +568,8 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("upd_title", "A new version of LiquidCat is out"),
     ("upd_whats_new", "WHAT'S NEW"),
     ("upd_later", "Later"),
+    ("hw_intel", "Intel (Quick Sync)"),
+    ("gpu_intel", "Intel GPU detected"),
 ];
 
 pub static UI_PT: &[(&str, &str)] = &[
@@ -790,7 +794,7 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("wiki_h_output", "Saída e formato"),
     ("wiki_p_output", "Tipo de saída: vídeo ou somente áudio. Formato de vídeo/áudio: a faixa específica a baixar. Modo de processamento: Recodificar (reconverte com suas configurações) ou Baixar como está (mais rápido, sem conversão)."),
     ("wiki_h_encode", "Codificação"),
-    ("wiki_p_encode", "Aceleração por hardware: NVIDIA, AMD ou somente CPU. Codec de vídeo: H.264, HEVC, AV1 ou VP9. Codec de áudio: MP3, AAC, Opus etc. Qualidade (CQ/CRF): valor menor = melhor qualidade e arquivo maior."),
+    ("wiki_p_encode", "Aceleração por hardware: NVIDIA, AMD, Intel ou somente CPU. Codec de vídeo: H.264, HEVC, AV1 ou VP9. Codec de áudio: MP3, AAC, Opus etc. Qualidade (CQ/CRF): valor menor = melhor qualidade e arquivo maior."),
     ("wiki_h_advanced", "Opções avançadas"),
     ("wiki_p_advanced", "Corte (início/fim), legendas (baixar ou incorporar), metadados (título, artista e descrição) e capa em MP3/M4A/FLAC (no WAV só metadados), e cookies do navegador para conteúdo restrito (verificados ao escolher)."),
     ("wiki_h_dest", "Destino"),
@@ -804,7 +808,7 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("wiki_h_history", "Histórico"),
     ("wiki_p_history", "Guarda os arquivos gerados com miniatura e informações (título, canal e duração). Abra cada arquivo, vá até sua pasta ou limpe o histórico (com confirmação)."),
     ("wiki_h_settings", "Configurações"),
-    ("wiki_p_settings", "Alterne entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night e Neo Brutalist), cada um com seu próprio ícone; atualize o yt-dlp para a versão mais recente (nightly) e o ffmpeg com um clique, e escolha a pasta de downloads. No topo aparece o status do yt-dlp, do ffmpeg e da GPU (NVIDIA em verde, AMD em vermelho, CPU em azul)."),
+    ("wiki_p_settings", "Alterne entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night e Neo Brutalist), cada um com seu próprio ícone; atualize o yt-dlp para a versão mais recente (nightly) e o ffmpeg com um clique, e escolha a pasta de downloads. No topo aparece o status do yt-dlp, do ffmpeg e da GPU (NVIDIA em verde, AMD em vermelho, Intel em ciano, CPU em azul)."),
     ("wiki_h_lang", "Idioma e créditos"),
     ("wiki_p_lang", "Seletor de idioma em Configurações (espanhol, inglês, português, francês, alemão e italiano), e Créditos com os desenvolvedores, o software usado e os autores dos temas."),
     ("set_lang", "Idioma"),
@@ -844,6 +848,8 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("upd_title", "Há uma nova versão do LiquidCat"),
     ("upd_whats_new", "NOVIDADES"),
     ("upd_later", "Mais tarde"),
+    ("hw_intel", "Intel (Quick Sync)"),
+    ("gpu_intel", "GPU Intel detectada"),
 ];
 
 pub static UI_FR: &[(&str, &str)] = &[
@@ -1068,7 +1074,7 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("wiki_h_output", "Sortie et format"),
     ("wiki_p_output", "Type de sortie : vidéo ou audio seul. Format vidéo/audio : la piste précise à télécharger. Mode de traitement : Réencoder (reconvertit avec vos réglages) ou Télécharger tel quel (plus rapide, sans conversion)."),
     ("wiki_h_encode", "Encodage"),
-    ("wiki_p_encode", "Accélération matérielle : NVIDIA, AMD ou CPU uniquement. Codec vidéo : H.264, HEVC, AV1 ou VP9. Codec audio : MP3, AAC, Opus, etc. Qualité (CQ/CRF) : valeur plus basse = meilleure qualité et fichier plus lourd."),
+    ("wiki_p_encode", "Accélération matérielle : NVIDIA, AMD, Intel ou CPU uniquement. Codec vidéo : H.264, HEVC, AV1 ou VP9. Codec audio : MP3, AAC, Opus, etc. Qualité (CQ/CRF) : valeur plus basse = meilleure qualité et fichier plus lourd."),
     ("wiki_h_advanced", "Options avancées"),
     ("wiki_p_advanced", "Découpe (début/fin), sous-titres (télécharger ou intégrer), métadonnées (titre, artiste et description) et pochette en MP3/M4A/FLAC (WAV : métadonnées seulement), et cookies du navigateur pour le contenu restreint (vérifiés à la sélection)."),
     ("wiki_h_dest", "Destination"),
@@ -1082,7 +1088,7 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("wiki_h_history", "Historique"),
     ("wiki_p_history", "Conserve vos fichiers générés avec leur miniature et leurs infos (titre, chaîne et durée). Ouvrez chaque fichier, accédez à son dossier ou effacez l'historique (avec confirmation)."),
     ("wiki_h_settings", "Paramètres"),
-    ("wiki_p_settings", "Passez d'un thème à l'autre parmi 14 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, CPU en bleu)."),
+    ("wiki_p_settings", "Passez d'un thème à l'autre parmi 14 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, Intel en cyan, CPU en bleu)."),
     ("wiki_h_lang", "Langue et crédits"),
     ("wiki_p_lang", "Sélecteur de langue dans les Paramètres (espagnol, anglais, portugais, français, allemand et italien), et Crédits avec les développeurs, les logiciels utilisés et les auteurs des thèmes."),
     ("set_lang", "Langue"),
@@ -1122,6 +1128,8 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("upd_title", "Une nouvelle version de LiquidCat est disponible"),
     ("upd_whats_new", "NOUVEAUTÉS"),
     ("upd_later", "Plus tard"),
+    ("hw_intel", "Intel (Quick Sync)"),
+    ("gpu_intel", "GPU Intel détecté"),
 ];
 
 pub static UI_DE: &[(&str, &str)] = &[
@@ -1346,7 +1354,7 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("wiki_h_output", "Ausgabe & Format"),
     ("wiki_p_output", "Ausgabetyp: Video oder nur Audio. Video-/Audioformat: die konkrete Spur zum Herunterladen. Verarbeitungsmodus: Neu kodieren (konvertiert mit deinen Einstellungen) oder Unverändert herunterladen (schneller, keine Konvertierung)."),
     ("wiki_h_encode", "Kodierung"),
-    ("wiki_p_encode", "Hardwarebeschleunigung: NVIDIA, AMD oder nur CPU. Videocodec: H.264, HEVC, AV1 oder VP9. Audiocodec: MP3, AAC, Opus usw. Qualität (CQ/CRF): niedrigerer Wert = bessere Qualität und größere Datei."),
+    ("wiki_p_encode", "Hardwarebeschleunigung: NVIDIA, AMD, Intel oder nur CPU. Videocodec: H.264, HEVC, AV1 oder VP9. Audiocodec: MP3, AAC, Opus usw. Qualität (CQ/CRF): niedrigerer Wert = bessere Qualität und größere Datei."),
     ("wiki_h_advanced", "Erweiterte Optionen"),
     ("wiki_p_advanced", "Zuschnitt (Anfang/Ende), Untertitel (herunterladen oder einbetten), Metadaten (Titel, Künstler und Beschreibung) und Cover bei MP3/M4A/FLAC (bei WAV nur Metadaten) sowie Browser-Cookies für eingeschränkte Inhalte (beim Auswählen geprüft)."),
     ("wiki_h_dest", "Ziel"),
@@ -1360,7 +1368,7 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("wiki_h_history", "Verlauf"),
     ("wiki_p_history", "Speichert deine erstellten Dateien mit Miniatur und Infos (Titel, Kanal und Dauer). Öffne jede Datei, springe zu ihrem Ordner oder lösche den Verlauf (mit Bestätigung)."),
     ("wiki_h_settings", "Einstellungen"),
-    ("wiki_p_settings", "Wechsle zwischen 14 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, CPU blau)."),
+    ("wiki_p_settings", "Wechsle zwischen 14 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau)."),
     ("wiki_h_lang", "Sprache & Credits"),
     ("wiki_p_lang", "Sprachauswahl in den Einstellungen (Spanisch, Englisch, Portugiesisch, Französisch, Deutsch und Italienisch) sowie Credits mit den Entwicklern, der verwendeten Software und den Autoren der Designs."),
     ("set_lang", "Sprache"),
@@ -1400,6 +1408,8 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("upd_title", "Eine neue Version von LiquidCat ist da"),
     ("upd_whats_new", "NEUERUNGEN"),
     ("upd_later", "Später"),
+    ("hw_intel", "Intel (Quick Sync)"),
+    ("gpu_intel", "Intel-GPU erkannt"),
 ];
 
 pub static UI_IT: &[(&str, &str)] = &[
@@ -1624,7 +1634,7 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("wiki_h_output", "Uscita e formato"),
     ("wiki_p_output", "Tipo di uscita: video o solo audio. Formato video/audio: la traccia specifica da scaricare. Modalità di elaborazione: Ricodifica (riconverte con le tue impostazioni) o Scarica così com'è (più veloce, senza conversione)."),
     ("wiki_h_encode", "Codifica"),
-    ("wiki_p_encode", "Accelerazione hardware: NVIDIA, AMD o solo CPU. Codec video: H.264, HEVC, AV1 o VP9. Codec audio: MP3, AAC, Opus, ecc. Qualità (CQ/CRF): valore più basso = qualità migliore e file più grande."),
+    ("wiki_p_encode", "Accelerazione hardware: NVIDIA, AMD, Intel o solo CPU. Codec video: H.264, HEVC, AV1 o VP9. Codec audio: MP3, AAC, Opus, ecc. Qualità (CQ/CRF): valore più basso = qualità migliore e file più grande."),
     ("wiki_h_advanced", "Opzioni avanzate"),
     ("wiki_p_advanced", "Taglio (inizio/fine), sottotitoli (scaricare o incorporare), metadati (titolo, artista e descrizione) e copertina in MP3/M4A/FLAC (in WAV solo metadati), e cookie del browser per contenuti con restrizioni (verificati alla selezione)."),
     ("wiki_h_dest", "Destinazione"),
@@ -1638,7 +1648,7 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("wiki_h_history", "Cronologia"),
     ("wiki_p_history", "Conserva i file generati con miniatura e informazioni (titolo, canale e durata). Apri ogni file, vai alla sua cartella o cancella la cronologia (con conferma)."),
     ("wiki_h_settings", "Impostazioni"),
-    ("wiki_p_settings", "Passa da uno all'altro dei 14 temi (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night e Neo Brutalist), ognuno con la sua icona; aggiorna yt-dlp all'ultima versione (nightly) e ffmpeg con un clic, e scegli la cartella di download. In alto si vede lo stato di yt-dlp, ffmpeg e della GPU (NVIDIA in verde, AMD in rosso, CPU in blu)."),
+    ("wiki_p_settings", "Passa da uno all'altro dei 14 temi (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night e Neo Brutalist), ognuno con la sua icona; aggiorna yt-dlp all'ultima versione (nightly) e ffmpeg con un clic, e scegli la cartella di download. In alto si vede lo stato di yt-dlp, ffmpeg e della GPU (NVIDIA in verde, AMD in rosso, Intel in azzurro, CPU in blu)."),
     ("wiki_h_lang", "Lingua e crediti"),
     ("wiki_p_lang", "Selettore della lingua nelle Impostazioni (spagnolo, inglese, portoghese, francese, tedesco e italiano), e Crediti con gli sviluppatori, il software utilizzato e gli autori dei temi."),
     ("set_lang", "Lingua"),
@@ -1678,6 +1688,8 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("upd_title", "È disponibile una nuova versione di LiquidCat"),
     ("upd_whats_new", "NOVITÀ"),
     ("upd_later", "Più tardi"),
+    ("hw_intel", "Intel (Quick Sync)"),
+    ("gpu_intel", "GPU Intel rilevata"),
 ];
 
 pub static BE_ES: &[(&str, &str)] = &[
@@ -2208,6 +2220,8 @@ pub fn apply(app: &App, lang: &str) {
                 "upd_title" => t.set_upd_title((*v).into()),
                 "upd_whats_new" => t.set_upd_whats_new((*v).into()),
                 "upd_later" => t.set_upd_later((*v).into()),
+                "hw_intel" => t.set_hw_intel((*v).into()),
+                "gpu_intel" => t.set_gpu_intel((*v).into()),
                 _ => {}
             }
         }

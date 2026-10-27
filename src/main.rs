@@ -3,6 +3,7 @@
 mod config;
 mod core;
 mod deps;
+mod gpu;
 mod i18n_data;
 mod jobs;
 mod lang;

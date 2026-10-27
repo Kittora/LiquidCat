@@ -160,10 +160,10 @@ component StatusPill inherits Rectangle {
         if S.st == 1: Rectangle { width: 1px; height: 12px; y: (parent.height - self.height) / 2; background: Pal.line.with-alpha(0.7); }
         if S.st == 1: HorizontalLayout {
             spacing: 4px;
-            Icon { name: "chip"; size: 13px; tint: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff; }
+            Icon { name: "chip"; size: 13px; tint: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : S.gpu == "intel" ? #00c7fd : #4da3ff; }
             Text {
-                text: S.gpu == "nvidia" ? "NVIDIA" : S.gpu == "amd" ? "AMD" : "CPU";
-                color: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff;
+                text: S.gpu == "nvidia" ? "NVIDIA" : S.gpu == "amd" ? "AMD" : S.gpu == "intel" ? "Intel" : "CPU";
+                color: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : S.gpu == "intel" ? #00c7fd : #4da3ff;
                 font-size: 11.5px;
                 font-weight: 700;
                 vertical-alignment: center;

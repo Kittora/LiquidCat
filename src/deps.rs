@@ -12,7 +12,12 @@ const YTDLP_SOURCES: &[&str] = &[
     "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.exe",
     "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe",
 ];
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+const YTDLP_SOURCES: &[&str] = &[
+    "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_macos",
+    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos",
+];
+#[cfg(not(any(windows, target_os = "macos")))]
 const YTDLP_SOURCES: &[&str] = &[
     "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux",
     "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux",
@@ -152,7 +157,11 @@ impl DepManager {
                 if cfg!(windows) {
                     &head[..2] == b"MZ"
                 } else {
-                    &head == b"\x7fELF" || &head[..2] == b"#!"
+                    // ELF (Linux), script, o Mach-O (macOS: 64 bits o universal).
+                    &head == b"\x7fELF"
+                        || &head[..2] == b"#!"
+                        || head == [0xcf, 0xfa, 0xed, 0xfe]
+                        || head == [0xca, 0xfe, 0xba, 0xbe]
                 }
             }
             Err(_) => false,

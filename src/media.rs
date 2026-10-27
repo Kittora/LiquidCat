@@ -10,6 +10,14 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 pub fn encoder_for(vendor: &str, codec: &str) -> &'static str {
+    // En macOS la GPU (Apple Silicon, Intel o AMD) se usa con VideoToolbox.
+    if cfg!(target_os = "macos") && vendor != "cpu" {
+        match codec {
+            "h264" => return "h264_videotoolbox",
+            "hevc" => return "hevc_videotoolbox",
+            _ => {}
+        }
+    }
     match (vendor, codec) {
         ("nvidia", "h264") => "h264_nvenc",
         ("nvidia", "hevc") => "hevc_nvenc",
@@ -17,6 +25,9 @@ pub fn encoder_for(vendor: &str, codec: &str) -> &'static str {
         ("amd", "h264") => if cfg!(windows) { "h264_amf" } else { "h264_vaapi" },
         ("amd", "hevc") => if cfg!(windows) { "hevc_amf" } else { "hevc_vaapi" },
         ("amd", "av1") => if cfg!(windows) { "av1_amf" } else { "av1_vaapi" },
+        ("intel", "h264") => if cfg!(windows) { "h264_qsv" } else { "h264_vaapi" },
+        ("intel", "hevc") => if cfg!(windows) { "hevc_qsv" } else { "hevc_vaapi" },
+        ("intel", "av1") => if cfg!(windows) { "av1_qsv" } else { "av1_vaapi" },
         (_, "vp9") => "libvpx-vp9",
         (_, "hevc") => "libx265",
         (_, "av1") => "libsvtav1",
@@ -63,6 +74,10 @@ pub fn video_encoder_args(ffmpeg: &Path, vendor: &str, codec: &str, cq: i32) -> 
     match enc {
         "h264_nvenc" | "hevc_nvenc" | "av1_nvenc" => v(&["-c:v", enc, "-preset", "p5", "-rc", "vbr", "-cq", &cq_s, "-b:v", "0"]),
         "h264_amf" | "hevc_amf" | "av1_amf" => v(&["-c:v", enc, "-quality", "balanced", "-rc", "cqp", "-qp_i", &cq_s, "-qp_p", &(cq + 2).to_string()]),
+        // VideoToolbox usa una escala de calidad 1-100 (mas alto = mejor).
+        "h264_videotoolbox" | "hevc_videotoolbox" => v(&["-c:v", enc, "-q:v", &(100 - cq * 2).clamp(1, 100).to_string()]),
+        // Quick Sync en modo ICQ: calidad constante, como el -cq de NVENC.
+        "h264_qsv" | "hevc_qsv" | "av1_qsv" => v(&["-c:v", enc, "-preset", "medium", "-global_quality", &cq_s]),
         "h264_vaapi" | "hevc_vaapi" | "av1_vaapi" => v(&["-vaapi_device", "/dev/dri/renderD128", "-vf", "format=nv12,hwupload", "-c:v", enc, "-qp", &cq_s]),
         "libx265" => v(&["-c:v", "libx265", "-preset", "medium", "-crf", &cq_s]),
         "libsvtav1" => v(&["-c:v", "libsvtav1", "-preset", "8", "-crf", &cq_s]),

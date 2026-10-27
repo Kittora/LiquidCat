@@ -222,7 +222,7 @@
   "wiki_h_output": "Ausgabe & Format",
   "wiki_p_output": "Ausgabetyp: Video oder nur Audio. Video-/Audioformat: die konkrete Spur zum Herunterladen. Verarbeitungsmodus: Neu kodieren (konvertiert mit deinen Einstellungen) oder Unverändert herunterladen (schneller, keine Konvertierung).",
   "wiki_h_encode": "Kodierung",
-  "wiki_p_encode": "Hardwarebeschleunigung: NVIDIA, AMD oder nur CPU. Videocodec: H.264, HEVC, AV1 oder VP9. Audiocodec: MP3, AAC, Opus usw. Qualität (CQ/CRF): niedrigerer Wert = bessere Qualität und größere Datei.",
+  "wiki_p_encode": "Hardwarebeschleunigung: NVIDIA, AMD, Intel oder nur CPU. Videocodec: H.264, HEVC, AV1 oder VP9. Audiocodec: MP3, AAC, Opus usw. Qualität (CQ/CRF): niedrigerer Wert = bessere Qualität und größere Datei.",
   "wiki_h_advanced": "Erweiterte Optionen",
   "wiki_p_advanced": "Zuschnitt (Anfang/Ende), Untertitel (herunterladen oder einbetten), Metadaten (Titel, Künstler und Beschreibung) und Cover bei MP3/M4A/FLAC (bei WAV nur Metadaten) sowie Browser-Cookies für eingeschränkte Inhalte (beim Auswählen geprüft).",
   "wiki_h_dest": "Ziel",
@@ -236,7 +236,7 @@
   "wiki_h_history": "Verlauf",
   "wiki_p_history": "Speichert deine erstellten Dateien mit Miniatur und Infos (Titel, Kanal und Dauer). Öffne jede Datei, springe zu ihrem Ordner oder lösche den Verlauf (mit Bestätigung).",
   "wiki_h_settings": "Einstellungen",
-  "wiki_p_settings": "Wechsle zwischen 14 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, CPU blau).",
+  "wiki_p_settings": "Wechsle zwischen 14 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau).",
   "wiki_h_lang": "Sprache & Credits",
   "wiki_p_lang": "Sprachauswahl in den Einstellungen (Spanisch, Englisch, Portugiesisch, Französisch, Deutsch und Italienisch) sowie Credits mit den Entwicklern, der verwendeten Software und den Autoren der Designs.",
   "set_lang": "Sprache",
@@ -275,7 +275,9 @@
   "about_notes": "Versionshinweise",
   "upd_title": "Eine neue Version von LiquidCat ist da",
   "upd_whats_new": "NEUERUNGEN",
-  "upd_later": "Später"
+  "upd_later": "Später",
+  "hw_intel": "Intel (Quick Sync)",
+  "gpu_intel": "Intel-GPU erkannt"
  },
  "backend": {
   "dl_video": "Video wird geladen…",

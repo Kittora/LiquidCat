@@ -222,7 +222,7 @@
   "wiki_h_output": "Output & format",
   "wiki_p_output": "Output type: video or audio only. Video/audio format: the specific track to download. Processing mode: Re-encode (reconverts with your settings) or Download as-is (faster, no conversion).",
   "wiki_h_encode": "Encoding",
-  "wiki_p_encode": "Hardware acceleration: NVIDIA, AMD or CPU only. Video codec: H.264, HEVC, AV1 or VP9. Audio codec: MP3, AAC, Opus, etc. Quality (CQ/CRF): lower value = better quality and larger size.",
+  "wiki_p_encode": "Hardware acceleration: NVIDIA, AMD, Intel or CPU only. Video codec: H.264, HEVC, AV1 or VP9. Audio codec: MP3, AAC, Opus, etc. Quality (CQ/CRF): lower value = better quality and larger size.",
   "wiki_h_advanced": "Advanced options",
   "wiki_p_advanced": "Trim (start/end), subtitles (download or embed), metadata (title, artist and description) and cover art in MP3/M4A/FLAC (WAV metadata only), and browser cookies for restricted content (verified when picked).",
   "wiki_h_dest": "Destination",
@@ -236,7 +236,7 @@
   "wiki_h_history": "History",
   "wiki_p_history": "Keeps your generated files with their thumbnail and info (title, channel and duration). Open each file, jump to its folder, or clear the history (with confirmation).",
   "wiki_h_settings": "Settings",
-  "wiki_p_settings": "Switch between 14 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, blue CPU).",
+  "wiki_p_settings": "Switch between 14 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, cyan Intel, blue CPU).",
   "wiki_h_lang": "Language & credits",
   "wiki_p_lang": "Language selector in Settings (Spanish, English, Portuguese, French, German and Italian), and Credits with the developers, the software used and the theme authors.",
   "set_lang": "Language",
@@ -275,7 +275,9 @@
   "about_notes": "Release notes for this version",
   "upd_title": "A new version of LiquidCat is out",
   "upd_whats_new": "WHAT'S NEW",
-  "upd_later": "Later"
+  "upd_later": "Later",
+  "hw_intel": "Intel (Quick Sync)",
+  "gpu_intel": "Intel GPU detected"
  },
  "backend": {
   "dl_video": "Getting video…",

@@ -16,7 +16,7 @@ use std::time::Duration;
 const MODES: [&str; 2] = ["video", "audio"];
 // "h264": mejor video H.264 + audio AAC (mp4 compatible con todo).
 const QUALITIES: [&str; 7] = ["", "2160", "1440", "1080", "720", "480", "h264"];
-const VENDORS: [&str; 3] = ["nvidia", "amd", "cpu"];
+const VENDORS: [&str; 4] = ["nvidia", "amd", "intel", "cpu"];
 const CODECS: [&str; 4] = ["h264", "hevc", "av1", "vp9"];
 const ACODECS: [&str; 6] = ["mp3", "aac", "opus", "ogg", "flac", "wav"];
 const BITRATES: [&str; 6] = ["", "320", "256", "192", "128", "96"];
@@ -127,7 +127,7 @@ fn apply_settings(app: &App, v: &Value) {
         // "auto" = la GPU detectada en este equipo
         let vendor = s_str(v, "vendor");
         let vendor = if vendor == "auto" { s.get_gpu().to_string() } else { vendor };
-        s.set_hw_idx(idx_of(&VENDORS, &vendor).min(2));
+        s.set_hw_idx(idx_of(&VENDORS, &vendor).min(3));
     }
     if has("codec") { s.set_codec_idx(idx_of(&CODECS, &s_str(v, "codec"))); }
     if let Ok(cq) = s_str(v, "cq").parse::<i32>() { s.set_cq(cq.clamp(0, 51)); }
@@ -681,29 +681,7 @@ pub fn refresh_deps(core: &Arc<Core>) {
 }
 
 fn detect_gpu() -> String {
-    if util::cmd("nvidia-smi").arg("-L").output().map(|o| o.status.success() && !o.stdout.is_empty()).unwrap_or(false) {
-        return "nvidia".into();
-    }
-    #[cfg(windows)]
-    {
-        if let Ok(o) = util::cmd("powershell")
-            .args(["-NoProfile", "-Command", "(Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name) -join ';'"])
-            .output()
-        {
-            let t = String::from_utf8_lossy(&o.stdout).to_lowercase();
-            if t.contains("nvidia") { return "nvidia".into(); }
-            if t.contains("amd") || t.contains("radeon") { return "amd".into(); }
-        }
-    }
-    #[cfg(not(windows))]
-    {
-        if let Ok(o) = util::cmd("sh").args(["-c", "lspci 2>/dev/null | grep -iE 'vga|3d'"]).output() {
-            let t = String::from_utf8_lossy(&o.stdout).to_lowercase();
-            if t.contains("nvidia") { return "nvidia".into(); }
-            if t.contains("amd") || t.contains("radeon") { return "amd".into(); }
-        }
-    }
-    "cpu".into()
+    crate::gpu::detect().to_string()
 }
 
 /// Primer arranque: detecta y, si falta algo, lo descarga mostrando el modal.

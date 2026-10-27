@@ -1,0 +1,114 @@
+name: Build Linux & macOS
+
+# Compila LiquidCat en Linux y macOS reales (no se puede desde Windows).
+# Se ejecuta al subir cambios a main o a una rama build/*, o a mano desde
+# "Actions" -> "Build Linux & macOS" -> "Run workflow".
+on:
+  push:
+    branches: [main, master, "build/**"]
+  workflow_dispatch:
+
+jobs:
+  linux:
+    # Ubuntu 22.04: glibc mas antigua, asi el binario funciona en mas distros.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Dependencias del sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config clang libfontconfig1-dev libfreetype-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-dev libxcursor-dev \
+            libxrandr-dev libxi-dev libgl1-mesa-dev libegl1-mesa-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Compilar (release)
+        run: cargo build --release
+
+      - name: Empaquetar
+        run: |
+          VERSION=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          PKG=LiquidCat-$VERSION-linux-x86_64
+          mkdir -p dist/$PKG
+          cp target/release/LiquidCat dist/$PKG/
+          cp assets/logo.png dist/$PKG/liquidcat.png
+          cp LICENSE dist/$PKG/
+          tar -C dist -czf dist/$PKG.tar.gz $PKG
+          echo "PKG=$PKG" >> "$GITHUB_ENV"
+          ls -la dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: LiquidCat-linux-x86_64
+          path: dist/${{ env.PKG }}.tar.gz
+
+  macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            arch: arm64
+          - target: x86_64-apple-darwin
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Compilar (release)
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Empaquetar LiquidCat.app
+        run: |
+          VERSION=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          APP=dist/LiquidCat.app
+          mkdir -p $APP/Contents/MacOS $APP/Contents/Resources
+          cp target/${{ matrix.target }}/release/LiquidCat $APP/Contents/MacOS/
+          # Icono .icns a partir del logo.
+          mkdir -p icon.iconset
+          for s in 16 32 128 256; do
+            sips -z $s $s assets/logo.png --out icon.iconset/icon_${s}x${s}.png >/dev/null
+            sips -z $((s*2)) $((s*2)) assets/logo.png --out icon.iconset/icon_${s}x${s}@2x.png >/dev/null
+          done
+          iconutil -c icns icon.iconset -o $APP/Contents/Resources/LiquidCat.icns
+          cat > $APP/Contents/Info.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key><string>LiquidCat</string>
+            <key>CFBundleDisplayName</key><string>LiquidCat</string>
+            <key>CFBundleIdentifier</key><string>com.kittora.liquidcat</string>
+            <key>CFBundleVersion</key><string>$VERSION</string>
+            <key>CFBundleShortVersionString</key><string>$VERSION</string>
+            <key>CFBundleExecutable</key><string>LiquidCat</string>
+            <key>CFBundleIconFile</key><string>LiquidCat</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>LSMinimumSystemVersion</key><string>11.0</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict>
+          </plist>
+          EOF
+          # Firma ad-hoc: sin ella macOS (Apple Silicon) no abre el binario.
+          codesign --force --deep --sign - $APP
+          PKG=LiquidCat-$VERSION-macos-${{ matrix.arch }}
+          (cd dist && ditto -c -k --keepParent LiquidCat.app $PKG.zip)
+          echo "PKG=$PKG" >> "$GITHUB_ENV"
+          ls -la dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: LiquidCat-macos-${{ matrix.arch }}
+          path: dist/${{ env.PKG }}.zip

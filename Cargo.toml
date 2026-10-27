@@ -17,7 +17,7 @@ name = "LiquidCat"
 path = "src/main.rs"
 
 [dependencies]
-# Renderer: FemtoVG (OpenGL, vsync) por defecto y software como fallback.
+# Renderer: Skia (GPU, vsync) por defecto y software como fallback.
 # La seleccion se hace en src/main.rs (LIQUIDCAT_SOFTWARE=1 fuerza software).
 slint = { version = "1.14", default-features = false, features = ["std", "backend-winit", "renderer-skia", "renderer-software", "compat-1-2", "unstable-winit-030", "raw-window-handle-06"] }
 # Acceso al HWND de la ventana (esquinas redondeadas nativas via DWM en Windows 11).
@@ -33,7 +33,9 @@ fs2 = "0.4"
 
 [target.'cfg(windows)'.dependencies]
 rfd = { version = "0.15", default-features = false }
-windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Diagnostics_Debug", "Win32_System_Time", "Win32_Graphics_Dwm", "Win32_Media_Audio"] }
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Diagnostics_Debug", "Win32_System_Time", "Win32_Graphics_Dwm", "Win32_Media_Audio", "Win32_Devices_DeviceAndDriverInstallation"] }
+# DXGI (interfaces COM) para detectar la GPU sin lanzar PowerShell.
+windows = { version = "0.62", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common"] }
 
 [target.'cfg(not(windows))'.dependencies]
 rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "async-std"] }
