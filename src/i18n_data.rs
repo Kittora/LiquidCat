@@ -290,6 +290,8 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("upd_later", "Más tarde"),
     ("hw_intel", "Intel (Quick Sync)"),
     ("gpu_intel", "GPU Intel detectada"),
+    ("hw_apple", "Apple (VideoToolbox)"),
+    ("credit_skia_desc", "Motor gráfico (el de Chrome) con el que Slint dibuja la interfaz en la GPU."),
 ];
 
 pub static UI_EN: &[(&str, &str)] = &[
@@ -570,6 +572,8 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("upd_later", "Later"),
     ("hw_intel", "Intel (Quick Sync)"),
     ("gpu_intel", "Intel GPU detected"),
+    ("hw_apple", "Apple (VideoToolbox)"),
+    ("credit_skia_desc", "Graphics engine (the one behind Chrome) that Slint uses to draw the interface on the GPU."),
 ];
 
 pub static UI_PT: &[(&str, &str)] = &[
@@ -850,6 +854,8 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("upd_later", "Mais tarde"),
     ("hw_intel", "Intel (Quick Sync)"),
     ("gpu_intel", "GPU Intel detectada"),
+    ("hw_apple", "Apple (VideoToolbox)"),
+    ("credit_skia_desc", "Motor gráfico (o do Chrome) com o qual o Slint desenha a interface na GPU."),
 ];
 
 pub static UI_FR: &[(&str, &str)] = &[
@@ -1130,6 +1136,8 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("upd_later", "Plus tard"),
     ("hw_intel", "Intel (Quick Sync)"),
     ("gpu_intel", "GPU Intel détecté"),
+    ("hw_apple", "Apple (VideoToolbox)"),
+    ("credit_skia_desc", "Moteur graphique (celui de Chrome) avec lequel Slint dessine l'interface sur le GPU."),
 ];
 
 pub static UI_DE: &[(&str, &str)] = &[
@@ -1410,6 +1418,8 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("upd_later", "Später"),
     ("hw_intel", "Intel (Quick Sync)"),
     ("gpu_intel", "Intel-GPU erkannt"),
+    ("hw_apple", "Apple (VideoToolbox)"),
+    ("credit_skia_desc", "Grafik-Engine (die von Chrome), mit der Slint die Oberfläche auf der GPU zeichnet."),
 ];
 
 pub static UI_IT: &[(&str, &str)] = &[
@@ -1690,6 +1700,8 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("upd_later", "Più tardi"),
     ("hw_intel", "Intel (Quick Sync)"),
     ("gpu_intel", "GPU Intel rilevata"),
+    ("hw_apple", "Apple (VideoToolbox)"),
+    ("credit_skia_desc", "Motore grafico (quello di Chrome) con cui Slint disegna l'interfaccia sulla GPU."),
 ];
 
 pub static BE_ES: &[(&str, &str)] = &[
@@ -2228,6 +2240,8 @@ pub fn apply(app: &App, lang: &str) {
                 "upd_later" => t.set_upd_later((*v).into()),
                 "hw_intel" => t.set_hw_intel((*v).into()),
                 "gpu_intel" => t.set_gpu_intel((*v).into()),
+                "hw_apple" => t.set_hw_apple((*v).into()),
+                "credit_skia_desc" => t.set_credit_skia_desc((*v).into()),
                 _ => {}
             }
         }

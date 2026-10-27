@@ -10,15 +10,11 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 pub fn encoder_for(vendor: &str, codec: &str) -> &'static str {
-    // En macOS la GPU (Apple Silicon, Intel o AMD) se usa con VideoToolbox.
-    if cfg!(target_os = "macos") && vendor != "cpu" {
-        match codec {
-            "h264" => return "h264_videotoolbox",
-            "hevc" => return "hevc_videotoolbox",
-            _ => {}
-        }
-    }
     match (vendor, codec) {
+        // macOS: la GPU (Apple Silicon, Intel o AMD) se usa con VideoToolbox.
+        // AV1 y VP9 no los codifica: caen a los encoders por CPU de abajo.
+        ("apple", "h264") => "h264_videotoolbox",
+        ("apple", "hevc") => "hevc_videotoolbox",
         ("nvidia", "h264") => "h264_nvenc",
         ("nvidia", "hevc") => "hevc_nvenc",
         ("nvidia", "av1") => "av1_nvenc",

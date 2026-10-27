@@ -8,6 +8,7 @@ mod i18n_data;
 mod jobs;
 mod lang;
 mod media;
+mod notify;
 mod sound;
 mod themes;
 mod ui_bridge;

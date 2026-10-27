@@ -26,6 +26,8 @@ export global S {
     // Hay version nueva de yt-dlp / ffmpeg (aviso en el indicador de arriba).
     in-out property <bool> upd-ytdlp: false;
     in-out property <bool> upd-ffmpeg: false;
+    // macOS: el selector de GPU ofrece Apple (VideoToolbox) y CPU.
+    in-out property <bool> is-mac: false;
     // Comprobacion de actualizaciones: 0 sin comprobar, 1 buscando, 2 al dia,
     // 3 hay version nueva, 4 no se pudo comprobar.
     in-out property <int> update-state: 0;

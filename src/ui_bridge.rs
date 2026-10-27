@@ -16,7 +16,11 @@ use std::time::Duration;
 const MODES: [&str; 2] = ["video", "audio"];
 // "h264": mejor video H.264 + audio AAC (mp4 compatible con todo).
 const QUALITIES: [&str; 7] = ["", "2160", "1440", "1080", "720", "480", "h264"];
-const VENDORS: [&str; 4] = ["nvidia", "amd", "intel", "cpu"];
+// Opciones de "Aceleracion por hardware", en el orden del selector.
+#[cfg(not(target_os = "macos"))]
+const VENDORS: &[&str] = &["nvidia", "amd", "intel", "cpu"];
+#[cfg(target_os = "macos")]
+const VENDORS: &[&str] = &["apple", "cpu"];
 const CODECS: [&str; 4] = ["h264", "hevc", "av1", "vp9"];
 const ACODECS: [&str; 6] = ["mp3", "aac", "opus", "ogg", "flac", "wav"];
 const BITRATES: [&str; 6] = ["", "320", "256", "192", "128", "96"];
@@ -103,7 +107,7 @@ fn current_settings(app: &App) -> Value {
         "direct": if s.get_direct_idx() == 1 { "1" } else { "0" },
         "audio_codec": pick(&ACODECS, s.get_acodec_idx()),
         "audio_bitrate": pick(&BITRATES, s.get_abitrate_idx()),
-        "vendor": pick(&VENDORS, s.get_hw_idx()),
+        "vendor": pick(VENDORS, s.get_hw_idx()),
         "codec": pick(&CODECS, s.get_codec_idx()),
         "cq": s.get_cq().to_string(),
         "audio_norm": s.get_audio_norm(),
@@ -127,7 +131,7 @@ fn apply_settings(app: &App, v: &Value) {
         // "auto" = la GPU detectada en este equipo
         let vendor = s_str(v, "vendor");
         let vendor = if vendor == "auto" { s.get_gpu().to_string() } else { vendor };
-        s.set_hw_idx(idx_of(&VENDORS, &vendor).min(3));
+        s.set_hw_idx(idx_of(VENDORS, &vendor).min(VENDORS.len() as i32 - 1));
     }
     if has("codec") { s.set_codec_idx(idx_of(&CODECS, &s_str(v, "codec"))); }
     if let Ok(cq) = s_str(v, "cq").parse::<i32>() { s.set_cq(cq.clamp(0, 51)); }
@@ -163,6 +167,14 @@ fn save_prefs(core: &Core, app: &App) {
 // ====================================================================
 pub fn load_initial(core: &Arc<Core>, app: &App) {
     let s = app.global::<S>();
+    // macOS solo tiene dos opciones de GPU: el indice por defecto de la
+    // interfaz (CPU = 3) no existe ahi.
+    if cfg!(target_os = "macos") {
+        s.set_is_mac(true);
+        let cpu = idx_of(VENDORS, "cpu");
+        s.set_hw_idx(cpu);
+        s.set_local_hw_idx(cpu);
+    }
     let (theme, remember, settings, out_dir, local_out) = {
         let cfg = core.cfg.lock().unwrap();
         let theme = cfg.pref_str("theme");
@@ -599,7 +611,7 @@ fn build_payload(core: &Core, app: &App) -> Payload {
         audio_bitrate: pick(&BITRATES, s.get_abitrate_idx()).into(),
         audio_norm: s.get_audio_norm(),
         out_dir: (!out_dir.is_empty()).then_some(out_dir),
-        vendor: pick(&VENDORS, s.get_hw_idx()).into(),
+        vendor: pick(VENDORS, s.get_hw_idx()).into(),
         codec: pick(&CODECS, s.get_codec_idx()).into(),
         cq: s.get_cq(),
         trim_start: s.get_trim_start().to_string(),
@@ -769,7 +781,7 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
         // detectada. El descargador solo la toma en el primer arranque (luego
         // manda lo que el usuario dejo guardado).
         let gpu = detect_gpu();
-        let idx = idx_of(&VENDORS, &gpu);
+        let idx = idx_of(VENDORS, &gpu);
         core.ui(move |a| {
             let s = a.global::<S>();
             if first_run_defaults {
@@ -1088,7 +1100,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
             mode: pick(&LOCAL_MODES, s.get_local_mode_idx()).into(),
             audio_codec: pick(&ACODECS, s.get_local_acodec_idx()).into(),
             audio_norm: s.get_local_audio_norm(),
-            vendor: pick(&VENDORS, s.get_local_hw_idx()).into(),
+            vendor: pick(VENDORS, s.get_local_hw_idx()).into(),
             codec: pick(&CODECS, s.get_local_codec_idx()).into(),
             cq: s.get_local_cq(),
             trim_start: s.get_local_trim_start().to_string(),

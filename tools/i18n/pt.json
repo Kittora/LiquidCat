@@ -277,7 +277,9 @@
   "upd_whats_new": "NOVIDADES",
   "upd_later": "Mais tarde",
   "hw_intel": "Intel (Quick Sync)",
-  "gpu_intel": "GPU Intel detectada"
+  "gpu_intel": "GPU Intel detectada",
+  "hw_apple": "Apple (VideoToolbox)",
+  "credit_skia_desc": "Motor gráfico (o do Chrome) com o qual o Slint desenha a interface na GPU."
  },
  "backend": {
   "dl_video": "Obtendo vídeo…",

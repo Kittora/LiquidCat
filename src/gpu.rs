@@ -8,9 +8,14 @@ const NVIDIA: u32 = 0x10DE;
 const AMD: [u32; 2] = [0x1002, 0x1022];
 const INTEL: u32 = 0x8086;
 
-/// "nvidia", "amd", "intel" o "cpu". Con varias GPU (p. ej. un portatil con
-/// Intel integrada y NVIDIA dedicada) gana la dedicada: NVIDIA > AMD > Intel.
+/// "nvidia", "amd", "intel" o "cpu" ("apple" en macOS). Con varias GPU (p. ej.
+/// un portatil con Intel integrada y NVIDIA dedicada) gana la dedicada:
+/// NVIDIA > AMD > Intel.
 pub fn detect() -> &'static str {
+    // Todos los Mac compatibles codifican por hardware con VideoToolbox.
+    if cfg!(target_os = "macos") {
+        return "apple";
+    }
     let found = pick(&primary_vendors());
     if found != "cpu" {
         return found;

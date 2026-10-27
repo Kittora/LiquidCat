@@ -21,10 +21,16 @@ const YTDLP_SOURCES: &[&str] = &[
     "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_macos",
     "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos",
 ];
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(all(not(any(windows, target_os = "macos")), not(target_arch = "aarch64")))]
 const YTDLP_SOURCES: &[&str] = &[
     "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux",
     "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux",
+];
+// Linux en ARM 64 bits (Raspberry Pi 4/5, portatiles ARM...).
+#[cfg(all(not(any(windows, target_os = "macos")), target_arch = "aarch64"))]
+const YTDLP_SOURCES: &[&str] = &[
+    "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux_aarch64",
+    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_aarch64",
 ];
 /// Build "essentials" de Gyan. Su servidor (gyan.dev) va muy lento (~0,1 MB/s
 /// medido, unos 20 min para 115 MB), asi que primero se usa la copia oficial

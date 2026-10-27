@@ -11,7 +11,16 @@ on:
 jobs:
   linux:
     # Ubuntu 22.04: glibc mas antigua, asi el binario funciona en mas distros.
-    runs-on: ubuntu-22.04
+    # ARM 64 bits se compila en un runner ARM real (sin compilacion cruzada).
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            arch: x86_64
+          - runner: ubuntu-22.04-arm
+            arch: aarch64
     steps:
       - uses: actions/checkout@v7
 
@@ -25,6 +34,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: linux-${{ matrix.arch }}
 
       - name: Compilar (release)
         run: cargo build --release
@@ -32,7 +43,7 @@ jobs:
       - name: Empaquetar
         run: |
           VERSION=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
-          PKG=LiquidCat-$VERSION-linux-x86_64
+          PKG=LiquidCat-$VERSION-linux-${{ matrix.arch }}
           mkdir -p dist/$PKG
           cp target/release/LiquidCat dist/$PKG/
           cp assets/logo.png dist/$PKG/liquidcat.png
@@ -43,7 +54,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: LiquidCat-linux-x86_64
+          name: LiquidCat-linux-${{ matrix.arch }}
           path: dist/${{ env.PKG }}.tar.gz
 
   macos:
@@ -64,6 +75,8 @@ jobs:
           targets: ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: linux-${{ matrix.arch }}
         with:
           key: ${{ matrix.target }}
 

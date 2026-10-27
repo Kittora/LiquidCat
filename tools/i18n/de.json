@@ -277,7 +277,9 @@
   "upd_whats_new": "NEUERUNGEN",
   "upd_later": "Später",
   "hw_intel": "Intel (Quick Sync)",
-  "gpu_intel": "Intel-GPU erkannt"
+  "gpu_intel": "Intel-GPU erkannt",
+  "hw_apple": "Apple (VideoToolbox)",
+  "credit_skia_desc": "Grafik-Engine (die von Chrome), mit der Slint die Oberfläche auf der GPU zeichnet."
  },
  "backend": {
   "dl_video": "Video wird geladen…",

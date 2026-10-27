@@ -554,6 +554,7 @@ fn encode_video(
         "nvidia" => "NVIDIA",
         "amd" => "AMD",
         "intel" => "Intel",
+        "apple" => "Apple",
         other => other,
     };
     core.log(&trf(&core.lang(), "gpu_fallback", &[("gpu", gpu)]));

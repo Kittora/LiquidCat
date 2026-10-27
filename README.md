@@ -187,7 +187,7 @@ Built by **JuanFX** ([@xjuanfxx](https://github.com/xjuanfxx)) and **Adaki** ([@
 
 ## Acknowledgements
 
-LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Slint](https://slint.dev/) and the [Catppuccin](https://catppuccin.com/) color palette.
+LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Slint](https://slint.dev/), [Skia](https://skia.org/) and the [Catppuccin](https://catppuccin.com/) color palette.
 
 ## License
 
@@ -196,6 +196,7 @@ LiquidCat is free software, released under the **GNU General Public License v3.0
 Third-party components keep their own licenses:
 
 - **[Slint](https://slint.dev/)** (user interface) is used under the GPL-3.0.
+- **[Skia](https://skia.org/)** (graphics engine used by Slint) is under the BSD 3-Clause license.
 - **[Poppins](https://github.com/itfoundry/Poppins)** fonts are bundled under the SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)).
 - **yt-dlp** (Unlicense) and **FFmpeg** (GPL) are not bundled: LiquidCat downloads them from their official sources on first run.
 - The Rust libraries LiquidCat is built on use permissive licenses (MIT, Apache-2.0, BSD, ISC, Zlib and similar).

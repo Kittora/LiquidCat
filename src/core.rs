@@ -269,26 +269,7 @@ impl Core {
 
     // ------------------------------------------------------------ notificaciones
     pub fn notify(&self, title: &str, message: &str) {
-        #[cfg(windows)]
-        {
-            let esc = |s: &str| s.replace('\'', "''");
-            let ps = format!(
-                "[Windows.UI.Notifications.ToastNotificationManager,Windows.UI.Notifications,ContentType=WindowsRuntime]>$null;\
-                 $t=[Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02);\
-                 $n=$t.GetElementsByTagName('text');\
-                 $n.Item(0).AppendChild($t.CreateTextNode('{}'))>$null;\
-                 $n.Item(1).AppendChild($t.CreateTextNode('{}'))>$null;\
-                 $toast=[Windows.UI.Notifications.ToastNotification]::new($t);\
-                 [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('LiquidCat').Show($toast);",
-                esc(title),
-                esc(message)
-            );
-            let _ = util::cmd("powershell").args(["-NoProfile", "-WindowStyle", "Hidden", "-Command", &ps]).spawn();
-        }
-        #[cfg(not(windows))]
-        {
-            let _ = util::cmd("notify-send").arg(title).arg(message).spawn();
-        }
+        crate::notify::show(title, message);
     }
 
     pub fn beep(&self, ok: bool) {
