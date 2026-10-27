@@ -285,6 +285,9 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("about_error", "No se pudo comprobar (¿sin conexión?)"),
     ("about_get", "Descargar"),
     ("about_notes", "Notas de esta versión"),
+    ("upd_title", "Hay una nueva versión de LiquidCat"),
+    ("upd_whats_new", "NOVEDADES"),
+    ("upd_later", "Más tarde"),
 ];
 
 pub static UI_EN: &[(&str, &str)] = &[
@@ -560,6 +563,9 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("about_error", "Couldn't check (offline?)"),
     ("about_get", "Download"),
     ("about_notes", "Release notes for this version"),
+    ("upd_title", "A new version of LiquidCat is out"),
+    ("upd_whats_new", "WHAT'S NEW"),
+    ("upd_later", "Later"),
 ];
 
 pub static UI_PT: &[(&str, &str)] = &[
@@ -835,6 +841,9 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("about_error", "Não foi possível verificar (sem conexão?)"),
     ("about_get", "Baixar"),
     ("about_notes", "Notas desta versão"),
+    ("upd_title", "Há uma nova versão do LiquidCat"),
+    ("upd_whats_new", "NOVIDADES"),
+    ("upd_later", "Mais tarde"),
 ];
 
 pub static UI_FR: &[(&str, &str)] = &[
@@ -1110,6 +1119,9 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("about_error", "Impossible de vérifier (hors ligne ?)"),
     ("about_get", "Télécharger"),
     ("about_notes", "Notes de cette version"),
+    ("upd_title", "Une nouvelle version de LiquidCat est disponible"),
+    ("upd_whats_new", "NOUVEAUTÉS"),
+    ("upd_later", "Plus tard"),
 ];
 
 pub static UI_DE: &[(&str, &str)] = &[
@@ -1385,6 +1397,9 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("about_error", "Prüfung fehlgeschlagen (offline?)"),
     ("about_get", "Herunterladen"),
     ("about_notes", "Versionshinweise"),
+    ("upd_title", "Eine neue Version von LiquidCat ist da"),
+    ("upd_whats_new", "NEUERUNGEN"),
+    ("upd_later", "Später"),
 ];
 
 pub static UI_IT: &[(&str, &str)] = &[
@@ -1660,6 +1675,9 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("about_error", "Impossibile verificare (offline?)"),
     ("about_get", "Scarica"),
     ("about_notes", "Note di questa versione"),
+    ("upd_title", "È disponibile una nuova versione di LiquidCat"),
+    ("upd_whats_new", "NOVITÀ"),
+    ("upd_later", "Più tardi"),
 ];
 
 pub static BE_ES: &[(&str, &str)] = &[
@@ -2187,6 +2205,9 @@ pub fn apply(app: &App, lang: &str) {
                 "about_error" => t.set_about_error((*v).into()),
                 "about_get" => t.set_about_get((*v).into()),
                 "about_notes" => t.set_about_notes((*v).into()),
+                "upd_title" => t.set_upd_title((*v).into()),
+                "upd_whats_new" => t.set_upd_whats_new((*v).into()),
+                "upd_later" => t.set_upd_later((*v).into()),
                 _ => {}
             }
         }

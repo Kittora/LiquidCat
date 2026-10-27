@@ -272,7 +272,10 @@
   "about_new": "Hay una versión nueva:",
   "about_error": "No se pudo comprobar (¿sin conexión?)",
   "about_get": "Descargar",
-  "about_notes": "Notas de esta versión"
+  "about_notes": "Notas de esta versión",
+  "upd_title": "Hay una nueva versión de LiquidCat",
+  "upd_whats_new": "NOVEDADES",
+  "upd_later": "Más tarde"
  },
  "backend": {
   "dl_video": "Tomando video…",

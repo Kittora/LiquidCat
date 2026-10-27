@@ -202,6 +202,44 @@ pub fn load_initial(core: &Arc<Core>, app: &App) {
 }
 
 /// "1.2.3" o "v1.2.3" -> (1, 2, 3); lo que no sea numero cuenta como 0.
+/// Resumen corto de las notas de una release (markdown de GitHub) para el
+/// popup de novedades: de cada punto "- " se queda con su titulo en negrita
+/// ("**Update alerts:** ...") o, si no tiene, con el texto recortado. Se salta
+/// la seccion de plataformas y se limita a unos pocos puntos (una linea cada uno).
+fn release_highlights(body: &str) -> Vec<String> {
+    const MAX_ITEMS: usize = 8;
+    const MAX_CHARS: usize = 70;
+    let mut out = Vec::new();
+    let mut skip = false;
+    for line in body.lines().map(str::trim) {
+        if line.starts_with('#') {
+            skip = line.to_lowercase().contains("platform");
+            continue;
+        }
+        let Some(item) = line.strip_prefix("- ").or_else(|| line.strip_prefix("* ")) else { continue };
+        if skip {
+            continue;
+        }
+        let text = match item.strip_prefix("**").and_then(|r| r.split_once("**")) {
+            Some((bold, _)) => bold.trim_end_matches(':').trim().to_string(),
+            None => item.replace("**", "").replace('`', "").replace('*', ""),
+        };
+        let text = if text.chars().count() > MAX_CHARS {
+            let cut: String = text.chars().take(MAX_CHARS).collect();
+            format!("{}…", cut.trim_end_matches([' ', ',', '.', ';', ':']))
+        } else {
+            text
+        };
+        if !text.is_empty() {
+            out.push(text);
+        }
+        if out.len() == MAX_ITEMS {
+            break;
+        }
+    }
+    out
+}
+
 fn parse_semver(v: &str) -> (u64, u64, u64) {
     let mut it = v.trim().trim_start_matches(['v', 'V']).split(['.', '-']).map(|p| p.parse::<u64>().unwrap_or(0));
     (it.next().unwrap_or(0), it.next().unwrap_or(0), it.next().unwrap_or(0))
@@ -211,8 +249,13 @@ fn parse_semver(v: &str) -> (u64, u64, u64) {
 /// instalada; si la hay, la cabecera muestra un aviso que abre esa release.
 pub fn check_update(core: &Arc<Core>) {
     const API: &str = "https://api.github.com/repos/Kittora/LiquidCat/releases/latest";
-    let current = env!("CARGO_PKG_VERSION");
-    core.ui(move |a| a.global::<S>().set_app_version(ss(current)));
+    // LIQUIDCAT_PRETEND_VERSION permite probar el aviso haciendose pasar por
+    // una version anterior (solo para desarrollo).
+    let current = std::env::var("LIQUIDCAT_PRETEND_VERSION").unwrap_or_else(|_| env!("CARGO_PKG_VERSION").to_string());
+    {
+        let shown = current.clone();
+        core.ui(move |a| a.global::<S>().set_app_version(ss(&shown)));
+    }
     core.ui(|a| a.global::<S>().set_update_state(1));
     let core = core.clone();
     std::thread::spawn(move || {
@@ -221,16 +264,19 @@ pub fn check_update(core: &Arc<Core>) {
             .and_then(|v| {
                 let tag = v.get("tag_name")?.as_str()?.to_string();
                 let url = v.get("html_url")?.as_str()?.to_string();
-                (!tag.is_empty() && !url.is_empty()).then_some((tag, url))
+                let notes = release_highlights(v.get("body").and_then(|b| b.as_str()).unwrap_or(""));
+                (!tag.is_empty() && !url.is_empty()).then_some((tag, url, notes))
             });
         core.ui(move |a| {
             let s = a.global::<S>();
             match latest {
                 None => s.set_update_state(4),
-                Some((tag, _)) if parse_semver(&tag) <= parse_semver(current) => s.set_update_state(2),
-                Some((tag, url)) => {
+                Some((tag, _, _)) if parse_semver(&tag) <= parse_semver(&current) => s.set_update_state(2),
+                Some((tag, url, notes)) => {
                     s.set_update_version(ss(tag.trim_start_matches(['v', 'V'])));
                     s.set_update_url(ss(&url));
+                    let notes: Vec<SharedString> = notes.iter().map(|n| ss(n)).collect();
+                    s.set_update_notes(ModelRc::new(VecModel::from(notes)));
                     s.set_update_state(3);
                 }
             }

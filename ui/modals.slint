@@ -624,6 +624,92 @@ export component AllModals inherits Rectangle {
         }
     }
 
+    // ---------------------------------------------------------------- Novedades de la nueva version
+    // Popup pequeno (no ocupa la ventana): los puntos destacados de la release
+    // y un boton para ir a descargarla. Se cierra al pulsar fuera.
+    if S.update-show: Rectangle {
+        background: #03081066;
+        TouchArea {
+            clicked => {
+                if (self.mouse-x < upd-panel.x || self.mouse-x > upd-panel.x + upd-panel.width
+                    || self.mouse-y < upd-panel.y || self.mouse-y > upd-panel.y + upd-panel.height) {
+                    S.update-show = false;
+                }
+            }
+        }
+        upd-panel := Panel {
+            width: Math.min(380px, parent.width - 40px);
+            height: Math.min(upd-lay.preferred-height, parent.height - 40px);
+            x: Math.round((parent.width - self.width) / 2 / 1phx) * 1phx;
+            y: Math.round((parent.height - self.height) / 2 / 1phx) * 1phx;
+            alpha: Pal.a-solid;
+            upd-lay := VerticalLayout {
+                padding: 18px;
+                spacing: 10px;
+                HorizontalLayout {
+                    spacing: 12px;
+                    Rectangle {
+                        width: 36px;
+                        height: 36px;
+                        border-radius: Pal.brutal ? 2px : 18px;
+                        background: Pal.accent;
+                        Icon {
+                            width: 18px;
+                            height: 18px;
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            name: "download";
+                            size: 18px;
+                            tint: Pal.on-accent;
+                        }
+                    }
+                    VerticalLayout {
+                        alignment: center;
+                        Text { text: T.upd-title; color: Pal.text; font-size: 14px; font-weight: 700; wrap: word-wrap; }
+                        Text { text: "v" + S.app-version + "  →  v" + S.update-version; color: Pal.accent; font-size: 12px; font-weight: 700; }
+                    }
+                }
+                // Lista compacta: una linea por punto (se corta con "..."), sin
+                // apenas separacion, para que quepan mas novedades.
+                if S.update-notes.length > 0: VerticalLayout {
+                    spacing: 1px;
+                    Text { text: T.upd-whats-new; color: Pal.muted; font-size: 10.5px; font-weight: 700; min-height: 17px; }
+                    for n in S.update-notes: HorizontalLayout {
+                        spacing: 7px;
+                        VerticalLayout {
+                            alignment: center;
+                            Rectangle {
+                                width: 4px;
+                                height: 4px;
+                                border-radius: Pal.brutal ? 0px : 2px;
+                                background: Pal.accent;
+                            }
+                        }
+                        // min-height por encima del alto de linea: si no, el
+                        // texto con elide desaparece.
+                        Text { text: n; color: Pal.text; font-size: 12px; min-height: 19px; overflow: elide; vertical-alignment: center; }
+                    }
+                }
+                HorizontalLayout {
+                    alignment: end;
+                    spacing: 10px;
+                    padding-top: 4px;
+                    height: Theme.control-h;
+                    Btn { kind: "secondary"; text: T.upd-later; clicked => { S.update-show = false; } }
+                    Btn {
+                        kind: "primary";
+                        icon: "download";
+                        text: T.about-get;
+                        clicked => {
+                            S.open-link(S.update-url);
+                            S.update-show = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- Dialogo generico
     if S.dlg != 0: Rectangle {
         background: #03081099;

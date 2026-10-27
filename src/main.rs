@@ -39,10 +39,11 @@ fn round_window(app: &App) {
 }
 
 fn main() {
-    // Renderer: por defecto Slint usa FemtoVG (GPU/OpenGL, con vsync a la tasa
-    // del monitor: 60/120/144 Hz) y, si no hay OpenGL disponible, cae solo al
-    // renderer por software. Ese fallback automatico solo ocurre si NO
-    // forzamos el backend a mano.
+    // Renderer: por defecto Slint usa Skia (GPU, con vsync a la tasa del
+    // monitor: 60/120/144 Hz). Se cambio desde FemtoVG porque este dejaba las
+    // esquinas redondeadas y los bordes con dientes de sierra. Si no hay GPU
+    // disponible, cae solo al renderer por software. Ese fallback automatico
+    // solo ocurre si NO forzamos el backend a mano.
     // Para forzar software (menos memoria, sin vsync): LIQUIDCAT_SOFTWARE=1
     if std::env::var_os("SLINT_BACKEND").is_none() && std::env::var_os("LIQUIDCAT_SOFTWARE").is_some() {
         std::env::set_var("SLINT_BACKEND", "winit-software");

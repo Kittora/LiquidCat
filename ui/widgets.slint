@@ -5,7 +5,7 @@ import { S } from "state.slint";
 // El renderer por software no soporta transformaciones, asi que el spinner
 // no puede usar rotation-angle. En su lugar se precalculan 36 posiciones del
 // mismo arco (10 grados cada una) y un Timer cambia de posicion a 40 fps.
-// Funciona igual en FemtoVG y en software; el Timer solo corre mientras gira.
+// Funciona igual en Skia y en software; el Timer solo corre mientras gira.
 global SpinnerData {
     pure public function arc(phase: int) -> string {
         if (phase == 0) { return "M20.60 12.00a8.6 8.6 0 1 1 -2.52 -6.08"; }
