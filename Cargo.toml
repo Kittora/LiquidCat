@@ -19,7 +19,7 @@ path = "src/main.rs"
 [dependencies]
 # Renderer: Skia (GPU, vsync) por defecto y software como fallback.
 # La seleccion se hace en src/main.rs (LIQUIDCAT_SOFTWARE=1 fuerza software).
-slint = { version = "1.14", default-features = false, features = ["std", "backend-winit", "renderer-skia", "renderer-software", "compat-1-2", "unstable-winit-030", "raw-window-handle-06"] }
+slint = { version = "1.14", default-features = false, features = ["std", "backend-winit", "renderer-skia", "renderer-skia-opengl", "renderer-software", "compat-1-2", "unstable-winit-030", "raw-window-handle-06"] }
 # Acceso al HWND de la ventana (esquinas redondeadas nativas via DWM en Windows 11).
 raw-window-handle = "0.6"
 serde = { version = "1", features = ["derive"] }
