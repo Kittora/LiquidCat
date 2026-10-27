@@ -227,6 +227,17 @@ export component Field inherits Rectangle {
             selection-foreground-color: Pal.text;
             edited => { root.edited(self.text); }
             accepted => { root.accepted(self.text); }
+            // Con Bloq Mayus, Ctrl+V/C/X/A llegan en mayuscula y Slint solo
+            // reconoce los atajos en minuscula: aqui se atienden ambos.
+            key-pressed(e) => {
+                if (e.modifiers.control && !e.modifiers.alt && !e.modifiers.shift) {
+                    if (e.text == "V") { self.paste(); return accept; }
+                    if (e.text == "C") { self.copy(); return accept; }
+                    if (e.text == "X") { self.cut(); return accept; }
+                    if (e.text == "A") { self.select-all(); return accept; }
+                }
+                return reject;
+            }
             cursor-position-changed(pos) => {
                 if (pos.x + self.scroll-x < 4px) {
                     self.scroll-x = 4px - pos.x;

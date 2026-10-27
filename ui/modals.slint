@@ -776,6 +776,16 @@ export component AllModals inherits Rectangle {
                         font-size: 12.5px;
                         selection-background-color: Pal.accent.with-alpha(0.45);
                         selection-foreground-color: Pal.text;
+                        // Atajos con Bloq Mayus (ver Field en widgets.slint).
+                        key-pressed(e) => {
+                            if (e.modifiers.control && !e.modifiers.alt && !e.modifiers.shift) {
+                                if (e.text == "V") { self.paste(); return accept; }
+                                if (e.text == "C") { self.copy(); return accept; }
+                                if (e.text == "X") { self.cut(); return accept; }
+                                if (e.text == "A") { self.select-all(); return accept; }
+                            }
+                            return reject;
+                        }
                         // Sin focus() en init: Slint aun esta calculando el
                         // layout del dialogo y pedir el foco ahi provoca un
                         // panic ("Recursion detected"). Se enfoca al hacer clic.

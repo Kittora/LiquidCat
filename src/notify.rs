@@ -21,18 +21,17 @@ pub fn show(title: &str, message: &str) {
 #[cfg(windows)]
 fn toast(title: &str, message: &str) -> windows::core::Result<()> {
     use windows::core::HSTRING;
-    use windows::Data::Xml::Dom::XmlDocument;
-    use windows::UI::Notifications::{ToastNotification, ToastNotificationManager};
-    let esc = |s: &str| {
-        s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&apos;")
-    };
-    let xml = format!(
-        "<toast><visual><binding template=\"ToastGeneric\"><text>{}</text><text>{}</text></binding></visual></toast>",
-        esc(title),
-        esc(message)
-    );
-    let doc = XmlDocument::new()?;
-    doc.LoadXml(&HSTRING::from(xml))?;
+    use windows::UI::Notifications::{ToastNotification, ToastNotificationManager, ToastTemplateType};
+    // Plantilla clasica de dos lineas (titulo y mensaje). Con un XML
+    // "ToastGeneric" escrito a mano, Windows aceptaba la notificacion pero no
+    // la mostraba en apps sin instalador. El texto se inserta como nodos, asi
+    // no hace falta escapar nada a mano.
+    let doc = ToastNotificationManager::GetTemplateContent(ToastTemplateType::ToastText02)?;
+    let lines = doc.GetElementsByTagName(&HSTRING::from("text"))?;
+    for (i, text) in [title, message].into_iter().enumerate() {
+        let node = doc.CreateTextNode(&HSTRING::from(text))?;
+        lines.Item(i as u32)?.AppendChild(&node)?;
+    }
     let toast = ToastNotification::CreateToastNotification(&doc)?;
     ToastNotificationManager::CreateToastNotifierWithId(&HSTRING::from(APP_ID))?.Show(&toast)
 }

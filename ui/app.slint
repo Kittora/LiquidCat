@@ -220,7 +220,7 @@ export component App inherits Window {
                 else if (S.update-show) { S.update-show = false; } else { S.modal = 0; }
                 return accept;
             }
-            if (e.modifiers.control && e.text == "v" && S.modal == 0 && S.dlg == 0 && !S.url-has-focus) {
+            if (e.modifiers.control && (e.text == "v" || e.text == "V") && S.modal == 0 && S.dlg == 0 && !S.url-has-focus) {
                 S.paste-url();
                 return accept;
             }
