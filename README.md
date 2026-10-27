@@ -130,7 +130,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Windows
 
 1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
-2. Download the latest `LiquidCat-0.4.3-windows-x86_64.exe`.
+2. Download the latest `LiquidCat-0.4.4-windows-x86_64.exe`.
 3. Run `LiquidCat.exe`. 
 
 *Note: **Python is not required.** LiquidCat automatically downloads and manages its own yt-dlp (kept up to date) and FFmpeg/ffprobe in the background.*
@@ -139,8 +139,8 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 
 These builds are new and have had little testing. Feedback is very welcome.
 
-- **Linux (x86_64):** download `LiquidCat-0.4.3-linux-x86_64.tar.gz`, extract it and run `./LiquidCat`. Install FFmpeg with your package manager (for example `sudo apt install ffmpeg`).
-- **macOS:** download `LiquidCat-0.4.3-macos-arm64.zip` (Apple Silicon) or `LiquidCat-0.4.3-macos-x86_64.zip` (Intel), unzip it and move `LiquidCat.app` to *Applications*. The app is not notarized, so the first time right-click it and choose **Open**. Install FFmpeg with `brew install ffmpeg`.
+- **Linux (x86_64):** download `LiquidCat-0.4.4-linux-x86_64.tar.gz`, extract it and run `./LiquidCat`. Install FFmpeg with your package manager (for example `sudo apt install ffmpeg`).
+- **macOS:** download `LiquidCat-0.4.4-macos-arm64.zip` (Apple Silicon) or `LiquidCat-0.4.4-macos-x86_64.zip` (Intel), unzip it and move `LiquidCat.app` to *Applications*. The app is not notarized, so the first time right-click it and choose **Open**. Install FFmpeg with `brew install ffmpeg`.
 
 LiquidCat downloads its own yt-dlp on every platform.
 
