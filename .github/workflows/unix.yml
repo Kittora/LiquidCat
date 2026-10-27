@@ -76,8 +76,6 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          key: linux-${{ matrix.arch }}
-        with:
           key: ${{ matrix.target }}
 
       - name: Compilar (release)
