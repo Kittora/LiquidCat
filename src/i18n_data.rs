@@ -268,11 +268,12 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("q_h264", "Mejor H.264 + AAC (compatible)"),
     ("credit_slint_desc", "Kit de interfaz nativo en Rust con el que se dibuja la app."),
     ("wiki_h_presets", "Presets"),
-    ("wiki_p_presets", "Guarda tus ajustes como preset y aplícalos con un clic. Incluye: Original (máxima calidad sin convertir), H.264 compatible (mejor H.264 + AAC sin reencodear, se reproduce en cualquier dispositivo), 1080p H.264 con subtítulos, 720p ligero en HEVC, música MP3 320, audio M4A sin reencodear, FLAC sin pérdida y podcast/voz."),
+    ("wiki_p_presets", "Guarda tus ajustes como preset y aplícalos con un clic; «— Aplicar preset —» vuelve a los ajustes por defecto. Incluye: Máxima calidad con tu GPU (reencode HEVC; si la GPU no puede, usa la CPU), H.264 compatible (mejor H.264 + AAC sin reencodear, se reproduce en cualquier dispositivo), 1080p H.264 con subtítulos, 720p ligero en HEVC, música MP3 320, audio M4A sin reencodear, FLAC sin pérdida y podcast/voz."),
     ("act_details", "Detalles"),
     ("act_idle", "Sin tareas en curso"),
     ("act_idle_hint", "Lo que descargues o conviertas aparecerá aquí."),
     ("act_empty", "Todavía no hay actividad."),
+    ("toast_defaults", "Ajustes por defecto restaurados"),
 ];
 
 pub static UI_EN: &[(&str, &str)] = &[
@@ -531,11 +532,12 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("q_h264", "Best H.264 + AAC (compatible)"),
     ("credit_slint_desc", "Native Rust UI toolkit that draws the app."),
     ("wiki_h_presets", "Presets"),
-    ("wiki_p_presets", "Save your settings as a preset and apply them in one click. Included: Original (max quality, no conversion), H.264 compatible (best H.264 + AAC without re-encoding, plays on any device), 1080p H.264 with subtitles, light 720p in HEVC, MP3 320 music, M4A audio without re-encoding, lossless FLAC and podcast/voice."),
+    ("wiki_p_presets", "Save your settings as a preset and apply them in one click; “— Apply preset —” goes back to the default settings. Included: Max quality with your GPU (HEVC re-encode; falls back to the CPU if the GPU can't), H.264 compatible (best H.264 + AAC without re-encoding, plays on any device), 1080p H.264 with subtitles, light 720p in HEVC, MP3 320 music, M4A audio without re-encoding, lossless FLAC and podcast/voice."),
     ("act_details", "Details"),
     ("act_idle", "Nothing running"),
     ("act_idle_hint", "Your downloads and conversions will show up here."),
     ("act_empty", "No activity yet."),
+    ("toast_defaults", "Default settings restored"),
 ];
 
 pub static UI_PT: &[(&str, &str)] = &[
@@ -794,11 +796,12 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("q_h264", "Melhor H.264 + AAC (compatível)"),
     ("credit_slint_desc", "Kit de interface nativo em Rust que desenha o app."),
     ("wiki_h_presets", "Predefinições"),
-    ("wiki_p_presets", "Salve suas configurações como predefinição e aplique-as com um clique. Inclui: Original (qualidade máxima, sem conversão), H.264 compatível (melhor H.264 + AAC sem recodificar, toca em qualquer dispositivo), 1080p H.264 com legendas, 720p leve em HEVC, música MP3 320, áudio M4A sem recodificar, FLAC sem perdas e podcast/voz."),
+    ("wiki_p_presets", "Salve suas configurações como predefinição e aplique-as com um clique; “— Aplicar predefinição —” volta às configurações padrão. Inclui: Qualidade máxima com sua GPU (recodificação HEVC; se a GPU não conseguir, usa a CPU), H.264 compatível (melhor H.264 + AAC sem recodificar, toca em qualquer dispositivo), 1080p H.264 com legendas, 720p leve em HEVC, música MP3 320, áudio M4A sem recodificar, FLAC sem perdas e podcast/voz."),
     ("act_details", "Detalhes"),
     ("act_idle", "Nenhuma tarefa em andamento"),
     ("act_idle_hint", "Seus downloads e conversões aparecerão aqui."),
     ("act_empty", "Ainda não há atividade."),
+    ("toast_defaults", "Configurações padrão restauradas"),
 ];
 
 pub static UI_FR: &[(&str, &str)] = &[
@@ -1057,11 +1060,12 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("q_h264", "Meilleur H.264 + AAC (compatible)"),
     ("credit_slint_desc", "Boîte à outils d'interface native en Rust qui dessine l'application."),
     ("wiki_h_presets", "Préréglages"),
-    ("wiki_p_presets", "Enregistrez vos réglages comme préréglage et appliquez-les en un clic. Inclus : Original (qualité maximale, sans conversion), H.264 compatible (meilleur H.264 + AAC sans réencodage, lisible partout), 1080p H.264 avec sous-titres, 720p léger en HEVC, musique MP3 320, audio M4A sans réencodage, FLAC sans perte et podcast/voix."),
+    ("wiki_p_presets", "Enregistrez vos réglages comme préréglage et appliquez-les en un clic ; « — Appliquer un préréglage — » revient aux réglages par défaut. Inclus : Qualité maximale avec votre GPU (réencodage HEVC ; si le GPU n'y arrive pas, le CPU prend le relais), H.264 compatible (meilleur H.264 + AAC sans réencodage, lisible partout), 1080p H.264 avec sous-titres, 720p léger en HEVC, musique MP3 320, audio M4A sans réencodage, FLAC sans perte et podcast/voix."),
     ("act_details", "Détails"),
     ("act_idle", "Aucune tâche en cours"),
     ("act_idle_hint", "Vos téléchargements et conversions s'afficheront ici."),
     ("act_empty", "Aucune activité pour l'instant."),
+    ("toast_defaults", "Réglages par défaut restaurés"),
 ];
 
 pub static UI_DE: &[(&str, &str)] = &[
@@ -1320,11 +1324,12 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("q_h264", "Bestes H.264 + AAC (kompatibel)"),
     ("credit_slint_desc", "Natives Rust-UI-Toolkit, das die App zeichnet."),
     ("wiki_h_presets", "Voreinstellungen"),
-    ("wiki_p_presets", "Speichere deine Einstellungen als Voreinstellung und wende sie mit einem Klick an. Enthalten: Original (maximale Qualität, ohne Konvertierung), H.264 kompatibel (bestes H.264 + AAC ohne Neukodierung, läuft überall), 1080p H.264 mit Untertiteln, leichtes 720p in HEVC, Musik MP3 320, M4A-Audio ohne Neukodierung, verlustfreies FLAC und Podcast/Sprache."),
+    ("wiki_p_presets", "Speichere deine Einstellungen als Voreinstellung und wende sie mit einem Klick an; „— Voreinstellung anwenden —“ stellt die Standardeinstellungen wieder her. Enthalten: Maximale Qualität mit deiner GPU (HEVC-Neukodierung; kann die GPU das nicht, übernimmt die CPU), H.264 kompatibel (bestes H.264 + AAC ohne Neukodierung, läuft überall), 1080p H.264 mit Untertiteln, leichtes 720p in HEVC, Musik MP3 320, M4A-Audio ohne Neukodierung, verlustfreies FLAC und Podcast/Sprache."),
     ("act_details", "Details"),
     ("act_idle", "Keine laufenden Aufgaben"),
     ("act_idle_hint", "Deine Downloads und Konvertierungen erscheinen hier."),
     ("act_empty", "Noch keine Aktivität."),
+    ("toast_defaults", "Standardeinstellungen wiederhergestellt"),
 ];
 
 pub static UI_IT: &[(&str, &str)] = &[
@@ -1583,11 +1588,12 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("q_h264", "Miglior H.264 + AAC (compatibile)"),
     ("credit_slint_desc", "Toolkit di interfaccia nativo in Rust che disegna l'app."),
     ("wiki_h_presets", "Preset"),
-    ("wiki_p_presets", "Salva le tue impostazioni come preset e applicale con un clic. Inclusi: Original (qualità massima, senza conversione), H.264 compatibile (miglior H.264 + AAC senza ricodifica, si riproduce ovunque), 1080p H.264 con sottotitoli, 720p leggero in HEVC, musica MP3 320, audio M4A senza ricodifica, FLAC senza perdita e podcast/voce."),
+    ("wiki_p_presets", "Salva le tue impostazioni come preset e applicale con un clic; “— Applica preset —” torna alle impostazioni predefinite. Inclusi: Qualità massima con la tua GPU (ricodifica HEVC; se la GPU non ce la fa, usa la CPU), H.264 compatibile (miglior H.264 + AAC senza ricodifica, si riproduce ovunque), 1080p H.264 con sottotitoli, 720p leggero in HEVC, musica MP3 320, audio M4A senza ricodifica, FLAC senza perdita e podcast/voce."),
     ("act_details", "Dettagli"),
     ("act_idle", "Nessuna attività in corso"),
     ("act_idle_hint", "I tuoi download e le tue conversioni appariranno qui."),
     ("act_empty", "Ancora nessuna attività."),
+    ("toast_defaults", "Impostazioni predefinite ripristinate"),
 ];
 
 pub static BE_ES: &[(&str, &str)] = &[
@@ -1623,6 +1629,7 @@ pub static BE_ES: &[(&str, &str)] = &[
     ("ytdlp_failed", "yt-dlp falló."),
     ("prep_title", "Preparando dependencias"),
     ("prep_msg", "LiquidCat necesita preparar sus herramientas multimedia. Esto solo ocurre una vez."),
+    ("gpu_fallback", "[!] La GPU {gpu} no pudo codificar este formato; reintentando con la CPU…"),
 ];
 
 pub static BE_EN: &[(&str, &str)] = &[
@@ -1658,6 +1665,7 @@ pub static BE_EN: &[(&str, &str)] = &[
     ("ytdlp_failed", "yt-dlp failed."),
     ("prep_title", "Preparing dependencies"),
     ("prep_msg", "LiquidCat needs to prepare its media tools. This only happens once."),
+    ("gpu_fallback", "[!] The {gpu} GPU couldn't encode this format; retrying with the CPU…"),
 ];
 
 pub static BE_PT: &[(&str, &str)] = &[
@@ -1693,6 +1701,7 @@ pub static BE_PT: &[(&str, &str)] = &[
     ("ytdlp_failed", "O yt-dlp falhou."),
     ("prep_title", "Preparando dependências"),
     ("prep_msg", "O LiquidCat precisa preparar suas ferramentas de mídia. Isso só acontece uma vez."),
+    ("gpu_fallback", "[!] A GPU {gpu} não conseguiu codificar este formato; tentando novamente com a CPU…"),
 ];
 
 pub static BE_FR: &[(&str, &str)] = &[
@@ -1728,6 +1737,7 @@ pub static BE_FR: &[(&str, &str)] = &[
     ("ytdlp_failed", "yt-dlp a échoué."),
     ("prep_title", "Préparation des dépendances"),
     ("prep_msg", "LiquidCat doit préparer ses outils multimédias. Cela n'arrive qu'une seule fois."),
+    ("gpu_fallback", "[!] Le GPU {gpu} n'a pas pu encoder ce format ; nouvelle tentative avec le CPU…"),
 ];
 
 pub static BE_DE: &[(&str, &str)] = &[
@@ -1763,6 +1773,7 @@ pub static BE_DE: &[(&str, &str)] = &[
     ("ytdlp_failed", "yt-dlp ist fehlgeschlagen."),
     ("prep_title", "Abhängigkeiten werden vorbereitet"),
     ("prep_msg", "LiquidCat muss seine Medienwerkzeuge vorbereiten. Das passiert nur einmal."),
+    ("gpu_fallback", "[!] Die {gpu}-GPU konnte dieses Format nicht kodieren; neuer Versuch mit der CPU…"),
 ];
 
 pub static BE_IT: &[(&str, &str)] = &[
@@ -1798,6 +1809,7 @@ pub static BE_IT: &[(&str, &str)] = &[
     ("ytdlp_failed", "yt-dlp non è riuscito."),
     ("prep_title", "Preparazione delle dipendenze"),
     ("prep_msg", "LiquidCat deve preparare i suoi strumenti multimediali. Succede solo una volta."),
+    ("gpu_fallback", "[!] La GPU {gpu} non è riuscita a codificare questo formato; nuovo tentativo con la CPU…"),
 ];
 
 /// Tabla de textos de la interfaz para un idioma (ingles si no existe).
@@ -2091,6 +2103,7 @@ pub fn apply(app: &App, lang: &str) {
                 "act_idle" => t.set_act_idle((*v).into()),
                 "act_idle_hint" => t.set_act_idle_hint((*v).into()),
                 "act_empty" => t.set_act_empty((*v).into()),
+                "toast_defaults" => t.set_toast_defaults((*v).into()),
                 _ => {}
             }
         }

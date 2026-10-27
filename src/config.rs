@@ -19,13 +19,28 @@ fn preset(name: &str, settings: Value) -> Preset {
     Preset { name: name.into(), settings }
 }
 
+/// Ajustes de fabrica del descargador (los de una instalacion nueva). Se
+/// usan al elegir "— Aplicar preset —"; "auto" = la GPU detectada.
+pub fn default_settings() -> Value {
+    json!({
+        "mode": "video", "quality": "", "direct": "0",
+        "audio_codec": "mp3", "audio_bitrate": "",
+        "vendor": "auto", "codec": "h264", "cq": "23",
+        "audio_norm": false, "subs": false, "subs_embed": false,
+        "embed_thumb": true, "embed_meta": true, "cookies": ""
+    })
+}
+
 /// Presets que acompanan a una instalacion: cubren los usos tipicos sin
 /// tener que tocar cada ajuste.
 pub fn default_presets() -> Vec<Preset> {
     vec![
-        // Lo mejor disponible, sin convertir: maxima calidad y lo mas rapido.
-        preset("Original · max quality", json!({
-            "mode": "video", "quality": "", "direct": "1",
+        // Lo mejor disponible reencodeado con la GPU del equipo ("auto"):
+        // HEVC con calidad muy alta. Si la GPU no puede, se usa la CPU.
+        preset("Max quality · GPU", json!({
+            "mode": "video", "quality": "", "direct": "0",
+            "vendor": "auto", "codec": "hevc", "cq": "18",
+            "audio_codec": "aac", "audio_bitrate": "320",
             "subs": false, "subs_embed": false, "embed_thumb": false, "embed_meta": true
         })),
         // Mejor H.264 + AAC tal cual: mp4 que se reproduce en cualquier sitio.
@@ -70,7 +85,7 @@ pub fn default_presets() -> Vec<Preset> {
 
 /// Nombres de los presets que traian las versiones anteriores; se quitan al
 /// actualizar (los presets propios del usuario se conservan).
-const OLD_PRESETS: &[&str] = &["4K Original", "1080p MP4", "Audio MP3 320"];
+const OLD_PRESETS: &[&str] = &["4K Original", "1080p MP4", "Audio MP3 320", "Original · max quality"];
 
 #[derive(Clone, Serialize, Deserialize, Default)]
 pub struct HistoryEntry {
@@ -126,14 +141,14 @@ impl Config {
         }
         // Instalaciones anteriores: una sola vez se quitan los presets viejos de
         // la app y se anaden los nuevos (sin tocar los que creo el usuario).
-        if !cfg.pref_bool("presets_v3", false) {
+        if !cfg.pref_bool("presets_v4", false) {
             cfg.presets.retain(|p| !OLD_PRESETS.contains(&p.name.as_str()));
             for p in default_presets() {
                 if !cfg.presets.iter().any(|x| x.name == p.name) {
                     cfg.presets.push(p);
                 }
             }
-            cfg.set_pref("presets_v3", Value::Bool(true));
+            cfg.set_pref("presets_v4", Value::Bool(true));
             cfg.save();
         }
 

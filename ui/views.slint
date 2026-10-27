@@ -79,7 +79,7 @@ export component DownloadView inherits VerticalLayout {
                     text: S.title-line;
                     color: Pal.muted;
                     font-size: 12px;
-                    min-height: 17px;
+                    min-height: 19px;
                     overflow: elide;
                 }
             }
@@ -155,7 +155,7 @@ export component DownloadView inherits VerticalLayout {
                         Text {
                             text: S.pv-desc;
                             color: Pal.muted;
-                            font-size: 11.5px;
+                            font-size: 12px;
                             width: parent.width;
                             height: parent.height;
                             wrap: no-wrap;
@@ -295,8 +295,8 @@ export component DownloadView inherits VerticalLayout {
                         value <=> S.cq;
                     }
                     HorizontalLayout {
-                        Text { text: T.cq-best; color: Pal.muted; font-size: 10.5px; horizontal-stretch: 1; }
-                        Text { text: T.cq-lite; color: Pal.muted; font-size: 10.5px; horizontal-alignment: right; }
+                        Text { text: T.cq-best; color: Pal.muted; font-size: 11px; horizontal-stretch: 1; }
+                        Text { text: T.cq-lite; color: Pal.muted; font-size: 11px; horizontal-alignment: right; }
                     }
                 }
             }
@@ -322,7 +322,7 @@ export component DownloadView inherits VerticalLayout {
                 }
                 Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(0); } }
             }
-            Text { text: S.space-hint; color: S.space-low ? Pal.warning : Pal.muted; font-size: 11.5px; min-height: 16px; }
+            Text { text: S.space-hint; color: S.space-low ? Pal.warning : Pal.muted; font-size: 12px; min-height: 16px; }
         }
     }
 
@@ -341,7 +341,7 @@ export component DownloadView inherits VerticalLayout {
                 icon: "sliders";
                 title: T.cat-advanced;
                 tint: Pal.c-sliders;
-                Text { text: T.adv-hint; color: Pal.muted; font-size: 10.5px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
+                Text { text: T.adv-hint; color: Pal.muted; font-size: 11px; vertical-alignment: center; horizontal-stretch: 1; overflow: elide; }
                 Icon { name: "chevron-down"; size: 15px; tint: Pal.muted; }
             }
             if S.adv-open: VerticalLayout {
@@ -455,7 +455,7 @@ export component LocalView inherits VerticalLayout {
                     }
                     Btn { kind: "secondary"; icon: "folder"; text: T.set-browse; clicked => { S.pick-local(); } }
                 }
-                Text { text: T.set-drop-hint; color: Pal.muted; font-size: 11px; }
+                Text { text: T.set-drop-hint; color: Pal.muted; font-size: 11.5px; }
                 VerticalLayout {
                     spacing: Theme.gap-lg;
                     padding-top: 8px;
@@ -610,7 +610,7 @@ export component QueueView inherits VerticalLayout {
                         Text {
                             text: q.status == 0 ? T.q-pending : q.status == 1 ? T.q-running : q.status == 2 ? T.q-done : T.q-failed;
                             color: q.status == 0 ? Pal.muted : Pal.on-accent;
-                            font-size: 11px;
+                            font-size: 11.5px;
                             font-weight: 700;
                             horizontal-alignment: center;
                             vertical-alignment: center;
@@ -698,7 +698,11 @@ export component ActivityCard inherits Panel {
                     Text {
                         text: S.current-state == 0 ? T.act-idle-hint : S.progress-label;
                         color: Pal.muted;
-                        font-size: 11.5px;
+                        font-size: 12px;
+                        // Con elide Slint descarta la linea si el alto asignado queda una fraccion
+                        // por debajo del alto de linea (pasaba con Poppins Medium a 12 px): un
+                        // minimo algo mayor que la linea evita que el texto desaparezca.
+                        min-height: 19px;
                         overflow: elide;
                     }
                 }

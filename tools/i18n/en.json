@@ -256,11 +256,12 @@
   "q_h264": "Best H.264 + AAC (compatible)",
   "credit_slint_desc": "Native Rust UI toolkit that draws the app.",
   "wiki_h_presets": "Presets",
-  "wiki_p_presets": "Save your settings as a preset and apply them in one click. Included: Original (max quality, no conversion), H.264 compatible (best H.264 + AAC without re-encoding, plays on any device), 1080p H.264 with subtitles, light 720p in HEVC, MP3 320 music, M4A audio without re-encoding, lossless FLAC and podcast/voice.",
+  "wiki_p_presets": "Save your settings as a preset and apply them in one click; “— Apply preset —” goes back to the default settings. Included: Max quality with your GPU (HEVC re-encode; falls back to the CPU if the GPU can't), H.264 compatible (best H.264 + AAC without re-encoding, plays on any device), 1080p H.264 with subtitles, light 720p in HEVC, MP3 320 music, M4A audio without re-encoding, lossless FLAC and podcast/voice.",
   "act_details": "Details",
   "act_idle": "Nothing running",
   "act_idle_hint": "Your downloads and conversions will show up here.",
-  "act_empty": "No activity yet."
+  "act_empty": "No activity yet.",
+  "toast_defaults": "Default settings restored"
  },
  "backend": {
   "dl_video": "Getting video…",
@@ -294,6 +295,7 @@
   "timeout": "Timed out.",
   "ytdlp_failed": "yt-dlp failed.",
   "prep_title": "Preparing dependencies",
-  "prep_msg": "LiquidCat needs to prepare its media tools. This only happens once."
+  "prep_msg": "LiquidCat needs to prepare its media tools. This only happens once.",
+  "gpu_fallback": "[!] The {gpu} GPU couldn't encode this format; retrying with the CPU…"
  }
 }

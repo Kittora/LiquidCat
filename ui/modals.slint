@@ -221,15 +221,15 @@ export component AllModals inherits Rectangle {
                                     Text {
                                         text: d.installed ? T.dep-installed : T.dep-missing;
                                         color: Pal.on-accent;
-                                        font-size: 10.5px;
+                                        font-size: 11px;
                                         font-weight: 800;
                                         horizontal-alignment: center;
                                         vertical-alignment: center;
                                     }
                                 }
                             }
-                            Text { text: T.dep-version + ": " + (d.version == "" ? "—" : d.version); color: Pal.muted; font-size: 11px; overflow: elide; }
-                            Text { text: T.dep-path + ": " + (d.path == "" ? "—" : d.path); color: Pal.muted; font-size: 11px; overflow: elide; }
+                            Text { text: T.dep-version + ": " + (d.version == "" ? "—" : d.version); color: Pal.muted; font-size: 11.5px; min-height: 18px; overflow: elide; }
+                            Text { text: T.dep-path + ": " + (d.path == "" ? "—" : d.path); color: Pal.muted; font-size: 11.5px; min-height: 18px; overflow: elide; }
                         }
                         HorizontalLayout {
                             spacing: 6px;
@@ -273,7 +273,7 @@ export component AllModals inherits Rectangle {
                                         alignment: start;
                                         Link { text: "xjuanfxx"; url: "https://github.com/xjuanfxx"; font-size: 13px; font-weight: 700; }
                                     }
-                                    Text { text: T.credit-main-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
+                                    Text { text: T.credit-main-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                                 }
                                 VerticalLayout {
                                     horizontal-stretch: 1;
@@ -282,7 +282,7 @@ export component AllModals inherits Rectangle {
                                         alignment: start;
                                         Link { text: "notTao"; url: "https://github.com/notTao"; font-size: 13px; font-weight: 700; }
                                     }
-                                    Text { text: T.credit-helper-role; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
+                                    Text { text: T.credit-helper-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                                 }
                             }
                             VerticalLayout { padding-top: 6px; }
@@ -329,13 +329,13 @@ export component AllModals inherits Rectangle {
                             HorizontalLayout {
                                 spacing: 10px;
                                 Text { text: t.n; color: Pal.text; font-size: 12.5px; font-weight: 700; }
-                                Text { text: t.d; color: Pal.muted; font-size: 11.5px; overflow: elide; horizontal-stretch: 1; }
+                                Text { text: t.d; color: Pal.muted; font-size: 12px; overflow: elide; horizontal-stretch: 1; }
                             }
                             HorizontalLayout {
                                 spacing: 10px;
                                 alignment: start;
-                                Link { text: t.u; url: "https://" + t.u; font-size: 11.5px; }
-                                Text { text: T.credit-license + ": " + t.l; color: Pal.muted; font-size: 11.5px; }
+                                Link { text: t.u; url: "https://" + t.u; font-size: 12px; }
+                                Text { text: T.credit-license + ": " + t.l; color: Pal.muted; font-size: 12px; }
                             }
                         }
                     }
@@ -419,7 +419,7 @@ export component AllModals inherits Rectangle {
                             alignment: center;
                             spacing: 3px;
                             Text { text: h.name; color: Pal.text; font-size: 13px; font-weight: 700; overflow: elide; }
-                            Text { text: h.meta; color: Pal.muted; font-size: 11.5px; overflow: elide; }
+                            Text { text: h.meta; color: Pal.muted; font-size: 12px; min-height: 19px; overflow: elide; }
                         }
                         HorizontalLayout {
                             spacing: 6px;

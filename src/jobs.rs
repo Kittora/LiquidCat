@@ -519,6 +519,37 @@ fn run_ytdlp(core: &Core, cmd: Command, label: &str) -> i32 {
     rc
 }
 
+/// Reencode de video con respaldo en CPU: si el encoder de la GPU falla (la
+/// GPU no admite ese codec, p. ej. AV1 en NVENC antiguas, o no hay driver),
+/// se repite el mismo trabajo con el encoder por software. `build` arma la
+/// linea de ffmpeg a partir de los argumentos del encoder.
+#[allow(clippy::too_many_arguments)]
+fn encode_video(
+    core: &Core,
+    ffmpeg: &Path,
+    vendor: &str,
+    codec: &str,
+    cq: i32,
+    duration: Option<f64>,
+    label: &str,
+    build: impl Fn(Vec<String>) -> Vec<String>,
+) -> i32 {
+    let args = build(media::video_encoder_args(ffmpeg, vendor, codec, cq));
+    let rc = run_ffmpeg(core, ffmpeg_cmd(ffmpeg, &args), duration, label);
+    if rc == 0 || rc == -1 || vendor == "cpu" || core.cancel.load(Ordering::SeqCst) {
+        return rc;
+    }
+    let gpu = match vendor {
+        "nvidia" => "NVIDIA",
+        "amd" => "AMD",
+        other => other,
+    };
+    core.log(&trf(&core.lang(), "gpu_fallback", &[("gpu", gpu)]));
+    core.progress(Some(0.0), Some(label.to_string()));
+    let args = build(media::video_encoder_args(ffmpeg, "cpu", codec, cq));
+    run_ffmpeg(core, ffmpeg_cmd(ffmpeg, &args), duration, label)
+}
+
 fn run_ffmpeg(core: &Core, cmd: Command, duration: Option<f64>, label: &str) -> i32 {
     let lang = core.lang();
     let mut duration = duration;
@@ -826,22 +857,24 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
         let duration = media::probe_duration(&ffprobe, &video_file);
         let out_ext = if p.codec == "vp9" { "webm" } else { "mp4" };
         let out = util::unique_path(&out_dir.join(format!("{title}.{out_ext}")));
-        let enc = media::video_encoder_args(&ffmpeg, &p.vendor, &p.codec, p.cq);
         let audio_out = if out_ext == "webm" { strs(["-c:a", "libopus", "-b:a", "192k"]) } else { strs(["-c:a", "aac", "-b:a", "192k"]) };
-        let mut args = strs(["-y"]);
-        args.extend(trim_in(&p.trim_start, &p.trim_end));
-        args.extend(["-i".to_string(), vs]);
-        args.extend(trim_in(&p.trim_start, &p.trim_end));
-        args.extend(["-i".to_string(), au]);
-        args.extend(strs(["-map", "0:v:0", "-map", "1:a:0"]));
-        args.extend(enc);
-        args.extend(audio_out);
-        args.extend(strs(["-movflags", "+faststart", "-map_metadata", "0"]));
-        args.extend(metadata_args(p.embed_meta, p));
-        args.extend(strs(["-progress", "pipe:1", "-nostats"]));
-        args.push(out.to_string_lossy().to_string());
+        let build = |enc: Vec<String>| {
+            let mut args = strs(["-y"]);
+            args.extend(trim_in(&p.trim_start, &p.trim_end));
+            args.extend(["-i".to_string(), vs.clone()]);
+            args.extend(trim_in(&p.trim_start, &p.trim_end));
+            args.extend(["-i".to_string(), au.clone()]);
+            args.extend(strs(["-map", "0:v:0", "-map", "1:a:0"]));
+            args.extend(enc);
+            args.extend(audio_out.clone());
+            args.extend(strs(["-movflags", "+faststart", "-map_metadata", "0"]));
+            args.extend(metadata_args(p.embed_meta, p));
+            args.extend(strs(["-progress", "pipe:1", "-nostats"]));
+            args.push(out.to_string_lossy().to_string());
+            args
+        };
         core.progress(Some(0.0), Some(t("reencode")));
-        let rc = run_ffmpeg(core, ffmpeg_cmd(&ffmpeg, &args), duration, &t("reencode"));
+        let rc = encode_video(core, &ffmpeg, &p.vendor, &p.codec, p.cq, duration, &t("reencode"), build);
         if rc != 0 || cancelled() {
             return Err(t("failed_reencode"));
         }
@@ -1153,19 +1186,21 @@ pub fn local_worker(core: &Arc<Core>, p: &LocalPayload) {
             core.finish_done(&out, "audio", duration);
         }
         _ => {
-            let enc = media::video_encoder_args(&ffmpeg, &p.vendor, &p.codec, p.cq);
             let out_ext = if p.codec == "vp9" { "webm" } else { "mp4" };
             let out = util::unique_path(&out_dir.join(format!("{stem}.{out_ext}")));
             let audio_out = if out_ext == "webm" { strs(["-c:a", "libopus", "-b:a", "192k"]) } else { strs(["-c:a", "aac", "-b:a", "192k"]) };
-            let mut args = strs(["-y"]);
-            args.extend(trim_in(&p.trim_start, &p.trim_end));
-            args.extend(["-i".to_string(), input]);
-            args.extend(enc);
-            args.extend(audio_out);
-            args.extend(strs(["-movflags", "+faststart", "-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));
-            args.push(out.to_string_lossy().to_string());
+            let build = |enc: Vec<String>| {
+                let mut args = strs(["-y"]);
+                args.extend(trim_in(&p.trim_start, &p.trim_end));
+                args.extend(["-i".to_string(), input.clone()]);
+                args.extend(enc);
+                args.extend(audio_out.clone());
+                args.extend(strs(["-movflags", "+faststart", "-map_metadata", "0", "-progress", "pipe:1", "-nostats"]));
+                args.push(out.to_string_lossy().to_string());
+                args
+            };
             core.progress(Some(0.0), Some(t("reencode")));
-            let rc = run_ffmpeg(core, ffmpeg_cmd(&ffmpeg, &args), duration, &t("reencode"));
+            let rc = encode_video(core, &ffmpeg, &p.vendor, &p.codec, p.cq, duration, &t("reencode"), build);
             if rc != 0 || cancelled() {
                 core.finish(false, &t("failed_reencode"));
                 return;

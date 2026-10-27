@@ -256,11 +256,12 @@
   "q_h264": "Meilleur H.264 + AAC (compatible)",
   "credit_slint_desc": "Boîte à outils d'interface native en Rust qui dessine l'application.",
   "wiki_h_presets": "Préréglages",
-  "wiki_p_presets": "Enregistrez vos réglages comme préréglage et appliquez-les en un clic. Inclus : Original (qualité maximale, sans conversion), H.264 compatible (meilleur H.264 + AAC sans réencodage, lisible partout), 1080p H.264 avec sous-titres, 720p léger en HEVC, musique MP3 320, audio M4A sans réencodage, FLAC sans perte et podcast/voix.",
+  "wiki_p_presets": "Enregistrez vos réglages comme préréglage et appliquez-les en un clic ; « — Appliquer un préréglage — » revient aux réglages par défaut. Inclus : Qualité maximale avec votre GPU (réencodage HEVC ; si le GPU n'y arrive pas, le CPU prend le relais), H.264 compatible (meilleur H.264 + AAC sans réencodage, lisible partout), 1080p H.264 avec sous-titres, 720p léger en HEVC, musique MP3 320, audio M4A sans réencodage, FLAC sans perte et podcast/voix.",
   "act_details": "Détails",
   "act_idle": "Aucune tâche en cours",
   "act_idle_hint": "Vos téléchargements et conversions s'afficheront ici.",
-  "act_empty": "Aucune activité pour l'instant."
+  "act_empty": "Aucune activité pour l'instant.",
+  "toast_defaults": "Réglages par défaut restaurés"
  },
  "backend": {
   "dl_video": "Récupération de la vidéo…",
@@ -294,6 +295,7 @@
   "timeout": "Délai dépassé.",
   "ytdlp_failed": "yt-dlp a échoué.",
   "prep_title": "Préparation des dépendances",
-  "prep_msg": "LiquidCat doit préparer ses outils multimédias. Cela n'arrive qu'une seule fois."
+  "prep_msg": "LiquidCat doit préparer ses outils multimédias. Cela n'arrive qu'une seule fois.",
+  "gpu_fallback": "[!] Le GPU {gpu} n'a pas pu encoder ce format ; nouvelle tentative avec le CPU…"
  }
 }

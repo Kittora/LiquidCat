@@ -1,4 +1,5 @@
 import "../assets/fonts/Poppins-Regular.ttf";
+import "../assets/fonts/Poppins-Medium.ttf";
 import "../assets/fonts/Poppins-Bold.ttf";
 
 import { Pal, Theme } from "theme.slint";
@@ -108,7 +109,7 @@ component TabBtn inherits Rectangle {
             Text {
                 text: root.badge;
                 color: root.active ? Pal.accent : Pal.on-accent;
-                font-size: 11px;
+                font-size: 11.5px;
                 font-weight: 700;
                 horizontal-alignment: center;
                 vertical-alignment: center;
@@ -141,7 +142,7 @@ component StatusPill inherits Rectangle {
         if S.st != 1: Text {
             text: S.st == 0 ? T.st-checking : T.st-missing + S.st-missing;
             color: S.st == 2 ? Pal.danger : Pal.muted;
-            font-size: 11px;
+            font-size: 11.5px;
             vertical-alignment: center;
             overflow: elide;
             max-width: 200px;
@@ -149,12 +150,12 @@ component StatusPill inherits Rectangle {
         if S.st == 1: HorizontalLayout {
             spacing: 4px;
             Icon { name: "check"; size: 13px; tint: Pal.success; }
-            Text { text: "yt-dlp"; color: Pal.success; font-size: 11px; font-weight: 700; vertical-alignment: center; }
+            Text { text: "yt-dlp"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
         }
         if S.st == 1: HorizontalLayout {
             spacing: 4px;
             Icon { name: "check"; size: 13px; tint: Pal.success; }
-            Text { text: "ffmpeg"; color: Pal.success; font-size: 11px; font-weight: 700; vertical-alignment: center; }
+            Text { text: "ffmpeg"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
         }
         if S.st == 1: Rectangle { width: 1px; height: 12px; y: (parent.height - self.height) / 2; background: Pal.line.with-alpha(0.7); }
         if S.st == 1: HorizontalLayout {
@@ -163,7 +164,7 @@ component StatusPill inherits Rectangle {
             Text {
                 text: S.gpu == "nvidia" ? "NVIDIA" : S.gpu == "amd" ? "AMD" : "CPU";
                 color: S.gpu == "nvidia" ? #76b900 : S.gpu == "amd" ? #ff4d4d : #4da3ff;
-                font-size: 11px;
+                font-size: 11.5px;
                 font-weight: 700;
                 vertical-alignment: center;
             }
@@ -185,6 +186,9 @@ export component App inherits Window {
     // ningun fondo detras de la silueta redondeada.
     background: Pal.bg;
     default-font-family: "Poppins";
+    // Medium (500) en vez de Regular: con trazos tan finos el texto pequeno
+    // se veia dentado. Lo que pide font-weight: 700 sigue en Bold.
+    default-font-weight: 500;
     default-font-size: 14px;
 
     forward-focus: keys;
@@ -323,7 +327,7 @@ export component App inherits Window {
                                 Rectangle { horizontal-stretch: 1; }
                             }
                             Text { text: "LiquidCat"; color: Pal.text; font-size: 19px; font-weight: 700; }
-                            Text { text: T.app-subtitle; color: Pal.muted; font-size: 11.5px; overflow: elide; }
+                            Text { text: T.app-subtitle; color: Pal.muted; font-size: 12px; min-height: 19px; overflow: elide; }
                         }
                         // Un solo grupo: estado + acciones, misma altura,
                         // mismo padding y separadores sutiles. El VerticalLayout
@@ -419,9 +423,8 @@ export component App inherits Window {
     // PopupWindow) para que abrir/cerrar no deje zonas sin repintar.
     if S.dd-owner != 0: ddl := Rectangle {
         property <length> ph: Math.min(S.dd-options.length * Theme.control-h-sm + 12px, 280px);
-        // La lista puede ser mas ancha que su selector: en media columna las
-        // opciones largas (formatos) se cortaban.
-        property <length> pw: Math.min(Math.max(S.dd-w, 340px), ddl.width - 12px);
+        // Mismo ancho que su selector (las etiquetas de formato ya son cortas).
+        property <length> pw: Math.min(S.dd-w, ddl.width - 12px);
         property <length> top: S.dd-y + S.dd-h + 5px;
 
         // Clic fuera del panel: cierra. La rueda no mueve la pagina de fondo.

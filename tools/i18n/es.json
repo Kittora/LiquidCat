@@ -256,11 +256,12 @@
   "q_h264": "Mejor H.264 + AAC (compatible)",
   "credit_slint_desc": "Kit de interfaz nativo en Rust con el que se dibuja la app.",
   "wiki_h_presets": "Presets",
-  "wiki_p_presets": "Guarda tus ajustes como preset y aplícalos con un clic. Incluye: Original (máxima calidad sin convertir), H.264 compatible (mejor H.264 + AAC sin reencodear, se reproduce en cualquier dispositivo), 1080p H.264 con subtítulos, 720p ligero en HEVC, música MP3 320, audio M4A sin reencodear, FLAC sin pérdida y podcast/voz.",
+  "wiki_p_presets": "Guarda tus ajustes como preset y aplícalos con un clic; «— Aplicar preset —» vuelve a los ajustes por defecto. Incluye: Máxima calidad con tu GPU (reencode HEVC; si la GPU no puede, usa la CPU), H.264 compatible (mejor H.264 + AAC sin reencodear, se reproduce en cualquier dispositivo), 1080p H.264 con subtítulos, 720p ligero en HEVC, música MP3 320, audio M4A sin reencodear, FLAC sin pérdida y podcast/voz.",
   "act_details": "Detalles",
   "act_idle": "Sin tareas en curso",
   "act_idle_hint": "Lo que descargues o conviertas aparecerá aquí.",
-  "act_empty": "Todavía no hay actividad."
+  "act_empty": "Todavía no hay actividad.",
+  "toast_defaults": "Ajustes por defecto restaurados"
  },
  "backend": {
   "dl_video": "Tomando video…",
@@ -294,6 +295,7 @@
   "timeout": "Tiempo de espera agotado.",
   "ytdlp_failed": "yt-dlp falló.",
   "prep_title": "Preparando dependencias",
-  "prep_msg": "LiquidCat necesita preparar sus herramientas multimedia. Esto solo ocurre una vez."
+  "prep_msg": "LiquidCat necesita preparar sus herramientas multimedia. Esto solo ocurre una vez.",
+  "gpu_fallback": "[!] La GPU {gpu} no pudo codificar este formato; reintentando con la CPU…"
  }
 }

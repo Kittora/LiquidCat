@@ -123,7 +123,12 @@ fn apply_settings(app: &App, v: &Value) {
     if has("direct") { s.set_direct_idx(if s_str(v, "direct") == "1" { 1 } else { 0 }); }
     if has("audio_codec") { s.set_acodec_idx(idx_of(&ACODECS, &s_str(v, "audio_codec"))); }
     if has("audio_bitrate") { s.set_abitrate_idx(idx_of(&BITRATES, &s_str(v, "audio_bitrate"))); }
-    if has("vendor") { s.set_hw_idx(idx_of(&VENDORS, &s_str(v, "vendor")).min(2)); }
+    if has("vendor") {
+        // "auto" = la GPU detectada en este equipo
+        let vendor = s_str(v, "vendor");
+        let vendor = if vendor == "auto" { s.get_gpu().to_string() } else { vendor };
+        s.set_hw_idx(idx_of(&VENDORS, &vendor).min(2));
+    }
     if has("codec") { s.set_codec_idx(idx_of(&CODECS, &s_str(v, "codec"))); }
     if let Ok(cq) = s_str(v, "cq").parse::<i32>() { s.set_cq(cq.clamp(0, 51)); }
     if let Some(b) = s_bool(v, "audio_norm") { s.set_audio_norm(b); }
@@ -938,7 +943,13 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     cb!(on_apply_preset, |a, c| {
         let lang = c.lang();
         let i = a.global::<S>().get_preset_idx();
-        if i <= 0 { return; }
+        if i <= 0 {
+            // "— Aplicar preset —": vuelve a los ajustes de fabrica.
+            apply_settings(&a, &crate::config::default_settings());
+            sync_formats_to_quality(&c, &a);
+            show_toast(&a, &ui(&lang, "toast_defaults"), 1);
+            return;
+        }
         let settings = c.cfg.lock().unwrap().presets.get(i as usize - 1).map(|p| p.settings.clone());
         if let Some(v) = settings {
             apply_settings(&a, &v);
