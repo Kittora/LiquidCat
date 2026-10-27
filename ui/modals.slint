@@ -116,6 +116,37 @@ component Link inherits Text {
     TouchArea { mouse-cursor: pointer; clicked => { S.open-link(root.url); } }
 }
 
+// Autor en Creditos: foto redonda, nombre, usuario de GitHub (enlace) y rol.
+component AuthorCard inherits VerticalLayout {
+    in property <image> avatar;
+    in property <string> name;
+    in property <string> user;
+    in property <string> role;
+    width: 250px;
+    spacing: 4px;
+    alignment: start;
+    HorizontalLayout {
+        alignment: center;
+        Rectangle {
+            width: 68px;
+            height: 68px;
+            border-radius: Pal.brutal ? 2px : 34px;
+            border-width: Pal.brutal ? 2px : 2px;
+            border-color: Pal.accent.with-alpha(0.6);
+            clip: true;
+            Image { width: parent.width; height: parent.height; source: root.avatar; image-fit: cover; }
+            TouchArea { mouse-cursor: pointer; clicked => { S.open-link("https://github.com/" + root.user); } }
+        }
+    }
+    Text { text: root.name; color: Pal.text; font-size: 14px; font-weight: 700; horizontal-alignment: center; }
+    HorizontalLayout {
+        alignment: center;
+        Link { text: "@" + root.user; url: "https://github.com/" + root.user; font-size: 12px; }
+    }
+    Text { text: root.role; color: Pal.muted; font-size: 12px; wrap: word-wrap; horizontal-alignment: center; }
+}
+
+
 // ======================================================================
 export component AllModals inherits Rectangle {
     // ---------------------------------------------------------------- Ajustes
@@ -309,30 +340,25 @@ export component AllModals inherits Rectangle {
                             padding: 14px;
                             spacing: 6px;
                             H3 { icon: "info"; text: T.credit-cat-dev; }
-                            // Dos columnas para aprovechar el ancho completo.
+                            // Los dos autores, centrados, con su foto de GitHub.
                             HorizontalLayout {
-                                spacing: 18px;
-                                VerticalLayout {
-                                    horizontal-stretch: 1;
-                                    spacing: 3px;
-                                    HorizontalLayout {
-                                        alignment: start;
-                                        Link { text: "xjuanfxx"; url: "https://github.com/xjuanfxx"; font-size: 13px; font-weight: 700; }
-                                    }
-                                    Text { text: T.credit-main-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                                alignment: center;
+                                spacing: 40px;
+                                padding-top: 4px;
+                                padding-bottom: 6px;
+                                AuthorCard {
+                                    avatar: @image-url("../assets/credits/xjuanfxx.png");
+                                    name: "JuanFX";
+                                    user: "xjuanfxx";
+                                    role: T.credit-main-role;
                                 }
-                                VerticalLayout {
-                                    horizontal-stretch: 1;
-                                    spacing: 3px;
-                                    HorizontalLayout {
-                                        alignment: start;
-                                        Link { text: "notTao"; url: "https://github.com/notTao"; font-size: 13px; font-weight: 700; }
-                                    }
-                                    Text { text: T.credit-helper-role; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
+                                AuthorCard {
+                                    avatar: @image-url("../assets/credits/notTao.png");
+                                    name: "Adaki";
+                                    user: "notTao";
+                                    role: T.credit-helper-role;
                                 }
                             }
-                            VerticalLayout { padding-top: 6px; }
-                            Text { text: T.credit-dev-themes-label + ": Neo Brutalist (Light / Dark)"; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                         }
                     }
                     Box {
@@ -351,7 +377,7 @@ export component AllModals inherits Rectangle {
                             VerticalLayout { padding-top: 8px; Text { text: "Slint"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
                             Text { text: T.credit-slint-desc; color: Pal.muted; font-size: 12px; wrap: word-wrap; }
                             Link { text: "slint.dev"; url: "https://slint.dev"; }
-                            Text { text: T.credit-license + ": GPL-3.0 / Royalty-free"; color: Pal.muted; font-size: 12px; }
+                            Text { text: T.credit-license + ": GPL-3.0"; color: Pal.muted; font-size: 12px; }
                             VerticalLayout { padding-top: 8px; Text { text: "Poppins"; color: Pal.text; font-size: 12.5px; font-weight: 700; } }
                             Text { text: T.credit-license + ": SIL OFL 1.1"; color: Pal.muted; font-size: 12px; }
                         }

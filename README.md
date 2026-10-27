@@ -15,10 +15,10 @@
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-89B4FA?style=for-the-badge&logo=windows11&logoColor=11111B)](#installation)
 [![Rust](https://img.shields.io/badge/Rust-Native-000000?style=for-the-badge&logo=rust&logoColor=white)](#tech-stack)
+[![License](https://img.shields.io/badge/License-GPL--3.0-F38BA8?style=for-the-badge)](#license)
 [![Slint](https://img.shields.io/badge/UI-Slint-74C7EC?style=for-the-badge)](#tech-stack)
 [![yt-dlp](https://img.shields.io/badge/Powered_by-yt--dlp-A6E3A1?style=for-the-badge&logo=youtube&logoColor=11111B)](https://github.com/yt-dlp/yt-dlp)
 [![FFmpeg](https://img.shields.io/badge/Powered_by-FFmpeg-F9E2AF?style=for-the-badge&logo=ffmpeg&logoColor=11111B)](https://ffmpeg.org/)
-[![Theme](https://img.shields.io/badge/Theme-Catppuccin_Mocha-CBA6F7?style=for-the-badge)](https://catppuccin.com/)
 
 <br>
 
@@ -97,17 +97,22 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 
 <div align="center">
 
-<!-- Screenshots captured at 1180 × 800. -->
+<!-- Screenshots captured at 1060 px wide (LiquidCat 0.4, Catppuccin Mocha). -->
 
-| Downloader | Converter |
+| Downloader | Local files |
 |:---:|:---:|
-| <img src="assets/readme/downloader.png" alt="LiquidCat downloader" width="680"> | <img src="assets/readme/converter.png" alt="LiquidCat local file converter" width="680"> |
-| Paste a link, inspect the available options and choose the output. | Convert or re-encode local files with precise control. |
+| <img src="assets/readme/downloader.png" alt="LiquidCat downloader with a video preview" width="680"> | <img src="assets/readme/converter.png" alt="LiquidCat local files with the floating Activity card" width="680"> |
+| Paste a link to see a preview, pick the format and download. | Convert several files at once and follow them in the floating Activity card. |
 
-| Queue & history | Output settings |
+| Queue & activity | Settings |
 |:---:|:---:|
-| <img src="assets/readme/queue-history.png" alt="LiquidCat queue and history" width="680"> | <img src="assets/readme/output-settings.png" alt="LiquidCat output settings" width="680"> |
-| Follow active jobs and revisit completed work. | Configure quality, metadata, subtitles and destination. |
+| <img src="assets/readme/queue-history.png" alt="LiquidCat queue and activity" width="680"> | <img src="assets/readme/settings.png" alt="LiquidCat settings with themes" width="680"> |
+| Follow active jobs and revisit completed work. | 14 themes, 6 languages, dependencies and update checks. |
+
+| Credits |
+|:---:|
+| <img src="assets/readme/credits.png" alt="LiquidCat credits" width="680"> |
+| The people and open-source projects behind LiquidCat. |
 
 </div>
 
@@ -169,11 +174,22 @@ Issues and focused pull requests are welcome. Before proposing a large change, o
 
 ## Authors
 
-Built by **JuanFX** and **Adaki**.
+Built by **JuanFX** ([@xjuanfxx](https://github.com/xjuanfxx)) and **Adaki** ([@notTao](https://github.com/notTao)).
 
 ## Acknowledgements
 
-LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/) and the [Catppuccin](https://catppuccin.com/) color palette.
+LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Slint](https://slint.dev/) and the [Catppuccin](https://catppuccin.com/) color palette.
+
+## License
+
+LiquidCat is free software, released under the **GNU General Public License v3.0** (GPL-3.0-only). See [`LICENSE`](LICENSE) for the full text. You can use, study, share and modify it; if you distribute a modified version, it must stay under the same license and include its source code.
+
+Third-party components keep their own licenses:
+
+- **[Slint](https://slint.dev/)** (user interface) is used under the GPL-3.0.
+- **[Poppins](https://github.com/itfoundry/Poppins)** fonts are bundled under the SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)).
+- **yt-dlp** (Unlicense) and **FFmpeg** (GPL) are not bundled: LiquidCat downloads them from their official sources on first run.
+- The Rust libraries LiquidCat is built on use permissive licenses (MIT, Apache-2.0, BSD, ISC, Zlib and similar).
 
 ---
 

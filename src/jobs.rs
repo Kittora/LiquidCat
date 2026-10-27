@@ -129,7 +129,14 @@ pub fn fetch_formats(core: &Core, url: &str, cookies: &str) -> Result<FormatsRes
                 .and_then(Value::as_str)
                 .map(str::to_string)
                 .unwrap_or_else(|| format!("{}p", f.get("height").and_then(Value::as_i64).map(|h| h.to_string()).unwrap_or("?".into())));
-            let fps = f.get("fps").and_then(Value::as_f64).filter(|v| *v > 30.0).map(|v| format!("{}", v as i64)).unwrap_or_default();
+            // YouTube ya pone los fps en el nombre ("2160p60"): solo se anaden si faltan.
+            let fps = f
+                .get("fps")
+                .and_then(Value::as_f64)
+                .filter(|v| *v > 30.0)
+                .map(|v| format!("{}", v as i64))
+                .filter(|f| !res.ends_with(f.as_str()))
+                .unwrap_or_default();
             // Corto para que quepa en media columna: "1080p60 · H.264 · 12.3MB · mp4"
             let label = format!("{res}{fps} · {} · {size_txt} · {ext}", codec_name(vcodec));
             video.push((fid.clone(), label));

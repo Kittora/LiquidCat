@@ -370,7 +370,11 @@ impl Core {
                 let _ = open::that(parent);
             }
         }
-        self.finish(true, &crate::lang::trf(&self.lang(), "final", &[("path", &out_path.to_string_lossy())]));
+        // En Actividad basta el nombre del archivo; la ruta completa queda en el
+        // registro tecnico (Detalles) y en "Abrir carpeta".
+        self.log(&out_path.to_string_lossy());
+        let name = out_path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+        self.finish(true, &crate::lang::trf(&self.lang(), "final", &[("path", &name)]));
     }
 
     // ------------------------------------------------------------ cola (UI)

@@ -7,6 +7,9 @@ version = "0.4.0"
 edition = "2021"
 rust-version = "1.88"
 description = "LiquidCat — descargador y convertidor de medios (yt-dlp + ffmpeg), nativo en Rust"
+# GPL-3.0: la misma licencia con la que se usa Slint (la interfaz).
+license = "GPL-3.0-only"
+repository = "https://github.com/Kittora/LiquidCat"
 autobins = false
 
 [[bin]]

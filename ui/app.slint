@@ -275,6 +275,9 @@ export component App inherits Window {
             border-bottom-right-radius: root.corner-radius;
             background: @linear-gradient(145deg, Pal.bg-accent 0%, Pal.bg 54%);
             clip: true;
+            // Clic en una zona vacia: quita el foco del campo de texto activo
+            // (el teclado vuelve a los atajos de la ventana).
+            TouchArea { clicked => { keys.focus(); } }
 
             VerticalLayout {
                 padding-left: Theme.card-pad-x;
