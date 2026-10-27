@@ -13,7 +13,7 @@
 
 <br>
 
-[![Platform](https://img.shields.io/badge/Platform-Windows-89B4FA?style=for-the-badge&logo=windows11&logoColor=11111B)](#installation)
+[![Platform](https://img.shields.io/badge/Platform-Windows_%7C_Linux_%7C_macOS-89B4FA?style=for-the-badge)](#installation)
 [![Rust](https://img.shields.io/badge/Rust-Native-000000?style=for-the-badge&logo=rust&logoColor=white)](#tech-stack)
 [![License](https://img.shields.io/badge/License-GPL--3.0-F38BA8?style=for-the-badge)](#license)
 [![Slint](https://img.shields.io/badge/UI-Slint-74C7EC?style=for-the-badge)](#tech-stack)
@@ -130,14 +130,23 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Windows
 
 1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
-2. Download the latest `LiquidCat-0.4.2-windows-x86_64.exe`.
+2. Download the latest `LiquidCat-0.4.3-windows-x86_64.exe`.
 3. Run `LiquidCat.exe`. 
 
 *Note: **Python is not required.** LiquidCat automatically downloads and manages its own yt-dlp (kept up to date) and FFmpeg/ffprobe in the background.*
 
+### Linux and macOS (experimental)
+
+These builds are new and have had little testing. Feedback is very welcome.
+
+- **Linux (x86_64):** download `LiquidCat-0.4.3-linux-x86_64.tar.gz`, extract it and run `./LiquidCat`. Install FFmpeg with your package manager (for example `sudo apt install ffmpeg`).
+- **macOS:** download `LiquidCat-0.4.3-macos-arm64.zip` (Apple Silicon) or `LiquidCat-0.4.3-macos-x86_64.zip` (Intel), unzip it and move `LiquidCat.app` to *Applications*. The app is not notarized, so the first time right-click it and choose **Open**. Install FFmpeg with `brew install ffmpeg`.
+
+LiquidCat downloads its own yt-dlp on every platform.
+
 > [!IMPORTANT]
 > **Building from source:** You will need Rust 1.88+ installed. Simply clone the repository and run `cargo build --release`. 
-> Alternatively, you can just push the code to GitHub and use the included **Build Windows** GitHub Action to get the `.exe` automatically.
+> Alternatively, you can just push the code to GitHub and use the included **Build Windows** and **Build Linux & macOS** GitHub Actions to get the builds automatically.
 
 ## How it works
 
