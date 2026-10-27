@@ -7,10 +7,14 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
+// En Windows se usa la version "carpeta" (yt-dlp.exe + _internal): el exe de
+// un solo archivo descomprime su Python en cada ejecucion (~3-4 s cada vez que
+// se obtienen formatos o empieza una descarga); la carpeta se descomprime una
+// sola vez, al instalar o actualizar. Tampoco necesita Python instalado.
 #[cfg(windows)]
 const YTDLP_SOURCES: &[&str] = &[
-    "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.exe",
-    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe",
+    "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_win.zip",
+    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_win.zip",
 ];
 #[cfg(target_os = "macos")]
 const YTDLP_SOURCES: &[&str] = &[
@@ -25,9 +29,10 @@ const YTDLP_SOURCES: &[&str] = &[
 /// Build "essentials" de Gyan. Su servidor (gyan.dev) va muy lento (~0,1 MB/s
 /// medido, unos 20 min para 115 MB), asi que primero se usa la copia oficial
 /// que el mismo autor publica en GitHub (~7 MB/s) y gyan.dev queda de respaldo.
-const FFMPEG_GITHUB_API: &str = "https://api.github.com/repos/GyanD/codexffmpeg/releases/latest";
-/// Ultima build nightly de yt-dlp (la que descarga la app primero).
-const YTDLP_GITHUB_API: &str = "https://api.github.com/repos/yt-dlp/yt-dlp-nightly-builds/releases/latest";
+const FFMPEG_REPO: &str = "GyanD/codexffmpeg";
+/// Builds nightly de yt-dlp (las que descarga la app primero).
+const YTDLP_REPO: &str = "yt-dlp/yt-dlp-nightly-builds";
+pub const LIQUIDCAT_REPO: &str = "Kittora/LiquidCat";
 
 /// Error de `download_ffmpeg` fuera de Windows: alli ffmpeg se instala con el
 /// gestor de paquetes. `error_text` lo convierte en el aviso traducido.
@@ -46,9 +51,34 @@ pub fn error_text(lang: &str, err: &str) -> String {
     }
 }
 
-/// JSON de la ultima release de un repositorio (API publica de GitHub).
-fn latest_release(api: &str) -> Option<serde_json::Value> {
-    serde_json::from_slice(&fetch_bytes(api, 1024 * 1024)?).ok()
+/// Ultima version publicada de un repositorio (su tag), SIN usar la API de
+/// GitHub: la API solo admite 60 consultas por hora por IP, compartidas por
+/// todos los que esten detras de la misma (universidad, oficina, VPN).
+/// github.com/<repo>/releases/latest responde con una redireccion a
+/// .../releases/tag/<tag>; basta con leerla, sin seguirla ni bajar la pagina.
+pub fn latest_tag(repo: &str) -> Option<String> {
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .tls_config(tls())
+        .max_redirects(0)
+        .timeout_global(Some(Duration::from_secs(20)))
+        .build()
+        .into();
+    let resp = agent.get(&format!("https://github.com/{repo}/releases/latest")).header("User-Agent", UA).call().ok()?;
+    let location = resp.headers().get("location")?.to_str().ok()?;
+    let tag = location.rsplit_once("/releases/tag/")?.1.trim_end_matches('/');
+    (!tag.is_empty()).then(|| tag.to_string())
+}
+
+/// Texto de las notas de una release. Esto si usa la API, pero solo se pide
+/// cuando hay una version nueva de LiquidCat (y se guarda: una vez por version).
+fn fetch_release_body(repo: &str, tag: &str) -> Option<String> {
+    let url = format!("https://api.github.com/repos/{repo}/releases/tags/{tag}");
+    let v: serde_json::Value = serde_json::from_slice(&fetch_bytes(&url, 1024 * 1024)?).ok()?;
+    Some(v.get("body")?.as_str()?.to_string())
+}
+
+fn tls() -> ureq::tls::TlsConfig {
+    ureq::tls::TlsConfig::builder().root_certs(ureq::tls::RootCerts::PlatformVerifier).build()
 }
 const FFMPEG_URL: &str = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
 const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
@@ -56,11 +86,7 @@ const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (
 /// Cliente HTTP que usa el almacen de certificados del sistema (funciona tras proxies/antivirus).
 pub fn agent() -> ureq::Agent {
     ureq::Agent::config_builder()
-        .tls_config(
-            ureq::tls::TlsConfig::builder()
-                .root_certs(ureq::tls::RootCerts::PlatformVerifier)
-                .build(),
-        )
+        .tls_config(tls())
         .timeout_connect(Some(Duration::from_secs(30)))
         .timeout_recv_response(Some(Duration::from_secs(60)))
         .build()
@@ -78,11 +104,14 @@ pub fn fetch_bytes(url: &str, max: u64) -> Option<Vec<u8>> {
 pub struct DepManager {
     pub dir: PathBuf,
     ver_cache: Mutex<HashMap<String, (Instant, String)>>,
+    // versions.json y latest.json se leen, modifican y escriben desde varios
+    // hilos a la vez al arrancar: sin esto una escritura pisaba a la otra.
+    files: Mutex<()>,
 }
 
 impl DepManager {
     pub fn new() -> Self {
-        DepManager { dir: util::bin_dir(), ver_cache: Mutex::new(HashMap::new()) }
+        DepManager { dir: util::bin_dir(), ver_cache: Mutex::new(HashMap::new()), files: Mutex::new(()) }
     }
 
     fn invalidate(&self) {
@@ -92,6 +121,11 @@ impl DepManager {
     /// Carpetas candidatas, en orden de prioridad: gestionada, ubicaciones tipicas, PATH.
     pub fn candidate_paths(&self, name: &str) -> Vec<PathBuf> {
         let file = format!("{name}{EXE}");
+        // yt-dlp en Windows: primero la copia "carpeta" de la app.
+        let mut first = Vec::new();
+        if cfg!(windows) && name == "yt-dlp" {
+            first.push(self.ytdlp_dir().join(&file));
+        }
         let mut folders: Vec<PathBuf> = vec![self.dir.clone()];
         if let Some(parent) = self.dir.parent().and_then(Path::parent) {
             folders.push(parent.join("YTReencoder").join("bin")); // carpeta de versiones antiguas
@@ -113,15 +147,37 @@ impl DepManager {
             folders.extend(std::env::split_paths(&path).filter(|p| !p.as_os_str().is_empty()));
         }
         let mut seen = std::collections::HashSet::new();
-        folders.into_iter().filter(|f| seen.insert(f.clone())).map(|f| f.join(&file)).collect()
+        first.extend(folders.into_iter().filter(|f| seen.insert(f.clone())).map(|f| f.join(&file)));
+        first
     }
 
     pub fn find_binary(&self, name: &str) -> Option<PathBuf> {
         self.candidate_paths(name).into_iter().find(|p| p.is_file())
     }
 
+    /// Borra el yt-dlp.exe de un solo archivo de versiones anteriores cuando ya
+    /// esta la version "carpeta" (si estaba en uso al migrar, no se pudo
+    /// borrar entonces). Las carpetas temporales de una actualizacion a medias
+    /// no se tocan aqui: las limpia la siguiente instalacion.
+    pub fn remove_leftovers(&self) {
+        if cfg!(windows) && self.managed_path("yt-dlp").is_some() {
+            let _ = std::fs::remove_file(self.dir.join("yt-dlp.exe"));
+        }
+    }
+
+    /// Carpeta de la copia de yt-dlp en Windows (yt-dlp.exe + _internal).
+    fn ytdlp_dir(&self) -> PathBuf {
+        self.dir.join("yt-dlp")
+    }
+
     pub fn managed_path(&self, name: &str) -> Option<PathBuf> {
-        let p = self.dir.join(format!("{name}{EXE}"));
+        // Un yt-dlp.exe suelto de versiones anteriores no cuenta como copia de
+        // la app: asi se reemplaza solo por la version "carpeta".
+        let p = if cfg!(windows) && name == "yt-dlp" {
+            self.ytdlp_dir().join(format!("{name}{EXE}"))
+        } else {
+            self.dir.join(format!("{name}{EXE}"))
+        };
         p.is_file().then_some(p)
     }
 
@@ -187,29 +243,25 @@ impl DepManager {
 
     pub fn download_ytdlp(&self, mut progress: impl FnMut(f64)) -> Result<PathBuf, String> {
         std::fs::create_dir_all(&self.dir).map_err(|e| e.to_string())?;
-        let target = self.dir.join(format!("yt-dlp{EXE}"));
+        // Windows baja un zip (se descomprime despues); el resto, el ejecutable.
+        let (file, share) = if cfg!(windows) { ("yt-dlp.zip".to_string(), 0.75) } else { (format!("yt-dlp{EXE}"), 1.0) };
+        let downloaded = self.dir.join(file);
         progress(0.0);
         let mut last_err = String::new();
         let n = YTDLP_SOURCES.len();
         for (i, url) in YTDLP_SOURCES.iter().enumerate() {
             for _ in 0..2 {
-                match self.download(url, &target, &mut progress) {
-                    Ok(()) if Self::is_valid_exe(&target) => {
-                        #[cfg(unix)]
-                        {
-                            use std::os::unix::fs::PermissionsExt;
-                            let _ = std::fs::set_permissions(&target, std::fs::Permissions::from_mode(0o755));
-                        }
+                let r = self
+                    .download(url, &downloaded, |f| progress(f * share))
+                    .and_then(|()| self.install_ytdlp(&downloaded, &mut progress));
+                match r {
+                    Ok(exe) => {
                         self.invalidate();
-                        return Ok(target);
-                    }
-                    Ok(()) => {
-                        last_err = "El archivo descargado no es un ejecutable valido (incompleto o corrupto).".into();
-                        let _ = std::fs::remove_file(&target);
+                        return Ok(exe);
                     }
                     Err(e) => {
                         last_err = e;
-                        let _ = std::fs::remove_file(&target);
+                        let _ = std::fs::remove_file(&downloaded);
                     }
                 }
             }
@@ -218,17 +270,75 @@ impl DepManager {
         Err(format!("No se pudo descargar yt-dlp: {last_err}"))
     }
 
-    /// URL del zip "essentials" de la ultima release de GyanD en GitHub.
-    fn ffmpeg_github_url() -> Option<String> {
-        let v = latest_release(FFMPEG_GITHUB_API)?;
-        v.get("assets")?.as_array()?.iter().find_map(|a| {
-            let name = a.get("name")?.as_str()?;
-            if name.ends_with("essentials_build.zip") {
-                a.get("browser_download_url")?.as_str().map(str::to_string)
-            } else {
-                None
+    /// Windows: descomprime el zip en una carpeta aparte y solo al final la
+    /// cambia por la anterior, asi un fallo a medias no deja yt-dlp roto.
+    #[cfg(windows)]
+    fn install_ytdlp(&self, zip_path: &Path, progress: &mut impl FnMut(f64)) -> Result<PathBuf, String> {
+        let corrupt = || "La descarga de yt-dlp llego corrupta o incompleta.".to_string();
+        let staging = self.dir.join("yt-dlp.new");
+        let _ = std::fs::remove_dir_all(&staging);
+        let mut extract = || -> Result<(), String> {
+            let f = std::fs::File::open(zip_path).map_err(|e| e.to_string())?;
+            let mut z = zip::ZipArchive::new(f).map_err(|_| corrupt())?;
+            let total = z.len().max(1);
+            for i in 0..z.len() {
+                let mut entry = z.by_index(i).map_err(|_| corrupt())?;
+                // enclosed_name descarta rutas que intenten salir de la carpeta.
+                let Some(rel) = entry.enclosed_name() else { continue };
+                let out = staging.join(rel);
+                if entry.is_dir() {
+                    std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+                    continue;
+                }
+                if let Some(parent) = out.parent() {
+                    std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                }
+                let mut file = std::fs::File::create(&out).map_err(|e| e.to_string())?;
+                // copiar hasta el final verifica el CRC del ZIP
+                std::io::copy(&mut entry, &mut file).map_err(|_| corrupt())?;
+                progress(0.75 + 0.2 * (i + 1) as f64 / total as f64);
             }
-        })
+            if Self::is_valid_exe(&staging.join("yt-dlp.exe")) { Ok(()) } else { Err(corrupt()) }
+        };
+        let r = extract();
+        let _ = std::fs::remove_file(zip_path);
+        if let Err(e) = r {
+            let _ = std::fs::remove_dir_all(&staging);
+            return Err(e);
+        }
+        let dest = self.ytdlp_dir();
+        let old = self.dir.join("yt-dlp.old");
+        let _ = std::fs::remove_dir_all(&old);
+        if dest.exists() && std::fs::rename(&dest, &old).is_err() {
+            let _ = std::fs::remove_dir_all(&staging);
+            return Err("yt-dlp esta en uso (hay una descarga en curso); intentalo de nuevo cuando termine.".into());
+        }
+        if let Err(e) = std::fs::rename(&staging, &dest) {
+            let _ = std::fs::rename(&old, &dest);
+            let _ = std::fs::remove_dir_all(&staging);
+            return Err(e.to_string());
+        }
+        let _ = std::fs::remove_dir_all(&old);
+        // El yt-dlp.exe de un solo archivo de versiones anteriores ya sobra.
+        let _ = std::fs::remove_file(self.dir.join("yt-dlp.exe"));
+        Ok(dest.join("yt-dlp.exe"))
+    }
+
+    #[cfg(not(windows))]
+    fn install_ytdlp(&self, exe: &Path, _progress: &mut impl FnMut(f64)) -> Result<PathBuf, String> {
+        if !Self::is_valid_exe(exe) {
+            return Err("El archivo descargado no es un ejecutable valido (incompleto o corrupto).".into());
+        }
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(exe, std::fs::Permissions::from_mode(0o755));
+        Ok(exe.to_path_buf())
+    }
+
+    /// URL del zip "essentials" de la ultima release de GyanD en GitHub (el
+    /// nombre del archivo sale de la version: ffmpeg-<tag>-essentials_build.zip).
+    fn ffmpeg_github_url(&self) -> Option<String> {
+        let tag = self.latest(FFMPEG_REPO, Duration::ZERO)?;
+        Some(format!("https://github.com/{FFMPEG_REPO}/releases/download/{tag}/ffmpeg-{tag}-essentials_build.zip"))
     }
 
     pub fn download_ffmpeg(&self, mut progress: impl FnMut(f64)) -> Result<(), String> {
@@ -238,7 +348,7 @@ impl DepManager {
         std::fs::create_dir_all(&self.dir).map_err(|e| e.to_string())?;
         let zip_path = self.dir.join("ffmpeg.zip");
         progress(0.02);
-        let mut sources: Vec<String> = Self::ffmpeg_github_url().into_iter().collect();
+        let mut sources: Vec<String> = self.ffmpeg_github_url().into_iter().collect();
         sources.push(FFMPEG_URL.to_string());
         let mut last_err = None;
         'sources: for url in &sources {
@@ -297,6 +407,13 @@ impl DepManager {
                 return v.clone();
             }
         }
+        // Si el ejecutable no cambio desde la ultima vez (mismo tamano y
+        // fecha), su version guardada vale: no hace falta ejecutarlo al abrir.
+        let stamp = file_stamp(path);
+        if let Some(v) = stamp.as_deref().and_then(|s| self.saved_version(&key, s)) {
+            self.ver_cache.lock().unwrap().insert(key, (Instant::now(), v.clone()));
+            return v;
+        }
         let line = util::cmd(path)
             .arg("--version")
             .output()
@@ -307,8 +424,35 @@ impl DepManager {
             })
             .unwrap_or_default();
         let version = parse_version(&line);
+        if let (Some(s), false) = (stamp, version.is_empty()) {
+            self.save_version(&key, &s, &version);
+        }
         self.ver_cache.lock().unwrap().insert(key, (Instant::now(), version.clone()));
         version
+    }
+
+    /// versions.json: { ruta: { "stamp": "tamano-fecha", "version": "..." } }
+    fn versions_file(&self) -> PathBuf {
+        self.dir.join("versions.json")
+    }
+
+    fn saved_version(&self, key: &str, stamp: &str) -> Option<String> {
+        let all: serde_json::Value = serde_json::from_slice(&std::fs::read(self.versions_file()).ok()?).ok()?;
+        let e = all.get(key)?;
+        (e.get("stamp")?.as_str()? == stamp).then(|| e.get("version")?.as_str().map(str::to_string))?
+    }
+
+    fn save_version(&self, key: &str, stamp: &str, version: &str) {
+        let _guard = self.files.lock().unwrap();
+        let path = self.versions_file();
+        let mut all: serde_json::Value = std::fs::read(&path)
+            .ok()
+            .and_then(|b| serde_json::from_slice(&b).ok())
+            .filter(serde_json::Value::is_object)
+            .unwrap_or_else(|| serde_json::json!({}));
+        all[key] = serde_json::json!({ "stamp": stamp, "version": version });
+        let _ = std::fs::create_dir_all(&self.dir);
+        let _ = std::fs::write(&path, serde_json::to_vec_pretty(&all).unwrap_or_default());
     }
 
     pub fn ytdlp_channel(&self, path: &Path) -> &'static str {
@@ -325,19 +469,88 @@ impl DepManager {
     /// (para no volver a descargarla). `None` si hay que descargar: no hay
     /// copia propia, es mas vieja, o no se pudo consultar GitHub.
     pub fn up_to_date(&self, key: &str) -> Option<String> {
-        if key == "ffmpeg" {
+        let (installed, latest) = self.installed_and_latest(key, Duration::ZERO)?;
+        (installed == latest).then_some(latest)
+    }
+
+    /// Hay una version nueva de la copia de la app (yt-dlp o ffmpeg). Consulta
+    /// GitHub como mucho cada `max_age`; si no hay copia propia, no se pudo
+    /// leer su version o GitHub no responde, devuelve false (sin aviso).
+    pub fn update_available(&self, key: &str, max_age: Duration) -> bool {
+        self.installed_and_latest(key, max_age).is_some_and(|(installed, latest)| installed != latest)
+    }
+
+    /// (version instalada, ultima publicada), comparables entre si.
+    fn installed_and_latest(&self, key: &str, max_age: Duration) -> Option<(String, String)> {
+        let installed = if key == "ffmpeg" {
             let ff = self.managed_path("ffmpeg")?;
             self.managed_path("ffprobe")?;
-            let installed = self.binary_version(&ff); // "9.0.2-essentials_build-www.gyan.dev"
-            let latest = latest_release(FFMPEG_GITHUB_API)?.get("tag_name")?.as_str()?.to_string(); // "9.0.2"
-            let base = installed.split('-').next().unwrap_or("");
-            (!latest.is_empty() && base == latest).then_some(latest)
+            // "9.0.2-essentials_build-www.gyan.dev" -> "9.0.2" (el tag de GyanD)
+            self.binary_version(&ff).split('-').next().unwrap_or("").to_string()
         } else {
-            let yt = self.managed_path("yt-dlp")?;
-            let installed = self.binary_version(&yt); // "2026.10.26.220202"
-            let latest = latest_release(YTDLP_GITHUB_API)?.get("tag_name")?.as_str()?.to_string();
-            (!latest.is_empty() && installed == latest).then_some(latest)
+            self.binary_version(&self.managed_path("yt-dlp")?) // "2026.10.26.220202"
+        };
+        let latest = self.latest(if key == "ffmpeg" { FFMPEG_REPO } else { YTDLP_REPO }, max_age)?;
+        (!installed.is_empty()).then_some((installed, latest))
+    }
+
+    // ------------------------------------------------------------ ultima version (con cache)
+    /// latest.json: { repo: { "checked": segundos, "tag": "...", "notes_tag": "...", "notes": "..." } }
+    fn latest_file(&self) -> PathBuf {
+        self.dir.join("latest.json")
+    }
+
+    fn read_latest(&self) -> serde_json::Value {
+        std::fs::read(self.latest_file())
+            .ok()
+            .and_then(|b| serde_json::from_slice(&b).ok())
+            .filter(serde_json::Value::is_object)
+            .unwrap_or_else(|| serde_json::json!({}))
+    }
+
+    /// Cambia la entrada de `repo` en latest.json, releyendo el archivo con el
+    /// cerrojo tomado para no perder lo que haya escrito otro hilo.
+    fn update_latest(&self, repo: &str, change: impl FnOnce(&mut serde_json::Value)) {
+        let _guard = self.files.lock().unwrap();
+        let mut all = self.read_latest();
+        change(&mut all[repo]);
+        let _ = std::fs::create_dir_all(&self.dir);
+        let _ = std::fs::write(self.latest_file(), serde_json::to_vec_pretty(&all).unwrap_or_default());
+    }
+
+    /// Ultima version de `repo`. Si se consulto hace menos de `max_age`, usa
+    /// la guardada sin preguntar a GitHub; si GitHub no responde, tambien
+    /// (aunque sea vieja). Duration::ZERO pregunta siempre.
+    pub fn latest(&self, repo: &str, max_age: Duration) -> Option<String> {
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        let all = self.read_latest();
+        let saved = all.get(repo);
+        let saved_tag = saved.and_then(|e| e.get("tag")).and_then(|t| t.as_str()).map(str::to_string);
+        let checked = saved.and_then(|e| e.get("checked")).and_then(|t| t.as_u64()).unwrap_or(0);
+        if saved_tag.is_some() && now.saturating_sub(checked) < max_age.as_secs() {
+            return saved_tag;
         }
+        let Some(tag) = latest_tag(repo) else { return saved_tag };
+        self.update_latest(repo, |e| {
+            e["checked"] = now.into();
+            e["tag"] = tag.clone().into();
+        });
+        Some(tag)
+    }
+
+    /// Notas de la release `tag` de `repo`, guardadas para no volver a
+    /// pedirlas a la API cada vez que se abre la app.
+    pub fn release_notes(&self, repo: &str, tag: &str) -> Option<String> {
+        let all = self.read_latest();
+        if let Some(e) = all.get(repo).filter(|e| e.get("notes_tag").and_then(|t| t.as_str()) == Some(tag)) {
+            return e.get("notes").and_then(|n| n.as_str()).map(str::to_string);
+        }
+        let body = fetch_release_body(repo, tag)?;
+        self.update_latest(repo, |e| {
+            e["notes_tag"] = tag.into();
+            e["notes"] = body.clone().into();
+        });
+        Some(body)
     }
 
     // ------------------------------------------------------------ acciones
@@ -360,6 +573,13 @@ impl DepManager {
         self.invalidate();
         errors
     }
+}
+
+/// "tamano-fecha de modificacion" de un archivo, para saber si cambio.
+fn file_stamp(path: &Path) -> Option<String> {
+    let m = std::fs::metadata(path).ok()?;
+    let t = m.modified().ok()?.duration_since(std::time::UNIX_EPOCH).ok()?;
+    Some(format!("{}-{}", m.len(), t.as_nanos()))
 }
 
 fn find_date_version(s: &str) -> Option<String> {

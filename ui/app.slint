@@ -147,15 +147,31 @@ component StatusPill inherits Rectangle {
             overflow: elide;
             max-width: 200px;
         }
-        if S.st == 1: HorizontalLayout {
-            spacing: 4px;
-            Icon { name: "check"; size: 13px; tint: Pal.success; }
-            Text { text: "yt-dlp"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+        // Con una version nueva, la dependencia cambia el check por una flecha
+        // de descarga en el color de acento; al pulsarla se actualiza.
+        if S.st == 1: Rectangle {
+            HorizontalLayout {
+                spacing: 4px;
+                Icon { name: S.upd-ytdlp ? "download" : "check"; size: 13px; tint: S.upd-ytdlp ? Pal.accent : Pal.success; }
+                Text { text: "yt-dlp"; color: S.upd-ytdlp ? Pal.accent : Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+            }
+            TouchArea {
+                enabled: S.upd-ytdlp;
+                mouse-cursor: S.upd-ytdlp ? pointer : default;
+                clicked => { S.dep-action("yt-dlp", "update"); }
+            }
         }
-        if S.st == 1: HorizontalLayout {
-            spacing: 4px;
-            Icon { name: "check"; size: 13px; tint: Pal.success; }
-            Text { text: "ffmpeg"; color: Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+        if S.st == 1: Rectangle {
+            HorizontalLayout {
+                spacing: 4px;
+                Icon { name: S.upd-ffmpeg ? "download" : "check"; size: 13px; tint: S.upd-ffmpeg ? Pal.accent : Pal.success; }
+                Text { text: "ffmpeg"; color: S.upd-ffmpeg ? Pal.accent : Pal.success; font-size: 11.5px; font-weight: 700; vertical-alignment: center; }
+            }
+            TouchArea {
+                enabled: S.upd-ffmpeg;
+                mouse-cursor: S.upd-ffmpeg ? pointer : default;
+                clicked => { S.dep-action("ffmpeg", "update"); }
+            }
         }
         if S.st == 1: Rectangle { width: 1px; height: 12px; y: (parent.height - self.height) / 2; background: Pal.line.with-alpha(0.7); }
         if S.st == 1: HorizontalLayout {

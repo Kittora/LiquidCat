@@ -23,6 +23,9 @@ export global S {
     // Puntos destacados de la nueva version y si su popup esta abierto.
     in-out property <[string]> update-notes;
     in-out property <bool> update-show: false;
+    // Hay version nueva de yt-dlp / ffmpeg (aviso en el indicador de arriba).
+    in-out property <bool> upd-ytdlp: false;
+    in-out property <bool> upd-ffmpeg: false;
     // Comprobacion de actualizaciones: 0 sin comprobar, 1 buscando, 2 al dia,
     // 3 hay version nueva, 4 no se pudo comprobar.
     in-out property <int> update-state: 0;

@@ -247,8 +247,10 @@ fn parse_semver(v: &str) -> (u64, u64, u64) {
 
 /// Mira en segundo plano si GitHub tiene una release mas nueva que la
 /// instalada; si la hay, la cabecera muestra un aviso que abre esa release.
-pub fn check_update(core: &Arc<Core>) {
-    const API: &str = "https://api.github.com/repos/Kittora/LiquidCat/releases/latest";
+/// Busca una version nueva de LiquidCat. Al abrir (`force` false) pregunta a
+/// GitHub como mucho cada 8 horas; el boton "Comprobar" de Ajustes, siempre.
+pub fn check_update(core: &Arc<Core>, force: bool) {
+    use crate::deps::LIQUIDCAT_REPO;
     // LIQUIDCAT_PRETEND_VERSION permite probar el aviso haciendose pasar por
     // una version anterior (solo para desarrollo).
     let current = std::env::var("LIQUIDCAT_PRETEND_VERSION").unwrap_or_else(|_| env!("CARGO_PKG_VERSION").to_string());
@@ -259,14 +261,15 @@ pub fn check_update(core: &Arc<Core>) {
     core.ui(|a| a.global::<S>().set_update_state(1));
     let core = core.clone();
     std::thread::spawn(move || {
-        let latest = crate::deps::fetch_bytes(API, 512 * 1024)
-            .and_then(|b| serde_json::from_slice::<Value>(&b).ok())
-            .and_then(|v| {
-                let tag = v.get("tag_name")?.as_str()?.to_string();
-                let url = v.get("html_url")?.as_str()?.to_string();
-                let notes = release_highlights(v.get("body").and_then(|b| b.as_str()).unwrap_or(""));
-                (!tag.is_empty() && !url.is_empty()).then_some((tag, url, notes))
-            });
+        let max_age = if force { Duration::ZERO } else { Duration::from_secs(8 * 3600) };
+        // La version sale de una redireccion de github.com (no de la API); las
+        // notas, de la API, pero solo si hay una version nueva.
+        let latest = core.deps.latest(LIQUIDCAT_REPO, max_age).map(|tag| {
+            let url = format!("https://github.com/{LIQUIDCAT_REPO}/releases/tag/{tag}");
+            let newer = parse_semver(&tag) > parse_semver(&current);
+            let notes = if newer { core.deps.release_notes(LIQUIDCAT_REPO, &tag).unwrap_or_default() } else { String::new() };
+            (tag, url, release_highlights(&notes))
+        });
         core.ui(move |a| {
             let s = a.global::<S>();
             match latest {
@@ -648,6 +651,7 @@ fn pick_folder(initial: &str) -> Option<String> {
 pub fn refresh_deps(core: &Arc<Core>) {
     let core = core.clone();
     std::thread::spawn(move || {
+        core.deps.remove_leftovers();
         core.refresh_bins();
         let b = core.bins();
         let mut rows = Vec::new();
@@ -730,11 +734,10 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
             });
         } else if core.cfg.lock().unwrap().pref_bool("auto_update_deps", true) {
             match core.deps.managed_path("yt-dlp") {
-                // actualiza la copia de la app cuando tiene mas de 7 dias
-                Some(p) => {
-                    let old = std::fs::metadata(&p).and_then(|m| m.modified()).ok()
-                        .and_then(|m| m.elapsed().ok()).map(|e| e > Duration::from_secs(7 * 86_400)).unwrap_or(false);
-                    if old {
+                // Se actualiza solo si hay una version nueva (comprobado como
+                // mucho una vez al dia), en vez de volver a bajarla a ciegas.
+                Some(_) => {
+                    if core.deps.update_available("yt-dlp", DAY) {
                         let _ = core.deps.download_ytdlp(|_| {});
                     }
                 }
@@ -749,6 +752,19 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
             }
         }
         refresh_deps(&core);
+        // Aviso de version nueva en el indicador de arriba: ffmpeg nunca se
+        // actualiza solo, y yt-dlp solo si la actualizacion automatica esta
+        // desactivada (si no, ya se actualizo justo arriba).
+        if !missing {
+            let auto = core.cfg.lock().unwrap().pref_bool("auto_update_deps", true);
+            let ytdlp = !auto && core.deps.update_available("yt-dlp", DAY);
+            let ffmpeg = core.deps.update_available("ffmpeg", DAY);
+            core.ui(move |a| {
+                let s = a.global::<S>();
+                s.set_upd_ytdlp(ytdlp);
+                s.set_upd_ffmpeg(ffmpeg);
+            });
+        }
         // Archivos locales no guarda sus ajustes: siempre arranca con la GPU
         // detectada. El descargador solo la toma en el primer arranque (luego
         // manda lo que el usuario dejo guardado).
@@ -762,6 +778,14 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
             s.set_local_hw_idx(idx);
         });
     });
+}
+
+/// Una comprobacion de version nueva de yt-dlp/ffmpeg por dia como mucho.
+const DAY: Duration = Duration::from_secs(24 * 3600);
+
+/// Quita el aviso de version nueva de una dependencia ya actualizada.
+fn clear_update_flag(s: &S<'_>, key: &str) {
+    if key == "ffmpeg" { s.set_upd_ffmpeg(false); } else { s.set_upd_ytdlp(false); }
 }
 
 fn dep_action(core: &Arc<Core>, app: &App, key: &str, action: &str) {
@@ -784,8 +808,10 @@ fn dep_action(core: &Arc<Core>, app: &App, key: &str, action: &str) {
         if check_first {
             if let Some(v) = core.deps.up_to_date(&key) {
                 let msg = uif(&core.lang(), "dep_up_to_date", &[("v", &v)]);
+                let done_key = key.clone();
                 core.ui(move |a| {
                     let s = a.global::<S>();
+                    clear_update_flag(&s, &done_key);
                     s.set_dep_busy(false);
                     s.set_dep_result(1);
                     s.set_dep_progress(1.0);
@@ -799,12 +825,16 @@ fn dep_action(core: &Arc<Core>, app: &App, key: &str, action: &str) {
         let r = if key == "ffmpeg" { core.deps.download_ffmpeg(prog) } else { core.deps.download_ytdlp(prog).map(|_| ()) };
         let lang = core.lang();
         let (msg, ok) = match r { Ok(()) => (ui(&lang, "dep_action_done"), true), Err(e) => (format!("{}\n{}", ui(&lang, "dep_action_error"), crate::deps::error_text(&lang, &e)), false) };
+        let done_key = key.clone();
         core.ui(move |a| {
             let s = a.global::<S>();
             s.set_dep_busy(false);
             s.set_dep_result(if ok { 1 } else { 2 });
             s.set_dep_msg(ss(&msg));
-            if ok { s.set_dep_progress(1.0); }
+            if ok {
+                s.set_dep_progress(1.0);
+                clear_update_flag(&s, &done_key);
+            }
         });
         refresh_deps(&core);
     });
@@ -962,7 +992,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     });
     cb!(on_fetch_formats, |a, c| { fetch(&c, &a); });
     cb!(on_quality_changed, |a, c| { sync_formats_to_quality(&c, &a); });
-    cb!(on_check_updates, |_a, c| { check_update(&c); });
+    cb!(on_check_updates, |_a, c| { check_update(&c, true); });
 
     // ---- descargas
     cb!(on_start_download, |a, c| {
