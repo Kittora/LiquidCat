@@ -1727,6 +1727,7 @@ pub static BE_ES: &[(&str, &str)] = &[
     ("prep_msg", "LiquidCat necesita preparar sus herramientas multimedia. Esto solo ocurre una vez."),
     ("gpu_fallback", "[!] La GPU {gpu} no pudo codificar este formato; reintentando con la CPU…"),
     ("bot_check", "YouTube pide confirmar que no eres un bot. Espera unos minutos y reintenta, o usa las cookies de Firefox en Opciones avanzadas."),
+    ("ffmpeg_manual", "En este sistema, instala ffmpeg con tu gestor de paquetes (por ejemplo: {cmd}) y vuelve a abrir LiquidCat."),
 ];
 
 pub static BE_EN: &[(&str, &str)] = &[
@@ -1764,6 +1765,7 @@ pub static BE_EN: &[(&str, &str)] = &[
     ("prep_msg", "LiquidCat needs to prepare its media tools. This only happens once."),
     ("gpu_fallback", "[!] The {gpu} GPU couldn't encode this format; retrying with the CPU…"),
     ("bot_check", "YouTube is asking to confirm you're not a bot. Wait a few minutes and retry, or use Firefox cookies in Advanced options."),
+    ("ffmpeg_manual", "On this system, install ffmpeg with your package manager (for example: {cmd}) and reopen LiquidCat."),
 ];
 
 pub static BE_PT: &[(&str, &str)] = &[
@@ -1801,6 +1803,7 @@ pub static BE_PT: &[(&str, &str)] = &[
     ("prep_msg", "O LiquidCat precisa preparar suas ferramentas de mídia. Isso só acontece uma vez."),
     ("gpu_fallback", "[!] A GPU {gpu} não conseguiu codificar este formato; tentando novamente com a CPU…"),
     ("bot_check", "O YouTube pede para confirmar que você não é um bot. Espere alguns minutos e tente de novo, ou use os cookies do Firefox nas Opções avançadas."),
+    ("ffmpeg_manual", "Neste sistema, instale o ffmpeg com seu gerenciador de pacotes (por exemplo: {cmd}) e abra o LiquidCat novamente."),
 ];
 
 pub static BE_FR: &[(&str, &str)] = &[
@@ -1838,6 +1841,7 @@ pub static BE_FR: &[(&str, &str)] = &[
     ("prep_msg", "LiquidCat doit préparer ses outils multimédias. Cela n'arrive qu'une seule fois."),
     ("gpu_fallback", "[!] Le GPU {gpu} n'a pas pu encoder ce format ; nouvelle tentative avec le CPU…"),
     ("bot_check", "YouTube demande de confirmer que vous n'êtes pas un robot. Attendez quelques minutes et réessayez, ou utilisez les cookies de Firefox dans les Options avancées."),
+    ("ffmpeg_manual", "Sur ce système, installez ffmpeg avec votre gestionnaire de paquets (par exemple : {cmd}) puis rouvrez LiquidCat."),
 ];
 
 pub static BE_DE: &[(&str, &str)] = &[
@@ -1875,6 +1879,7 @@ pub static BE_DE: &[(&str, &str)] = &[
     ("prep_msg", "LiquidCat muss seine Medienwerkzeuge vorbereiten. Das passiert nur einmal."),
     ("gpu_fallback", "[!] Die {gpu}-GPU konnte dieses Format nicht kodieren; neuer Versuch mit der CPU…"),
     ("bot_check", "YouTube möchte bestätigt haben, dass du kein Bot bist. Warte ein paar Minuten und versuche es erneut, oder nutze die Firefox-Cookies in den Erweiterten Optionen."),
+    ("ffmpeg_manual", "Installiere ffmpeg auf diesem System mit deinem Paketmanager (zum Beispiel: {cmd}) und öffne LiquidCat erneut."),
 ];
 
 pub static BE_IT: &[(&str, &str)] = &[
@@ -1912,6 +1917,7 @@ pub static BE_IT: &[(&str, &str)] = &[
     ("prep_msg", "LiquidCat deve preparare i suoi strumenti multimediali. Succede solo una volta."),
     ("gpu_fallback", "[!] La GPU {gpu} non è riuscita a codificare questo formato; nuovo tentativo con la CPU…"),
     ("bot_check", "YouTube chiede di confermare che non sei un bot. Aspetta qualche minuto e riprova, oppure usa i cookie di Firefox nelle Opzioni avanzate."),
+    ("ffmpeg_manual", "Su questo sistema, installa ffmpeg con il tuo gestore di pacchetti (per esempio: {cmd}) e riapri LiquidCat."),
 ];
 
 /// Tabla de textos de la interfaz para un idioma (ingles si no existe).

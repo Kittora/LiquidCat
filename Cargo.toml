@@ -29,6 +29,8 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 arboard = { version = "3", default-features = false }
 open = "5"
+# Idioma del sistema (para elegir el idioma de la app la primera vez).
+sys-locale = "0.3"
 fs2 = "0.4"
 
 [target.'cfg(windows)'.dependencies]

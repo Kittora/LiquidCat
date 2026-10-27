@@ -145,7 +145,7 @@ impl Core {
         let cfg = Config::load();
         let lang = {
             let l = cfg.pref_str("lang");
-            if crate::lang::supported(&l) { l } else { crate::lang::DEFAULT.to_string() }
+            if crate::lang::supported(&l) { l } else { crate::lang::system() }
         };
         Arc::new(Core {
             ui,

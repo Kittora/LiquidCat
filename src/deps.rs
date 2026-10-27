@@ -29,6 +29,23 @@ const FFMPEG_GITHUB_API: &str = "https://api.github.com/repos/GyanD/codexffmpeg/
 /// Ultima build nightly de yt-dlp (la que descarga la app primero).
 const YTDLP_GITHUB_API: &str = "https://api.github.com/repos/yt-dlp/yt-dlp-nightly-builds/releases/latest";
 
+/// Error de `download_ffmpeg` fuera de Windows: alli ffmpeg se instala con el
+/// gestor de paquetes. `error_text` lo convierte en el aviso traducido.
+pub const FFMPEG_MANUAL: &str = "ffmpeg_manual";
+#[cfg(target_os = "macos")]
+const FFMPEG_INSTALL_CMD: &str = "brew install ffmpeg";
+#[cfg(not(target_os = "macos"))]
+const FFMPEG_INSTALL_CMD: &str = "sudo apt install ffmpeg";
+
+/// Texto para mostrar de un error de dependencias, en el idioma de la app.
+pub fn error_text(lang: &str, err: &str) -> String {
+    if err == FFMPEG_MANUAL {
+        crate::lang::trf(lang, FFMPEG_MANUAL, &[("cmd", FFMPEG_INSTALL_CMD)])
+    } else {
+        err.to_string()
+    }
+}
+
 /// JSON de la ultima release de un repositorio (API publica de GitHub).
 fn latest_release(api: &str) -> Option<serde_json::Value> {
     serde_json::from_slice(&fetch_bytes(api, 1024 * 1024)?).ok()
@@ -216,7 +233,7 @@ impl DepManager {
 
     pub fn download_ffmpeg(&self, mut progress: impl FnMut(f64)) -> Result<(), String> {
         if !cfg!(windows) {
-            return Err("En este sistema instala ffmpeg con tu gestor de paquetes (debe estar en el PATH).".into());
+            return Err(FFMPEG_MANUAL.into());
         }
         std::fs::create_dir_all(&self.dir).map_err(|e| e.to_string())?;
         let zip_path = self.dir.join("ffmpeg.zip");

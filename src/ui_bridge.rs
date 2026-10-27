@@ -714,7 +714,8 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
                 });
             });
             let failed = !errors.is_empty();
-            let err_text = errors.join("\n");
+            let lang = core.lang();
+            let err_text = errors.iter().map(|e| crate::deps::error_text(&lang, e)).collect::<Vec<_>>().join("\n");
             core.ui(move |a| {
                 let s = a.global::<S>();
                 s.set_dep_busy(false);
@@ -797,7 +798,7 @@ fn dep_action(core: &Arc<Core>, app: &App, key: &str, action: &str) {
         let prog = move |f: f64| c2.ui(move |a| a.global::<S>().set_dep_progress(f as f32));
         let r = if key == "ffmpeg" { core.deps.download_ffmpeg(prog) } else { core.deps.download_ytdlp(prog).map(|_| ()) };
         let lang = core.lang();
-        let (msg, ok) = match r { Ok(()) => (ui(&lang, "dep_action_done"), true), Err(e) => (format!("{}\n{}", ui(&lang, "dep_action_error"), e), false) };
+        let (msg, ok) = match r { Ok(()) => (ui(&lang, "dep_action_done"), true), Err(e) => (format!("{}\n{}", ui(&lang, "dep_action_error"), crate::deps::error_text(&lang, &e)), false) };
         core.ui(move |a| {
             let s = a.global::<S>();
             s.set_dep_busy(false);

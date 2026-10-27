@@ -313,6 +313,7 @@
   "prep_title": "Preparazione delle dipendenze",
   "prep_msg": "LiquidCat deve preparare i suoi strumenti multimediali. Succede solo una volta.",
   "gpu_fallback": "[!] La GPU {gpu} non è riuscita a codificare questo formato; nuovo tentativo con la CPU…",
-  "bot_check": "YouTube chiede di confermare che non sei un bot. Aspetta qualche minuto e riprova, oppure usa i cookie di Firefox nelle Opzioni avanzate."
+  "bot_check": "YouTube chiede di confermare che non sei un bot. Aspetta qualche minuto e riprova, oppure usa i cookie di Firefox nelle Opzioni avanzate.",
+  "ffmpeg_manual": "Su questo sistema, installa ffmpeg con il tuo gestore di pacchetti (per esempio: {cmd}) e riapri LiquidCat."
  }
 }

@@ -2543,6 +2543,7 @@ dependencies = [
  "serde_json",
  "slint",
  "slint-build",
+ "sys-locale",
  "ureq",
  "windows",
  "windows-sys 0.59.0",
