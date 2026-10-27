@@ -15,11 +15,20 @@ export global S {
     // Indices de la opcion recomendada en las listas de formatos (estrella).
     in-out property <int> video-best: 0;
     in-out property <int> audio-best: 0;
-    // Actividad: trabajo en curso (0 sin trabajo, 1 en curso, 2 listo, 3 fallo)
-    // y si se ve el registro tecnico completo.
+    // Actividad: trabajo en curso (0 sin trabajo, 1 en curso, 2 listo, 3 fallo).
+    // Version instalada y, si GitHub tiene una mas nueva, cual y su enlace.
+    in-out property <string> app-version;
+    in-out property <string> update-version;
+    in-out property <string> update-url;
+    // Comprobacion de actualizaciones: 0 sin comprobar, 1 buscando, 2 al dia,
+    // 3 hay version nueva, 4 no se pudo comprobar.
+    in-out property <int> update-state: 0;
+    callback check-updates();
     in-out property <string> current-title;
     in-out property <int> current-state: 0;
-    in-out property <bool> log-details: false;
+    // Tarjeta flotante de Actividad (Descargador / Archivos locales): aparece al
+    // empezar un trabajo y Rust la oculta unos segundos despues de terminar.
+    in-out property <bool> act-visible: false;
     in-out property <[string]> lang-names;
     in-out property <[string]> lang-codes;
     in-out property <int> lang-idx: 0;
@@ -27,7 +36,7 @@ export global S {
     // Icono de la cabecera del tema activo (lo pone themes.rs).
     in-out property <image> logo: @image-url("../assets/theme-icons/catppuccin.png");
     in-out property <int> tab: 0;
-    // 0 ninguno, 1 ajustes, 2 creditos, 3 wiki, 4 historial
+    // 0 ninguno, 1 ajustes, 2 creditos, 3 wiki, 4 historial, 5 registro tecnico
     in-out property <int> modal: 0;
 
     // ---- estado de dependencias: 0 verificando, 1 listas, 2 faltan
@@ -100,6 +109,8 @@ export global S {
     in-out property <float> progress: 0;
     in-out property <string> progress-label;
     in-out property <[LogLine]> log;
+    // Ultimos eventos amigables (los rellena Rust) para la tarjeta de Actividad.
+    in-out property <[LogLine]> events;
     in-out property <int> log-rev: 0;
     in-out property <bool> can-open-folder: false;
 
@@ -122,6 +133,8 @@ export global S {
     in-out property <string> dep-msg;
     in-out property <float> dep-progress: 0;
     in-out property <bool> dep-busy: false;
+    // Resultado del ultimo trabajo del popup: 0 en curso/sin resultado, 1 ok, 2 fallo.
+    in-out property <int> dep-result: 0;
     in-out property <bool> dep-show: false;
     in-out property <bool> dep-prep: false;
 

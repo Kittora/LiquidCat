@@ -231,13 +231,59 @@ export component AllModals inherits Rectangle {
                             Text { text: T.dep-version + ": " + (d.version == "" ? "—" : d.version); color: Pal.muted; font-size: 11.5px; min-height: 18px; overflow: elide; }
                             Text { text: T.dep-path + ": " + (d.path == "" ? "—" : d.path); color: Pal.muted; font-size: 11.5px; min-height: 18px; overflow: elide; }
                         }
-                        HorizontalLayout {
+                        // Fila de botones centrada en vertical: suelta en la fila se
+                        // estiraba al alto de la caja.
+                        VerticalLayout { alignment: center; HorizontalLayout {
                             spacing: 6px;
-                            alignment: center;
                             Btn { small: true; text: T.dep-install; enabled: !d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "install"); } }
                             Btn { small: true; text: T.dep-update; enabled: d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "update"); } }
                             Btn { small: true; text: T.dep-reinstall; enabled: d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "reinstall"); } }
+                        } }
+                    }
+                }
+
+                // ---- Acerca de: version instalada y actualizaciones
+                H3 { icon: "info"; text: T.about-title; tint: Pal.accent; }
+                Box {
+                    height: 88px;
+                    HorizontalLayout {
+                        padding: 11px;
+                        padding-left: 13px;
+                        spacing: 12px;
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            spacing: 3px;
+                            alignment: center;
+                            Text { text: "LiquidCat v" + S.app-version; color: Pal.text; font-size: 13px; font-weight: 800; }
+                            HorizontalLayout {
+                                spacing: 6px;
+                                alignment: start;
+                                Icon {
+                                    size: 14px;
+                                    name: S.update-state == 1 ? "spinner" : S.update-state == 2 ? "check" : S.update-state == 3 ? "download" : S.update-state == 4 ? "warning" : "info";
+                                    spin: S.update-state == 1;
+                                    tint: S.update-state == 2 ? Pal.success : S.update-state == 3 ? Pal.accent : S.update-state == 4 ? Pal.warning : Pal.muted;
+                                }
+                                Text {
+                                    text: S.update-state == 1 ? T.about-checking
+                                        : S.update-state == 2 ? T.about-uptodate
+                                        : S.update-state == 3 ? T.about-new + " v" + S.update-version
+                                        : S.update-state == 4 ? T.about-error
+                                        : "";
+                                    color: S.update-state == 3 ? Pal.accent : Pal.muted;
+                                    font-size: 12px;
+                                    font-weight: S.update-state == 3 ? 700 : 500;
+                                    min-height: 19px;
+                                    vertical-alignment: center;
+                                }
+                            }
+                            Link { text: T.about-notes; url: "https://github.com/Kittora/LiquidCat/releases/tag/v" + S.app-version; }
                         }
+                        VerticalLayout { alignment: center; HorizontalLayout {
+                            spacing: 6px;
+                            if S.update-state == 3: Btn { small: true; kind: "primary"; icon: "download"; text: T.about-get; clicked => { S.open-link(S.update-url); } }
+                            Btn { small: true; icon: "refresh"; text: T.about-check; enabled: S.update-state != 1; clicked => { S.check-updates(); } }
+                        } }
                     }
                 }
             }
@@ -437,26 +483,97 @@ export component AllModals inherits Rectangle {
         }
     }
 
+    // ---------------------------------------------------------------- Registro tecnico
+    if S.modal == 5: ModalFrame {
+        title: T.act-log-title;
+        w: 820px;
+        close => { S.modal = 0; }
+        Rectangle {
+            vertical-stretch: 1;
+            border-radius: Pal.radius-sm;
+            border-width: 1px;
+            border-color: Pal.log-border;
+            background: Pal.log-bg;
+            if S.log.length == 0: Text {
+                x: 12px;
+                y: 10px;
+                text: T.act-empty;
+                color: Pal.muted;
+                font-size: 12px;
+            }
+            log-scroll := VScroll {
+                x: 0px;
+                y: 8px;
+                width: parent.width;
+                height: parent.height - 16px;
+                VerticalLayout {
+                    padding-left: 12px;
+                    padding-right: 6px;
+                    spacing: 1px;
+                    for l in S.log: Text {
+                        text: l.text;
+                        wrap: word-wrap;
+                        font-size: 12px;
+                        color: l.level == 1 ? Pal.log-cmd : l.level == 2 ? Pal.log-ok : l.level == 3 ? Pal.log-err : l.level == 4 || l.level == 5 ? Pal.log-info : Pal.log-text;
+                    }
+                }
+            }
+            // Al abrir y con cada linea nueva se baja al final.
+            scroll-timer := Timer {
+                interval: 40ms;
+                running: true;
+                triggered => {
+                    log-scroll.scroll-to-end();
+                    self.running = false;
+                }
+            }
+            Rectangle {
+                width: 0px;
+                height: 0px;
+                property <int> rev: S.log-rev;
+                changed rev => { scroll-timer.running = true; }
+            }
+        }
+        ModalFoot { Btn { kind: "primary"; text: T.btn-close; clicked => { S.modal = 0; } } }
+    }
+
     // ---------------------------------------------------------------- Dependencias (progreso / primer inicio)
     if S.dep-show: Rectangle {
         background: #03081099;
         TouchArea { }
         Panel {
+            // Alto segun el contenido (mensajes de error largos) y opaco.
             width: 440px;
-            height: 230px;
+            height: Math.min(dep-lay.preferred-height, parent.height - 40px);
             x: Math.round((parent.width - self.width) / 2 / 1phx) * 1phx;
             y: Math.round((parent.height - self.height) / 2 / 1phx) * 1phx;
-            alpha: Pal.a-strong;
-            VerticalLayout {
+            alpha: Pal.a-solid;
+            dep-lay := VerticalLayout {
                 padding: 22px;
                 spacing: 12px;
                 alignment: center;
-                Rectangle {
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 18px;
-                    background: Pal.accent;
-                    Icon { name: "refresh"; size: 18px; tint: Pal.on-accent; x: 9px; }
+                // El circulo va en una fila centrada: suelto en el layout vertical
+                // quedaba pegado a la izquierda.
+                HorizontalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 36px;
+                        height: 36px;
+                        border-radius: Pal.brutal ? 2px : 18px;
+                        // Al terminar: check verde si quedo bien, cruz roja si fallo.
+                        background: S.dep-result == 1 ? Pal.success : S.dep-result == 2 ? Pal.danger : Pal.accent;
+                        animate background { duration: 200ms; }
+                        Icon {
+                            width: 18px;
+                            height: 18px;
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
+                            name: S.dep-busy ? "spinner" : S.dep-result == 1 ? "check" : S.dep-result == 2 ? "x" : "refresh";
+                            spin: S.dep-busy;
+                            size: 18px;
+                            tint: S.dep-result == 2 ? #ffffff : Pal.on-accent;
+                        }
+                    }
                 }
                 Text { text: S.dep-title; color: Pal.text; font-size: 14px; font-weight: 700; horizontal-alignment: center; wrap: word-wrap; }
                 Text { text: S.dep-msg; color: Pal.muted; font-size: 12.5px; horizontal-alignment: center; wrap: word-wrap; }
@@ -468,7 +585,7 @@ export component AllModals inherits Rectangle {
                     Rectangle {
                         x: 0px;
                         width: parent.width * Math.max(0.0, Math.min(1.0, S.dep-progress));
-                        background: @linear-gradient(90deg, Pal.accent 0%, Pal.accent2 100%);
+                        background: S.dep-result == 1 ? Pal.success : S.dep-result == 2 ? Pal.danger : @linear-gradient(90deg, Pal.accent 0%, Pal.accent2 100%);
                     }
                 }
                 HorizontalLayout {
@@ -486,15 +603,14 @@ export component AllModals inherits Rectangle {
         background: #03081099;
         TouchArea { }
         Panel {
-            // Los dialogos de error/aviso no necesitan ocupar todo el alto:
-            // antes el Panel se estiraba y el mensaje quedaba en un panel
-            // enorme. El prompt de texto necesita un poco mas de altura.
-            width: S.dlg == 6 ? 580px : S.dlg == 3 ? 420px : 440px;
-            height: S.dlg == 6 ? 430px : S.dlg == 5 ? 290px : S.dlg == 4 ? 250px : 230px;
+            // El alto sale del contenido: con un mensaje largo el boton se
+            // salia del panel. Opaco para que no se lea lo de detras.
+            width: S.dlg == 6 ? 580px : S.dlg == 3 ? 460px : 440px;
+            height: Math.min(dlg-lay.preferred-height, parent.height - 40px);
             x: Math.round((parent.width - self.width) / 2 / 1phx) * 1phx;
             y: Math.round((parent.height - self.height) / 2 / 1phx) * 1phx;
-            alpha: Pal.a-strong;
-            VerticalLayout {
+            alpha: Pal.a-solid;
+            dlg-lay := VerticalLayout {
                 padding: 22px;
                 spacing: 12px;
                 alignment: center;

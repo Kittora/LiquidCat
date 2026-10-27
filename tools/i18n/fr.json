@@ -261,7 +261,19 @@
   "act_idle": "Aucune tâche en cours",
   "act_idle_hint": "Vos téléchargements et conversions s'afficheront ici.",
   "act_empty": "Aucune activité pour l'instant.",
-  "toast_defaults": "Réglages par défaut restaurés"
+  "toast_defaults": "Réglages par défaut restaurés",
+  "act_log_title": "Journal technique",
+  "update_new": "Nouvelle version",
+  "err_bot": "YouTube demande de confirmer que vous n'êtes pas un robot. C'est généralement temporaire (votre réseau ou trop de requêtes d'affilée) : attendez quelques minutes et réessayez. Si cela continue, choisissez les cookies de Firefox dans les Options avancées en étant connecté à YouTube.",
+  "dep_up_to_date": "Vous avez déjà la dernière version ({v}) ; rien à télécharger.",
+  "about_title": "À propos",
+  "about_check": "Rechercher des mises à jour",
+  "about_checking": "Recherche de mises à jour…",
+  "about_uptodate": "Vous avez la dernière version",
+  "about_new": "Une nouvelle version est disponible :",
+  "about_error": "Impossible de vérifier (hors ligne ?)",
+  "about_get": "Télécharger",
+  "about_notes": "Notes de cette version"
  },
  "backend": {
   "dl_video": "Récupération de la vidéo…",
@@ -296,6 +308,7 @@
   "ytdlp_failed": "yt-dlp a échoué.",
   "prep_title": "Préparation des dépendances",
   "prep_msg": "LiquidCat doit préparer ses outils multimédias. Cela n'arrive qu'une seule fois.",
-  "gpu_fallback": "[!] Le GPU {gpu} n'a pas pu encoder ce format ; nouvelle tentative avec le CPU…"
+  "gpu_fallback": "[!] Le GPU {gpu} n'a pas pu encoder ce format ; nouvelle tentative avec le CPU…",
+  "bot_check": "YouTube demande de confirmer que vous n'êtes pas un robot. Attendez quelques minutes et réessayez, ou utilisez les cookies de Firefox dans les Options avancées."
  }
 }

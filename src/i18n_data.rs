@@ -274,6 +274,18 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("act_idle_hint", "Lo que descargues o conviertas aparecerá aquí."),
     ("act_empty", "Todavía no hay actividad."),
     ("toast_defaults", "Ajustes por defecto restaurados"),
+    ("act_log_title", "Registro técnico"),
+    ("update_new", "Nueva versión"),
+    ("err_bot", "YouTube pide confirmar que no eres un bot. Suele ser temporal (por tu red o por muchas peticiones seguidas): espera unos minutos y vuelve a intentarlo. Si sigue pasando, en Opciones avanzadas elige las cookies de Firefox con tu sesión de YouTube iniciada."),
+    ("dep_up_to_date", "Ya tienes la versión más reciente ({v}); no hace falta descargar nada."),
+    ("about_title", "Acerca de"),
+    ("about_check", "Buscar actualizaciones"),
+    ("about_checking", "Buscando actualizaciones…"),
+    ("about_uptodate", "Tienes la última versión"),
+    ("about_new", "Hay una versión nueva:"),
+    ("about_error", "No se pudo comprobar (¿sin conexión?)"),
+    ("about_get", "Descargar"),
+    ("about_notes", "Notas de esta versión"),
 ];
 
 pub static UI_EN: &[(&str, &str)] = &[
@@ -538,6 +550,18 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("act_idle_hint", "Your downloads and conversions will show up here."),
     ("act_empty", "No activity yet."),
     ("toast_defaults", "Default settings restored"),
+    ("act_log_title", "Technical log"),
+    ("update_new", "New version"),
+    ("err_bot", "YouTube is asking to confirm you're not a bot. It's usually temporary (your network or too many requests in a row): wait a few minutes and try again. If it keeps happening, pick Firefox cookies in Advanced options while signed in to YouTube."),
+    ("dep_up_to_date", "You already have the latest version ({v}); nothing to download."),
+    ("about_title", "About"),
+    ("about_check", "Check for updates"),
+    ("about_checking", "Checking for updates…"),
+    ("about_uptodate", "You have the latest version"),
+    ("about_new", "A new version is available:"),
+    ("about_error", "Couldn't check (offline?)"),
+    ("about_get", "Download"),
+    ("about_notes", "Release notes for this version"),
 ];
 
 pub static UI_PT: &[(&str, &str)] = &[
@@ -802,6 +826,18 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("act_idle_hint", "Seus downloads e conversões aparecerão aqui."),
     ("act_empty", "Ainda não há atividade."),
     ("toast_defaults", "Configurações padrão restauradas"),
+    ("act_log_title", "Registro técnico"),
+    ("update_new", "Nova versão"),
+    ("err_bot", "O YouTube está pedindo para confirmar que você não é um bot. Costuma ser temporário (sua rede ou muitas solicitações seguidas): espere alguns minutos e tente de novo. Se continuar, escolha os cookies do Firefox nas Opções avançadas com sua sessão do YouTube iniciada."),
+    ("dep_up_to_date", "Você já tem a versão mais recente ({v}); não é preciso baixar nada."),
+    ("about_title", "Sobre"),
+    ("about_check", "Procurar atualizações"),
+    ("about_checking", "Procurando atualizações…"),
+    ("about_uptodate", "Você tem a versão mais recente"),
+    ("about_new", "Há uma nova versão:"),
+    ("about_error", "Não foi possível verificar (sem conexão?)"),
+    ("about_get", "Baixar"),
+    ("about_notes", "Notas desta versão"),
 ];
 
 pub static UI_FR: &[(&str, &str)] = &[
@@ -1066,6 +1102,18 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("act_idle_hint", "Vos téléchargements et conversions s'afficheront ici."),
     ("act_empty", "Aucune activité pour l'instant."),
     ("toast_defaults", "Réglages par défaut restaurés"),
+    ("act_log_title", "Journal technique"),
+    ("update_new", "Nouvelle version"),
+    ("err_bot", "YouTube demande de confirmer que vous n'êtes pas un robot. C'est généralement temporaire (votre réseau ou trop de requêtes d'affilée) : attendez quelques minutes et réessayez. Si cela continue, choisissez les cookies de Firefox dans les Options avancées en étant connecté à YouTube."),
+    ("dep_up_to_date", "Vous avez déjà la dernière version ({v}) ; rien à télécharger."),
+    ("about_title", "À propos"),
+    ("about_check", "Rechercher des mises à jour"),
+    ("about_checking", "Recherche de mises à jour…"),
+    ("about_uptodate", "Vous avez la dernière version"),
+    ("about_new", "Une nouvelle version est disponible :"),
+    ("about_error", "Impossible de vérifier (hors ligne ?)"),
+    ("about_get", "Télécharger"),
+    ("about_notes", "Notes de cette version"),
 ];
 
 pub static UI_DE: &[(&str, &str)] = &[
@@ -1330,6 +1378,18 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("act_idle_hint", "Deine Downloads und Konvertierungen erscheinen hier."),
     ("act_empty", "Noch keine Aktivität."),
     ("toast_defaults", "Standardeinstellungen wiederhergestellt"),
+    ("act_log_title", "Technisches Protokoll"),
+    ("update_new", "Neue Version"),
+    ("err_bot", "YouTube möchte bestätigt haben, dass du kein Bot bist. Das ist meist vorübergehend (dein Netzwerk oder zu viele Anfragen hintereinander): warte ein paar Minuten und versuche es erneut. Wenn es weiter passiert, wähle in den Erweiterten Optionen die Firefox-Cookies, während du bei YouTube angemeldet bist."),
+    ("dep_up_to_date", "Du hast bereits die neueste Version ({v}); es muss nichts heruntergeladen werden."),
+    ("about_title", "Über"),
+    ("about_check", "Nach Updates suchen"),
+    ("about_checking", "Suche nach Updates…"),
+    ("about_uptodate", "Du hast die neueste Version"),
+    ("about_new", "Eine neue Version ist verfügbar:"),
+    ("about_error", "Prüfung fehlgeschlagen (offline?)"),
+    ("about_get", "Herunterladen"),
+    ("about_notes", "Versionshinweise"),
 ];
 
 pub static UI_IT: &[(&str, &str)] = &[
@@ -1594,6 +1654,18 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("act_idle_hint", "I tuoi download e le tue conversioni appariranno qui."),
     ("act_empty", "Ancora nessuna attività."),
     ("toast_defaults", "Impostazioni predefinite ripristinate"),
+    ("act_log_title", "Registro tecnico"),
+    ("update_new", "Nuova versione"),
+    ("err_bot", "YouTube chiede di confermare che non sei un bot. Di solito è temporaneo (la tua rete o troppe richieste di fila): aspetta qualche minuto e riprova. Se continua, scegli i cookie di Firefox nelle Opzioni avanzate con l'accesso a YouTube effettuato."),
+    ("dep_up_to_date", "Hai già la versione più recente ({v}); non serve scaricare nulla."),
+    ("about_title", "Informazioni"),
+    ("about_check", "Cerca aggiornamenti"),
+    ("about_checking", "Ricerca aggiornamenti…"),
+    ("about_uptodate", "Hai la versione più recente"),
+    ("about_new", "È disponibile una nuova versione:"),
+    ("about_error", "Impossibile verificare (offline?)"),
+    ("about_get", "Scarica"),
+    ("about_notes", "Note di questa versione"),
 ];
 
 pub static BE_ES: &[(&str, &str)] = &[
@@ -1630,6 +1702,7 @@ pub static BE_ES: &[(&str, &str)] = &[
     ("prep_title", "Preparando dependencias"),
     ("prep_msg", "LiquidCat necesita preparar sus herramientas multimedia. Esto solo ocurre una vez."),
     ("gpu_fallback", "[!] La GPU {gpu} no pudo codificar este formato; reintentando con la CPU…"),
+    ("bot_check", "YouTube pide confirmar que no eres un bot. Espera unos minutos y reintenta, o usa las cookies de Firefox en Opciones avanzadas."),
 ];
 
 pub static BE_EN: &[(&str, &str)] = &[
@@ -1666,6 +1739,7 @@ pub static BE_EN: &[(&str, &str)] = &[
     ("prep_title", "Preparing dependencies"),
     ("prep_msg", "LiquidCat needs to prepare its media tools. This only happens once."),
     ("gpu_fallback", "[!] The {gpu} GPU couldn't encode this format; retrying with the CPU…"),
+    ("bot_check", "YouTube is asking to confirm you're not a bot. Wait a few minutes and retry, or use Firefox cookies in Advanced options."),
 ];
 
 pub static BE_PT: &[(&str, &str)] = &[
@@ -1702,6 +1776,7 @@ pub static BE_PT: &[(&str, &str)] = &[
     ("prep_title", "Preparando dependências"),
     ("prep_msg", "O LiquidCat precisa preparar suas ferramentas de mídia. Isso só acontece uma vez."),
     ("gpu_fallback", "[!] A GPU {gpu} não conseguiu codificar este formato; tentando novamente com a CPU…"),
+    ("bot_check", "O YouTube pede para confirmar que você não é um bot. Espere alguns minutos e tente de novo, ou use os cookies do Firefox nas Opções avançadas."),
 ];
 
 pub static BE_FR: &[(&str, &str)] = &[
@@ -1738,6 +1813,7 @@ pub static BE_FR: &[(&str, &str)] = &[
     ("prep_title", "Préparation des dépendances"),
     ("prep_msg", "LiquidCat doit préparer ses outils multimédias. Cela n'arrive qu'une seule fois."),
     ("gpu_fallback", "[!] Le GPU {gpu} n'a pas pu encoder ce format ; nouvelle tentative avec le CPU…"),
+    ("bot_check", "YouTube demande de confirmer que vous n'êtes pas un robot. Attendez quelques minutes et réessayez, ou utilisez les cookies de Firefox dans les Options avancées."),
 ];
 
 pub static BE_DE: &[(&str, &str)] = &[
@@ -1774,6 +1850,7 @@ pub static BE_DE: &[(&str, &str)] = &[
     ("prep_title", "Abhängigkeiten werden vorbereitet"),
     ("prep_msg", "LiquidCat muss seine Medienwerkzeuge vorbereiten. Das passiert nur einmal."),
     ("gpu_fallback", "[!] Die {gpu}-GPU konnte dieses Format nicht kodieren; neuer Versuch mit der CPU…"),
+    ("bot_check", "YouTube möchte bestätigt haben, dass du kein Bot bist. Warte ein paar Minuten und versuche es erneut, oder nutze die Firefox-Cookies in den Erweiterten Optionen."),
 ];
 
 pub static BE_IT: &[(&str, &str)] = &[
@@ -1810,6 +1887,7 @@ pub static BE_IT: &[(&str, &str)] = &[
     ("prep_title", "Preparazione delle dipendenze"),
     ("prep_msg", "LiquidCat deve preparare i suoi strumenti multimediali. Succede solo una volta."),
     ("gpu_fallback", "[!] La GPU {gpu} non è riuscita a codificare questo formato; nuovo tentativo con la CPU…"),
+    ("bot_check", "YouTube chiede di confermare che non sei un bot. Aspetta qualche minuto e riprova, oppure usa i cookie di Firefox nelle Opzioni avanzate."),
 ];
 
 /// Tabla de textos de la interfaz para un idioma (ingles si no existe).
@@ -2104,6 +2182,18 @@ pub fn apply(app: &App, lang: &str) {
                 "act_idle_hint" => t.set_act_idle_hint((*v).into()),
                 "act_empty" => t.set_act_empty((*v).into()),
                 "toast_defaults" => t.set_toast_defaults((*v).into()),
+                "act_log_title" => t.set_act_log_title((*v).into()),
+                "update_new" => t.set_update_new((*v).into()),
+                "err_bot" => t.set_err_bot((*v).into()),
+                "dep_up_to_date" => t.set_dep_up_to_date((*v).into()),
+                "about_title" => t.set_about_title((*v).into()),
+                "about_check" => t.set_about_check((*v).into()),
+                "about_checking" => t.set_about_checking((*v).into()),
+                "about_uptodate" => t.set_about_uptodate((*v).into()),
+                "about_new" => t.set_about_new((*v).into()),
+                "about_error" => t.set_about_error((*v).into()),
+                "about_get" => t.set_about_get((*v).into()),
+                "about_notes" => t.set_about_notes((*v).into()),
                 _ => {}
             }
         }

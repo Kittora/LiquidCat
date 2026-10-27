@@ -3,7 +3,7 @@ resolver = "3"
 
 [package]
 name = "liquidcat"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2021"
 rust-version = "1.88"
 description = "LiquidCat — descargador y convertidor de medios (yt-dlp + ffmpeg), nativo en Rust"
@@ -30,7 +30,7 @@ fs2 = "0.4"
 
 [target.'cfg(windows)'.dependencies]
 rfd = { version = "0.15", default-features = false }
-windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Diagnostics_Debug", "Win32_System_Time", "Win32_Graphics_Dwm"] }
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Diagnostics_Debug", "Win32_System_Time", "Win32_Graphics_Dwm", "Win32_Media_Audio"] }
 
 [target.'cfg(not(windows))'.dependencies]
 rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "async-std"] }

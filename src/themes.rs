@@ -131,8 +131,10 @@ pub fn apply(app: &App, id: &str) {
     p.set_hard_ctrl(col(t.hard_ctrl));
     p.set_brutal(t.brutal);
     if t.brutal {
-        p.set_radius(4.0);
-        p.set_radius_sm(2.0);
+        // Esquinas rectas: la sombra dura son dos tiras rectas y con esquinas
+        // redondeadas quedaba una muesca entre la tarjeta y su sombra.
+        p.set_radius(0.0);
+        p.set_radius_sm(0.0);
         p.set_border_w(3.0);
         p.set_a_panel(1.0);
         p.set_a_soft(1.0);

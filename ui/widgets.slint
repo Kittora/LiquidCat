@@ -199,22 +199,57 @@ export component Field inherits Rectangle {
     animate border-color { duration: 120ms; }
     clip: true;
 
-    ti := TextInput {
+    // Un TextInput no se desplaza solo hasta el cursor: va dentro de una caja
+    // recortada y se mueve en horizontal para que el cursor siempre se vea
+    // (al seleccionar todo, con Fin o con las flechas se llega al final).
+    Rectangle {
         x: 10px;
         y: 0px;
         width: parent.width - 20px;
         height: parent.height;
-        vertical-alignment: center;
+        clip: true;
+        ti := TextInput {
+            property <length> scroll-x: 0px;
+            x: Math.min(0px, Math.max(parent.width - self.width - 2px, self.scroll-x));
+            y: 0px;
+            width: Math.max(parent.width - 2px, self.preferred-width);
+            height: parent.height;
+            vertical-alignment: center;
+            // Sin foco, el texto lo pinta la copia con "…" de abajo (un TextInput
+            // solo puede cortar en seco). Con foco se ve completo para editar.
+            color: !self.has-focus && self.text != "" ? transparent : root.enabled ? Pal.text : Pal.muted.with-alpha(0.75);
+            font-size: Theme.font-body;
+            single-line: true;
+            read-only: root.read-only;
+            enabled: root.enabled;
+            input-type: root.input-type;
+            selection-background-color: Pal.accent.with-alpha(0.45);
+            selection-foreground-color: Pal.text;
+            edited => { root.edited(self.text); }
+            accepted => { root.accepted(self.text); }
+            cursor-position-changed(pos) => {
+                if (pos.x + self.scroll-x < 4px) {
+                    self.scroll-x = 4px - pos.x;
+                } else if (pos.x + self.scroll-x > parent.width - 6px) {
+                    self.scroll-x = parent.width - 6px - pos.x;
+                }
+            }
+        }
+    }
+    // Copia del texto con elide cuando el campo no tiene el foco (enlaces y
+    // rutas largas terminan en "…" en vez de cortarse). No recibe clics: pasan
+    // al TextInput de debajo.
+    if !ti.has-focus && ti.text != "": Text {
+        x: 10px;
+        y: 0px;
+        width: parent.width - 20px;
+        height: parent.height;
+        z: 1;
+        text: ti.text;
         color: root.enabled ? Pal.text : Pal.muted.with-alpha(0.75);
         font-size: Theme.font-body;
-        single-line: true;
-        read-only: root.read-only;
-        enabled: root.enabled;
-        input-type: root.input-type;
-        selection-background-color: Pal.accent.with-alpha(0.45);
-        selection-foreground-color: Pal.text;
-        edited => { root.edited(self.text); }
-        accepted => { root.accepted(self.text); }
+        vertical-alignment: center;
+        overflow: elide;
     }
     if ti.text == "": Text {
         x: 10px;
@@ -417,6 +452,8 @@ export component ProgressBar inherits Rectangle {
 export component VScroll inherits Rectangle {
     in-out property <length> viewport-y <=> fl.viewport-y;
     out property <length> viewport-height <=> fl.viewport-height;
+    // Alto que pide el contenido (viewport-height nunca baja del alto visible).
+    out property <length> content-height: inner.preferred-height;
     public function scroll-to-end() {
         fl.viewport-y = Math.min(0px, root.height - fl.viewport-height);
     }
@@ -473,7 +510,7 @@ export component VScroll inherits Rectangle {
         // los modales (los controles de abajo dejan de responder).
         height: parent.height;
         interactive: false;
-        VerticalLayout {
+        inner := VerticalLayout {
             alignment: start;
             @children
         }

@@ -73,7 +73,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 
 - Manage multiple jobs through a processing queue
 - Review completed and previous jobs in history
-- Track each task from preparation to completion
+- Track each task from preparation to completion in a floating Activity card (with cancel)
 - Start with eight built-in presets, including **H.264 compatible** (best H.264 + AAC with no re-encode, plays everywhere)
 - Keep your existing presets and history (fully compatible with the old `config.json`)
 
@@ -83,6 +83,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Finish
 
 - Open the resulting file immediately
+- Get notified when a new LiquidCat version is out (Settings → About)
 - Jump directly to its destination folder
 - Keep the complete workflow inside one interface
 - 14 built-in themes (including Catppuccin), each with its own cat icon
@@ -124,10 +125,10 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Windows
 
 1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
-2. Download the latest `LiquidCat-0.3.1-windows-x86_64.exe`.
+2. Download the latest `LiquidCat-0.4.0-windows-x86_64.exe`.
 3. Run `LiquidCat.exe`. 
 
-*Note: **Python is not required.** LiquidCat automatically downloads and manages yt-dlp (which bundles its own runtime) and FFmpeg/ffprobe in the background.*
+*Note: **Python is not required.** LiquidCat automatically downloads and manages its own yt-dlp (kept up to date) and FFmpeg/ffprobe in the background.*
 
 > [!IMPORTANT]
 > **Building from source:** You will need Rust 1.88+ installed. Simply clone the repository and run `cargo build --release`. 

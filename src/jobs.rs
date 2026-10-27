@@ -393,6 +393,7 @@ fn queue_run(core: Arc<Core>) {
                 let s = a.global::<crate::S>();
                 s.set_current_title(title.as_str().into());
                 s.set_current_state(1);
+                s.set_act_visible(true);
             });
         }
         core.ui(|a| {
@@ -474,6 +475,9 @@ fn friendly_log(lang: &str, raw: &str) -> Option<String> {
         return Some(format!("[OK] {}", tr(lang, "friendly_downloaded")));
     }
     if line.starts_with("ERROR") {
+        if crate::ui_bridge::is_bot_check(line) {
+            return Some(format!("[!] {}", tr(lang, "bot_check")));
+        }
         return Some(format!("[!] {line}"));
     }
     if line.chars().count() > 200 {

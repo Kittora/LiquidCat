@@ -75,23 +75,44 @@ pub struct Core {
 // Modelos que viven en el hilo de la interfaz.
 thread_local! {
     pub static LOG: RefCell<Option<Rc<VecModel<LogLine>>>> = const { RefCell::new(None) };
+    // Ultimos eventos "amigables" (niveles 2..5) que se ven en la tarjeta de Actividad.
+    pub static EVENTS: RefCell<Option<Rc<VecModel<LogLine>>>> = const { RefCell::new(None) };
     pub static TOAST: slint::Timer = slint::Timer::default();
+    // Oculta la Actividad flotante un rato despues de terminar un trabajo.
+    pub static ACT_HIDE: slint::Timer = slint::Timer::default();
 }
 
 pub fn init_models(app: &App) {
     let m = Rc::new(VecModel::<LogLine>::default());
     app.global::<S>().set_log(m.clone().into());
     LOG.with(|l| *l.borrow_mut() = Some(m));
+    let e = Rc::new(VecModel::<LogLine>::default());
+    app.global::<S>().set_events(e.clone().into());
+    EVENTS.with(|l| *l.borrow_mut() = Some(e));
 }
 
+/// Cuantos eventos se ven en Actividad; el resto queda en el registro tecnico.
+const EVENTS_SHOWN: usize = 3;
+
 /// Nivel de una linea: 0 detalle, 1 comando, 2 ok, 3 error/aviso, 4 info,
-/// 5 inicio de un trabajo. La vista amigable de Actividad solo muestra 2..5;
-/// el prefijo se quita porque el nivel ya se ve con un icono.
+/// 5 inicio de un trabajo. Actividad muestra los ultimos eventos 2..5; el
+/// registro tecnico completo se ve en el modal de Detalles. El prefijo se
+/// quita porque el nivel ya se ve con un icono/color.
 pub fn push_log(app: &App, text: &str) {
     let (level, shown) = [("$ ", 1), ("[OK] ", 2), ("[OK]", 2), ("[ERROR] ", 3), ("[!] ", 3), ("[i] ", 4), ("[>] ", 5)]
         .iter()
         .find_map(|(p, lv)| text.strip_prefix(p).map(|rest| (*lv, if *lv == 1 { text } else { rest })))
         .unwrap_or((0, text));
+    if level >= 2 {
+        EVENTS.with(|l| {
+            if let Some(m) = l.borrow().as_ref() {
+                m.push(LogLine { text: SharedString::from(shown), level });
+                while m.row_count() > EVENTS_SHOWN {
+                    m.remove(0);
+                }
+            }
+        });
+    }
     LOG.with(|l| {
         if let Some(m) = l.borrow().as_ref() {
             m.push(LogLine { text: SharedString::from(shown), level });
@@ -271,18 +292,7 @@ impl Core {
     }
 
     pub fn beep(&self, ok: bool) {
-        #[cfg(windows)]
-        unsafe {
-            use windows_sys::Win32::System::Diagnostics::Debug::Beep;
-            if ok {
-                Beep(880, 140);
-                Beep(1175, 180);
-            } else {
-                Beep(392, 260);
-            }
-        }
-        #[cfg(not(windows))]
-        let _ = ok;
+        crate::sound::play(if ok { crate::sound::Sound::Done } else { crate::sound::Sound::Error });
     }
 
     /// Cierra un trabajo: registro, sonido, estado de la cola y de la interfaz.
@@ -318,6 +328,19 @@ impl Core {
             let s = a.global::<S>();
             s.set_busy(false);
             s.set_current_state(if ok { 2 } else { 3 });
+            // La flotante se queda unos segundos para ver el resultado (mas si
+            // fallo, para alcanzar a leer el error) y se oculta si no empezo otro.
+            let weak = a.as_weak();
+            ACT_HIDE.with(|t| {
+                t.start(slint::TimerMode::SingleShot, std::time::Duration::from_secs(if ok { 6 } else { 10 }), move || {
+                    if let Some(a) = weak.upgrade() {
+                        let s = a.global::<S>();
+                        if s.get_current_state() != 1 {
+                            s.set_act_visible(false);
+                        }
+                    }
+                });
+            });
             s.set_progress_label(SharedString::from(label));
             if ok && !out.is_empty() {
                 s.set_can_open_folder(true);

@@ -7,6 +7,7 @@ mod i18n_data;
 mod jobs;
 mod lang;
 mod media;
+mod sound;
 mod themes;
 mod ui_bridge;
 mod util;
@@ -53,6 +54,7 @@ fn main() {
     ui_bridge::load_initial(&core, &app);
     ui_bridge::setup(&core, &app);
     ui_bridge::startup_deps(&core, first_run);
+    ui_bridge::check_update(&core);
     // La ventana debe existir antes de pedir el HWND a DWM.
     app.show().expect("no se pudo mostrar la ventana");
     // La escala real de la pantalla solo se conoce con la ventana creada.
@@ -67,6 +69,7 @@ fn main() {
             if let Some(app) = weak.upgrade() {
                 round_window(&app);
                 themes::refresh_logo(&app);
+                ui_bridge::fit_window(&app);
             }
         });
     }

@@ -201,6 +201,85 @@ pub fn load_initial(core: &Arc<Core>, app: &App) {
     update_space_hint(core, app);
 }
 
+/// "1.2.3" o "v1.2.3" -> (1, 2, 3); lo que no sea numero cuenta como 0.
+fn parse_semver(v: &str) -> (u64, u64, u64) {
+    let mut it = v.trim().trim_start_matches(['v', 'V']).split(['.', '-']).map(|p| p.parse::<u64>().unwrap_or(0));
+    (it.next().unwrap_or(0), it.next().unwrap_or(0), it.next().unwrap_or(0))
+}
+
+/// Mira en segundo plano si GitHub tiene una release mas nueva que la
+/// instalada; si la hay, la cabecera muestra un aviso que abre esa release.
+pub fn check_update(core: &Arc<Core>) {
+    const API: &str = "https://api.github.com/repos/Kittora/LiquidCat/releases/latest";
+    let current = env!("CARGO_PKG_VERSION");
+    core.ui(move |a| a.global::<S>().set_app_version(ss(current)));
+    core.ui(|a| a.global::<S>().set_update_state(1));
+    let core = core.clone();
+    std::thread::spawn(move || {
+        let latest = crate::deps::fetch_bytes(API, 512 * 1024)
+            .and_then(|b| serde_json::from_slice::<Value>(&b).ok())
+            .and_then(|v| {
+                let tag = v.get("tag_name")?.as_str()?.to_string();
+                let url = v.get("html_url")?.as_str()?.to_string();
+                (!tag.is_empty() && !url.is_empty()).then_some((tag, url))
+            });
+        core.ui(move |a| {
+            let s = a.global::<S>();
+            match latest {
+                None => s.set_update_state(4),
+                Some((tag, _)) if parse_semver(&tag) <= parse_semver(current) => s.set_update_state(2),
+                Some((tag, url)) => {
+                    s.set_update_version(ss(tag.trim_start_matches(['v', 'V'])));
+                    s.set_update_url(ss(&url));
+                    s.set_update_state(3);
+                }
+            }
+        });
+    });
+}
+
+/// Ajusta el alto de la ventana a lo que necesita el contenido (sin scroll),
+/// sin pasarse del alto de la pantalla. No toca una ventana maximizada.
+pub fn fit_window(app: &App) {
+    if app.window().is_maximized() {
+        return;
+    }
+    let scale = app.window().scale_factor();
+    let want = app.get_fit_height().ceil();
+    // Alto util de la pantalla (deja sitio a la barra de tareas) y posicion.
+    let screen = with_win(app, |w| {
+        w.current_monitor().map(|m| {
+            let p = m.position();
+            let s = m.size();
+            (p.y as f32 / scale, s.height as f32 / scale)
+        })
+    })
+    .flatten();
+    let max_h = screen.map(|(_, h)| h * 0.92).unwrap_or(want);
+    let h = want.min(max_h).max(560.0);
+    let w = app.window().size().to_logical(scale).width;
+    app.window().set_size(slint::LogicalSize::new(w, h));
+    // Si al crecer se sale por abajo, se sube lo justo.
+    if let Some((top, screen_h)) = screen {
+        let pos = app.window().position().to_logical(scale);
+        let bottom_limit = top + screen_h * 0.96;
+        if pos.y + h > bottom_limit {
+            let y = (bottom_limit - h).max(top);
+            app.window().set_position(slint::LogicalPosition::new(pos.x, y));
+        }
+    }
+}
+
+/// `fit_window` cuando el layout ya se recalculo (tras mostrar u ocultar algo).
+pub fn fit_window_soon(app: &App) {
+    let weak = app.as_weak();
+    slint::Timer::single_shot(Duration::from_millis(60), move || {
+        if let Some(a) = weak.upgrade() {
+            fit_window(&a);
+        }
+    });
+}
+
 pub fn update_space_hint(core: &Core, app: &App) {
     let s = app.global::<S>();
     let lang = core.lang();
@@ -298,15 +377,16 @@ fn load_thumb(url: &str, w: u32, h: u32) -> Option<(Vec<u8>, u32, u32)> {
 // ====================================================================
 //  Utilidades de URL
 // ====================================================================
+/// YouTube pide confirmar que no eres un bot (limite por red o por muchas
+/// peticiones seguidas).
+pub fn is_bot_check(err: &str) -> bool {
+    let e = err.to_lowercase();
+    e.contains("confirm you") && e.contains("not a bot")
+}
+
 fn is_http(u: &str) -> bool {
     let u = u.trim();
     (u.starts_with("http://") || u.starts_with("https://")) && u.len() > 12 && u.contains('.') && !u.contains(' ')
-}
-
-fn known_site(u: &str) -> bool {
-    ["youtube.com", "youtu.be", "tiktok.com", "instagram.com", "twitter.com", "x.com", "facebook.com", "vimeo.com", "twitch.tv", "soundcloud.com", "reddit.com", "dailymotion.com", "bilibili.com"]
-        .iter()
-        .any(|d| u.contains(d))
 }
 
 fn set_url(core: &Arc<Core>, app: &App, url: &str, auto_fetch: bool) {
@@ -421,13 +501,14 @@ fn fetch(core: &Arc<Core>, app: &App) {
                         None => s.set_pv_has_thumb(false),
                     }
                     s.set_has_preview(true);
+                    fit_window_soon(a);
                     push_log(a, &found);
                     if no_v { push_log(a, &ui(&lang, "log_no_video")); }
                     if no_a { push_log(a, &ui(&lang, "log_no_audio")); }
                     show_toast(a, &ui(&lang, "toast_formats_ok"), 1);
                 });
                 // Aviso sonoro cuando los formatos ya estan disponibles.
-                core.beep(true);
+                crate::sound::play(crate::sound::Sound::Ready);
             }
             Err(e) => {
                 core.ui(move |a| {
@@ -435,7 +516,10 @@ fn fetch(core: &Arc<Core>, app: &App) {
                     s.set_fetching(false);
                     s.set_title_line(ss(""));
                     push_log(a, &format!("[ERROR] {e}"));
-                    dialog(a, 3, &ui(&lang, "p_error_formats"), &e.chars().take(300).collect::<String>(), "");
+                    // El bloqueo de YouTube trae un mensaje largo en ingles: se
+                    // explica en el idioma de la app que hacer.
+                    let msg = if is_bot_check(&e) { ui(&lang, "err_bot") } else { e.chars().take(300).collect::<String>() };
+                    dialog(a, 3, &ui(&lang, "p_error_formats"), &msg, "");
                 });
             }
         }
@@ -592,6 +676,7 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
                 s.set_dep_msg(ss(&msg));
                 s.set_dep_progress(0.0);
                 s.set_dep_busy(true);
+                s.set_dep_result(0);
                 s.set_dep_prep(true);
                 s.set_dep_show(true);
             });
@@ -609,6 +694,7 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
             core.ui(move |a| {
                 let s = a.global::<S>();
                 s.set_dep_busy(false);
+                s.set_dep_result(if failed { 2 } else { 1 });
                 if failed {
                     s.set_dep_msg(ss(&err_text));
                 } else {
@@ -618,29 +704,42 @@ pub fn startup_deps(core: &Arc<Core>, first_run_defaults: bool) {
                 }
             });
         } else if core.cfg.lock().unwrap().pref_bool("auto_update_deps", true) {
-            // actualiza yt-dlp (si lo gestiona la app) cuando tiene mas de 7 dias
-            if let Some(p) = core.deps.managed_path("yt-dlp") {
-                let old = std::fs::metadata(&p).and_then(|m| m.modified()).ok()
-                    .and_then(|m| m.elapsed().ok()).map(|e| e > Duration::from_secs(7 * 86_400)).unwrap_or(false);
-                if old {
+            match core.deps.managed_path("yt-dlp") {
+                // actualiza la copia de la app cuando tiene mas de 7 dias
+                Some(p) => {
+                    let old = std::fs::metadata(&p).and_then(|m| m.modified()).ok()
+                        .and_then(|m| m.elapsed().ok()).map(|e| e > Duration::from_secs(7 * 86_400)).unwrap_or(false);
+                    if old {
+                        let _ = core.deps.download_ytdlp(|_| {});
+                    }
+                }
+                // Se estaba usando un yt-dlp del sistema (p. ej. instalado con
+                // pip), que la app no puede actualizar: con una version vieja
+                // YouTube responde mas a menudo "Sign in to confirm you're not a
+                // bot". Se baja una copia propia, que tiene prioridad y se
+                // mantiene al dia.
+                None => {
                     let _ = core.deps.download_ytdlp(|_| {});
                 }
             }
         }
         refresh_deps(&core);
-        if first_run_defaults {
-            let gpu = detect_gpu();
-            let idx = idx_of(&VENDORS, &gpu);
-            core.ui(move |a| {
-                let s = a.global::<S>();
+        // Archivos locales no guarda sus ajustes: siempre arranca con la GPU
+        // detectada. El descargador solo la toma en el primer arranque (luego
+        // manda lo que el usuario dejo guardado).
+        let gpu = detect_gpu();
+        let idx = idx_of(&VENDORS, &gpu);
+        core.ui(move |a| {
+            let s = a.global::<S>();
+            if first_run_defaults {
                 s.set_hw_idx(idx);
-                s.set_local_hw_idx(idx);
-            });
-        }
+            }
+            s.set_local_hw_idx(idx);
+        });
     });
 }
 
-fn dep_action(core: &Arc<Core>, app: &App, key: &str, _action: &str) {
+fn dep_action(core: &Arc<Core>, app: &App, key: &str, action: &str) {
     let s = app.global::<S>();
     if s.get_dep_busy() { return; }
     let lang = core.lang();
@@ -648,11 +747,28 @@ fn dep_action(core: &Arc<Core>, app: &App, key: &str, _action: &str) {
     s.set_dep_msg(ss(&ui(&lang, "dep_action_running")));
     s.set_dep_progress(0.0);
     s.set_dep_busy(true);
+    s.set_dep_result(0);
     s.set_dep_prep(false);
     s.set_dep_show(true);
     let key = key.to_string();
+    // "Actualizar" comprueba antes si ya esta la ultima version; "Reinstalar"
+    // descarga siempre.
+    let check_first = action == "update";
     let core = core.clone();
     std::thread::spawn(move || {
+        if check_first {
+            if let Some(v) = core.deps.up_to_date(&key) {
+                let msg = uif(&core.lang(), "dep_up_to_date", &[("v", &v)]);
+                core.ui(move |a| {
+                    let s = a.global::<S>();
+                    s.set_dep_busy(false);
+                    s.set_dep_result(1);
+                    s.set_dep_progress(1.0);
+                    s.set_dep_msg(ss(&msg));
+                });
+                return;
+            }
+        }
         let c2 = core.clone();
         let prog = move |f: f64| c2.ui(move |a| a.global::<S>().set_dep_progress(f as f32));
         let r = if key == "ffmpeg" { core.deps.download_ffmpeg(prog) } else { core.deps.download_ytdlp(prog).map(|_| ()) };
@@ -661,6 +777,7 @@ fn dep_action(core: &Arc<Core>, app: &App, key: &str, _action: &str) {
         core.ui(move |a| {
             let s = a.global::<S>();
             s.set_dep_busy(false);
+            s.set_dep_result(if ok { 1 } else { 2 });
             s.set_dep_msg(ss(&msg));
             if ok { s.set_dep_progress(1.0); }
         });
@@ -805,6 +922,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
         let s = a.global::<S>();
         s.set_url(ss(""));
         s.set_has_preview(false);
+        fit_window_soon(&a);
         s.set_title_line(ss(""));
         s.set_is_playlist(false);
     });
@@ -819,6 +937,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     });
     cb!(on_fetch_formats, |a, c| { fetch(&c, &a); });
     cb!(on_quality_changed, |a, c| { sync_formats_to_quality(&c, &a); });
+    cb!(on_check_updates, |_a, c| { check_update(&c); });
 
     // ---- descargas
     cb!(on_start_download, |a, c| {
@@ -1100,7 +1219,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     });
     cb!(on_mode_changed, |_a, _c| {});
 
-    // ---- eventos de la ventana: arrastrar archivos y portapapeles al volver
+    // ---- eventos de la ventana: arrastrar archivos, escala de pantalla y tamano
     let w2 = weak.clone();
     let c2 = core.clone();
     app.window().on_winit_window_event(move |_win, ev| {
@@ -1122,18 +1241,6 @@ pub fn setup(core: &Arc<Core>, app: &App) {
                 }
                 WindowEvent::HoveredFile(_) => a.global::<S>().set_local_dragging(true),
                 WindowEvent::HoveredFileCancelled => a.global::<S>().set_local_dragging(false),
-                WindowEvent::Focused(true) => {
-                    let s = a.global::<S>();
-                    if s.get_modal() == 0 && s.get_url().is_empty() && s.get_tab() == 0 && s.get_st() == 1 {
-                        if let Ok(text) = arboard::Clipboard::new().and_then(|mut cb| cb.get_text()) {
-                            let t = text.trim().to_string();
-                            if is_http(&t) && known_site(&t) {
-                                set_url(&c2, &a, &t, true);
-                                show_toast(&a, &ui(&c2.lang(), "clip_pasted"), 0);
-                            }
-                        }
-                    }
-                }
                 WindowEvent::ScaleFactorChanged { .. } => {
                     // Slint aplica la escala nueva despues de este evento.
                     let w = w2.clone();

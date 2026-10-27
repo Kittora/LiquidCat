@@ -17,6 +17,17 @@ const YTDLP_SOURCES: &[&str] = &[
     "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp_linux",
     "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux",
 ];
+/// Build "essentials" de Gyan. Su servidor (gyan.dev) va muy lento (~0,1 MB/s
+/// medido, unos 20 min para 115 MB), asi que primero se usa la copia oficial
+/// que el mismo autor publica en GitHub (~7 MB/s) y gyan.dev queda de respaldo.
+const FFMPEG_GITHUB_API: &str = "https://api.github.com/repos/GyanD/codexffmpeg/releases/latest";
+/// Ultima build nightly de yt-dlp (la que descarga la app primero).
+const YTDLP_GITHUB_API: &str = "https://api.github.com/repos/yt-dlp/yt-dlp-nightly-builds/releases/latest";
+
+/// JSON de la ultima release de un repositorio (API publica de GitHub).
+fn latest_release(api: &str) -> Option<serde_json::Value> {
+    serde_json::from_slice(&fetch_bytes(api, 1024 * 1024)?).ok()
+}
 const FFMPEG_URL: &str = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
 const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
@@ -181,6 +192,19 @@ impl DepManager {
         Err(format!("No se pudo descargar yt-dlp: {last_err}"))
     }
 
+    /// URL del zip "essentials" de la ultima release de GyanD en GitHub.
+    fn ffmpeg_github_url() -> Option<String> {
+        let v = latest_release(FFMPEG_GITHUB_API)?;
+        v.get("assets")?.as_array()?.iter().find_map(|a| {
+            let name = a.get("name")?.as_str()?;
+            if name.ends_with("essentials_build.zip") {
+                a.get("browser_download_url")?.as_str().map(str::to_string)
+            } else {
+                None
+            }
+        })
+    }
+
     pub fn download_ffmpeg(&self, mut progress: impl FnMut(f64)) -> Result<(), String> {
         if !cfg!(windows) {
             return Err("En este sistema instala ffmpeg con tu gestor de paquetes (debe estar en el PATH).".into());
@@ -188,16 +212,20 @@ impl DepManager {
         std::fs::create_dir_all(&self.dir).map_err(|e| e.to_string())?;
         let zip_path = self.dir.join("ffmpeg.zip");
         progress(0.02);
+        let mut sources: Vec<String> = Self::ffmpeg_github_url().into_iter().collect();
+        sources.push(FFMPEG_URL.to_string());
         let mut last_err = None;
-        for _ in 0..3 {
-            match self.download(FFMPEG_URL, &zip_path, |f| progress(0.02 + f * 0.7)) {
-                Ok(()) => {
-                    last_err = None;
-                    break;
-                }
-                Err(e) => {
-                    last_err = Some(e);
-                    let _ = std::fs::remove_file(&zip_path);
+        'sources: for url in &sources {
+            for _ in 0..2 {
+                match self.download(url, &zip_path, |f| progress(0.02 + f * 0.7)) {
+                    Ok(()) => {
+                        last_err = None;
+                        break 'sources;
+                    }
+                    Err(e) => {
+                        last_err = Some(e);
+                        let _ = std::fs::remove_file(&zip_path);
+                    }
                 }
             }
         }
@@ -264,6 +292,25 @@ impl DepManager {
                 if d.split('.').count() >= 4 { "nightly" } else { "stable" }
             }
             None => "",
+        }
+    }
+
+    /// Si la copia de la app ya es la ultima publicada, devuelve su version
+    /// (para no volver a descargarla). `None` si hay que descargar: no hay
+    /// copia propia, es mas vieja, o no se pudo consultar GitHub.
+    pub fn up_to_date(&self, key: &str) -> Option<String> {
+        if key == "ffmpeg" {
+            let ff = self.managed_path("ffmpeg")?;
+            self.managed_path("ffprobe")?;
+            let installed = self.binary_version(&ff); // "9.0.2-essentials_build-www.gyan.dev"
+            let latest = latest_release(FFMPEG_GITHUB_API)?.get("tag_name")?.as_str()?.to_string(); // "9.0.2"
+            let base = installed.split('-').next().unwrap_or("");
+            (!latest.is_empty() && base == latest).then_some(latest)
+        } else {
+            let yt = self.managed_path("yt-dlp")?;
+            let installed = self.binary_version(&yt); // "2026.10.26.220202"
+            let latest = latest_release(YTDLP_GITHUB_API)?.get("tag_name")?.as_str()?.to_string();
+            (!latest.is_empty() && installed == latest).then_some(latest)
         }
     }
 

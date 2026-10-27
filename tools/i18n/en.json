@@ -261,7 +261,19 @@
   "act_idle": "Nothing running",
   "act_idle_hint": "Your downloads and conversions will show up here.",
   "act_empty": "No activity yet.",
-  "toast_defaults": "Default settings restored"
+  "toast_defaults": "Default settings restored",
+  "act_log_title": "Technical log",
+  "update_new": "New version",
+  "err_bot": "YouTube is asking to confirm you're not a bot. It's usually temporary (your network or too many requests in a row): wait a few minutes and try again. If it keeps happening, pick Firefox cookies in Advanced options while signed in to YouTube.",
+  "dep_up_to_date": "You already have the latest version ({v}); nothing to download.",
+  "about_title": "About",
+  "about_check": "Check for updates",
+  "about_checking": "Checking for updates…",
+  "about_uptodate": "You have the latest version",
+  "about_new": "A new version is available:",
+  "about_error": "Couldn't check (offline?)",
+  "about_get": "Download",
+  "about_notes": "Release notes for this version"
  },
  "backend": {
   "dl_video": "Getting video…",
@@ -296,6 +308,7 @@
   "ytdlp_failed": "yt-dlp failed.",
   "prep_title": "Preparing dependencies",
   "prep_msg": "LiquidCat needs to prepare its media tools. This only happens once.",
-  "gpu_fallback": "[!] The {gpu} GPU couldn't encode this format; retrying with the CPU…"
+  "gpu_fallback": "[!] The {gpu} GPU couldn't encode this format; retrying with the CPU…",
+  "bot_check": "YouTube is asking to confirm you're not a bot. Wait a few minutes and retry, or use Firefox cookies in Advanced options."
  }
 }

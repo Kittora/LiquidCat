@@ -303,29 +303,6 @@ export component DownloadView inherits VerticalLayout {
         }
     }
 
-    // ---- Destino (todo el ancho)
-    Panel {
-        VerticalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap-sm;
-            CardHead { step: S.has-preview ? "5" : "4"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
-            FieldLabel { text: T.field-folder; }
-            HorizontalLayout {
-                spacing: Theme.gap;
-                Field {
-                    horizontal-stretch: 1;
-                    placeholder: "...";
-                    text <=> S.out-dir;
-                    edited(t) => { S.out-dir-edited(); }
-                }
-                Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(0); } }
-            }
-            Text { text: S.space-hint; color: S.space-low ? Pal.warning : Pal.muted; font-size: 12px; min-height: 16px; }
-        }
-    }
-
     // ---- Opciones avanzadas (todo el ancho, plegable). Abiertas usan dos
     // filas cortas: los cuatro campos juntos y debajo las casillas.
     Panel {
@@ -394,26 +371,61 @@ export component DownloadView inherits VerticalLayout {
         }
     }
 
-    // ---- Acciones
-    Panel {
-        HorizontalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap;
-            Btn {
-                horizontal-stretch: 1;
-                kind: "success";
-                icon: S.busy ? "spinner" : "play";
-                icon-spin: S.busy;
-                text: root.is-direct ? T.btn-download-direct : T.btn-download-reenc;
-                enabled: S.st == 1 && !S.busy;
-                clicked => { S.start-download(); }
+    // ---- Destino  |  Descargar (lado a lado)
+    HorizontalLayout {
+        spacing: Theme.gap;
+        Panel {
+            horizontal-stretch: 1;
+            // Mismo minimo y preferido que las demas mitades: columnas alineadas.
+            min-width: 0px;
+            preferred-width: 0px;
+            VerticalLayout {
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap-sm;
+                CardHead { step: S.has-preview ? "5" : "4"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
+                FieldLabel { text: T.field-folder; }
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    Field {
+                        horizontal-stretch: 1;
+                        placeholder: "...";
+                        text <=> S.out-dir;
+                        edited(t) => { S.out-dir-edited(); }
+                    }
+                    Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(0); } }
+                }
+                Text { text: S.space-hint; color: S.space-low ? Pal.warning : Pal.muted; font-size: 12px; min-height: 16px; }
             }
-            Btn { kind: "secondary"; icon: "layers"; text: T.btn-enqueue; enabled: S.st == 1; clicked => { S.enqueue(); } }
-            Btn { kind: "secondary"; icon: "list-plus"; text: T.btn-batch; enabled: S.st == 1; clicked => { S.batch-import(); } }
-            if S.is-playlist: Btn { kind: "secondary"; icon: "download"; text: T.btn-playlist; enabled: S.st == 1; clicked => { S.enqueue-playlist(); } }
-            Btn { kind: "danger"; icon: "stop"; text: T.btn-cancel; enabled: S.busy; clicked => { S.cancel(); } }
+        }
+        Panel {
+            horizontal-stretch: 1;
+            // Mismo minimo y preferido que las demas mitades: columnas alineadas.
+            min-width: 0px;
+            preferred-width: 0px;
+            VerticalLayout {
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap;
+                alignment: center;
+                Btn {
+                    height: 40px;
+                    kind: "success";
+                    icon: S.busy ? "spinner" : "play";
+                    icon-spin: S.busy;
+                    text: root.is-direct ? T.btn-download-direct : T.btn-download-reenc;
+                    enabled: S.st == 1 && !S.busy;
+                    clicked => { S.start-download(); }
+                }
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    Btn { horizontal-stretch: 1; kind: "secondary"; icon: "layers"; text: T.btn-enqueue; enabled: S.st == 1; clicked => { S.enqueue(); } }
+                    Btn { horizontal-stretch: 1; kind: "secondary"; icon: "list-plus"; text: T.btn-batch; enabled: S.st == 1; clicked => { S.batch-import(); } }
+                    if S.is-playlist: Btn { horizontal-stretch: 1; kind: "secondary"; icon: "download"; text: T.btn-playlist; enabled: S.st == 1; clicked => { S.enqueue-playlist(); } }
+                }
+            }
         }
     }
 }
@@ -530,38 +542,48 @@ export component LocalView inherits VerticalLayout {
         }
     }
 
-    Panel {
-        VerticalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap-sm;
-            CardHead { step: "3"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
-            FieldLabel { text: T.field-folder; }
-            HorizontalLayout {
-                spacing: Theme.gap;
-                Field { horizontal-stretch: 1; placeholder: "..."; text <=> S.local-out-dir; }
-                Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(1); } }
+    // ---- Destino  |  Reencodear (lado a lado)
+    HorizontalLayout {
+        spacing: Theme.gap;
+        Panel {
+            horizontal-stretch: 1;
+            // Mismo minimo y preferido que las demas mitades: columnas alineadas.
+            min-width: 0px;
+            preferred-width: 0px;
+            VerticalLayout {
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                spacing: Theme.gap-sm;
+                CardHead { step: "3"; icon: "folder"; title: T.cat-dest; tint: Pal.c-folder; }
+                FieldLabel { text: T.field-folder; }
+                HorizontalLayout {
+                    spacing: Theme.gap;
+                    Field { horizontal-stretch: 1; placeholder: "..."; text <=> S.local-out-dir; }
+                    Btn { kind: "secondary"; icon: "folder"; text: T.btn-choose; clicked => { S.choose-folder(1); } }
+                }
             }
         }
-    }
-
-    Panel {
-        HorizontalLayout {
-            padding: Theme.card-pad;
-            padding-left: Theme.card-pad-x;
-            padding-right: Theme.card-pad-x;
-            spacing: Theme.gap;
-            Btn {
-                horizontal-stretch: 1;
-                kind: "success";
-                icon: S.busy ? "spinner" : "play";
-                icon-spin: S.busy;
-                text: root.is-audio ? T.set-local-to-audio : root.is-gif ? T.set-local-to-gif : T.set-local-go;
-                enabled: !S.busy;
-                clicked => { S.reencode-local(); }
+        Panel {
+            horizontal-stretch: 1;
+            // Mismo minimo y preferido que las demas mitades: columnas alineadas.
+            min-width: 0px;
+            preferred-width: 0px;
+            VerticalLayout {
+                padding: Theme.card-pad;
+                padding-left: Theme.card-pad-x;
+                padding-right: Theme.card-pad-x;
+                alignment: center;
+                Btn {
+                    height: 40px;
+                    kind: "success";
+                    icon: S.busy ? "spinner" : "play";
+                    icon-spin: S.busy;
+                    text: root.is-audio ? T.set-local-to-audio : root.is-gif ? T.set-local-to-gif : T.set-local-go;
+                    enabled: !S.busy;
+                    clicked => { S.reencode-local(); }
+                }
             }
-            Btn { kind: "danger"; icon: "stop"; text: T.btn-cancel; enabled: S.busy; clicked => { S.cancel(); } }
         }
     }
 }
@@ -632,6 +654,10 @@ export component QueueView inherits VerticalLayout {
 //  Actividad (progreso + consola)
 // ======================================================================
 export component ActivityCard inherits Panel {
+    // Version flotante (Descargador / Archivos locales): opaca y con boton
+    // para cerrarla. En la pestana Cola va integrada como siempre.
+    in property <bool> floating: false;
+    alpha: root.floating ? Pal.a-solid : Pal.a-panel;
     // Color del estado del trabajo actual.
     property <color> st-color: S.current-state == 2 ? Pal.success : S.current-state == 3 ? Pal.danger : Pal.accent;
     VerticalLayout {
@@ -647,12 +673,14 @@ export component ActivityCard inherits Panel {
             Btn {
                 small: true;
                 icon: "terminal";
-                kind: S.log-details ? "primary" : "normal";
                 text: T.act-details;
-                clicked => { S.log-details = !S.log-details; }
+                clicked => { S.modal = 5; }
             }
             if S.can-open-folder: Btn { small: true; icon: "folder"; text: T.btn-open-folder; clicked => { S.open-last-folder(); } }
             Btn { small: true; icon: "hard-drive"; text: T.btn-history; clicked => { S.modal = 4; S.history-opened(); } }
+            // Solo se puede cerrar cuando no hay nada en marcha: asi Cancelar
+            // siempre queda a la vista mientras trabaja.
+            if root.floating && S.current-state != 1: Btn { small: true; icon-only: true; icon: "x"; clicked => { S.act-visible = false; } }
         }
         // ---- trabajo actual
         Rectangle {
@@ -713,77 +741,39 @@ export component ActivityCard inherits Panel {
                     font-weight: 700;
                     vertical-alignment: center;
                 }
+                // Cancelar junto a lo que cancela (antes estaba en la barra de
+                // acciones, casi siempre deshabilitado).
+                if S.busy: VerticalLayout {
+                    alignment: center;
+                    Btn { small: true; kind: "danger"; icon: "stop"; text: T.btn-cancel; clicked => { S.cancel(); } }
+                }
             }
         }
         ProgressBar { value: S.progress; }
-        // ---- eventos: amigables por defecto; "Detalles" muestra el registro tecnico
-        Rectangle {
-            height: 104px;
-            border-radius: Pal.radius-sm;
-            border-width: S.log-details ? 1px : 0px;
-            border-color: Pal.log-border;
-            background: S.log-details ? Pal.log-bg : transparent;
-            if S.log.length == 0: Text {
-                x: 4px;
-                y: 6px;
-                width: parent.width - 8px;
-                text: T.act-empty;
-                color: Pal.muted;
-                font-size: 12px;
-                wrap: word-wrap;
-            }
-            log-scroll := VScroll {
-                x: 0px;
-                y: 4px;
-                width: parent.width;
-                height: parent.height - 8px;
+        // ---- ultimos eventos (solo los que hay: sin hueco vacio). El
+        // registro tecnico completo se abre en un modal con "Detalles".
+        if S.events.length > 0: VerticalLayout {
+            spacing: 2px;
+            for l in S.events: HorizontalLayout {
+                spacing: 8px;
+                padding-top: l.level == 5 ? 4px : 1px;
                 VerticalLayout {
-                    padding-left: S.log-details ? 10px : 2px;
-                    padding-right: 6px;
-                    spacing: 0px;
-                    for l in S.log: VerticalLayout {
-                        if S.log-details || l.level >= 2: HorizontalLayout {
-                            spacing: 8px;
-                            padding-top: l.level == 5 && !S.log-details ? 6px : 2px;
-                            padding-bottom: 2px;
-                            if !S.log-details: VerticalLayout {
-                                alignment: start;
-                                padding-top: 1px;
-                                Icon {
-                                    size: 14px;
-                                    name: l.level == 2 ? "check" : l.level == 3 ? "warning" : l.level == 5 ? "play" : "info";
-                                    tint: l.level == 2 ? Pal.success : l.level == 3 ? Pal.danger : l.level == 5 ? Pal.accent : Pal.muted;
-                                }
-                            }
-                            Text {
-                                horizontal-stretch: 1;
-                                text: l.text;
-                                wrap: word-wrap;
-                                font-size: S.log-details ? 11.5px : 12.5px;
-                                font-weight: l.level == 5 && !S.log-details ? 700 : 400;
-                                color: S.log-details
-                                    ? (l.level == 1 ? Pal.log-cmd : l.level == 2 ? Pal.log-ok : l.level == 3 ? Pal.log-err : l.level == 4 ? Pal.log-info : Pal.log-text)
-                                    : (l.level == 3 ? Pal.danger : l.level == 5 ? Pal.text : Pal.text.with-alpha(0.85));
-                            }
-                        }
+                    alignment: start;
+                    padding-top: 1px;
+                    Icon {
+                        size: 14px;
+                        name: l.level == 2 ? "check" : l.level == 3 ? "warning" : l.level == 5 ? "play" : "info";
+                        tint: l.level == 2 ? Pal.success : l.level == 3 ? Pal.danger : l.level == 5 ? Pal.accent : Pal.muted;
                     }
                 }
-            }
-            scroll-timer := Timer {
-                interval: 40ms;
-                running: false;
-                triggered => {
-                    log-scroll.scroll-to-end();
-                    self.running = false;
+                Text {
+                    horizontal-stretch: 1;
+                    text: l.text;
+                    wrap: word-wrap;
+                    font-size: 12.5px;
+                    font-weight: l.level == 5 ? 700 : 500;
+                    color: l.level == 3 ? Pal.danger : l.level == 5 ? Pal.text : Pal.text.with-alpha(0.85);
                 }
-            }
-            changed-watcher := Rectangle {
-                width: 0px;
-                height: 0px;
-                property <int> rev: S.log-rev;
-                property <bool> det: S.log-details;
-                changed rev => { scroll-timer.running = true; }
-                changed det => { scroll-timer.running = true; }
             }
         }
     }

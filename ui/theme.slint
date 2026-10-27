@@ -63,7 +63,9 @@ export global Theme {
     out property <length> tab-h: 30px;
 
     // Espaciado
-    out property <length> gap: 6px;
+    // En Neo Brutalist la sombra dura (6 px) ocupaba todo el hueco y las
+    // tarjetas parecian pegadas: se deja mas espacio entre ellas.
+    out property <length> gap: Pal.brutal ? 12px : 6px;
     out property <length> gap-sm: 4px;
     out property <length> gap-lg: 8px;
     out property <length> card-pad: 8px;
@@ -74,7 +76,9 @@ export global Theme {
     // Vista previa compacta (miniatura 16:9 + dos lineas de descripcion).
     out property <length> preview-thumb-w: 160px;
     out property <length> preview-thumb-h: 90px;
-    out property <length> preview-desc-h: 18px;
+    // Algo mas que el alto de linea (12 px de Poppins Medium = ~18 px): con
+    // elide Slint descarta la linea si no cabe entera y la descripcion desaparecia.
+    out property <length> preview-desc-h: 20px;
     out property <length> font-preview-title: 15px;
     out property <length> chip-h: 22px;
 
