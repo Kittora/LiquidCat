@@ -624,16 +624,50 @@ fn trim_in(start: &str, end: &str) -> Vec<String> {
     a
 }
 
-fn download_sections(p: &Payload) -> Vec<String> {
+/// Recorte pedido en segundos: (inicio, fin opcional). None si no hay recorte
+/// o si algun tiempo no se entiende (entonces se descarga entero y se recorta
+/// con ffmpeg como antes).
+fn trim_window(p: &Payload) -> Option<(f64, Option<f64>)> {
     let (s, e) = (p.trim_start.trim(), p.trim_end.trim());
     if s.is_empty() && e.is_empty() {
-        return vec![];
+        return None;
     }
-    vec![
-        "--download-sections".into(),
-        format!("*{}-{}", if s.is_empty() { "0" } else { s }, if e.is_empty() { "inf" } else { e }),
-        "--force-keyframes-at-cuts".into(),
-    ]
+    let start = if s.is_empty() { 0.0 } else { parse_secs(s)? };
+    let end = if e.is_empty() { None } else { Some(parse_secs(e)?) };
+    match end {
+        Some(end) if end <= start => None,
+        _ => Some((start, end)),
+    }
+}
+
+/// "90", "1:30", "01:01:30" o con decimales ("1:30.5") -> segundos.
+fn parse_secs(t: &str) -> Option<f64> {
+    let mut total = 0.0;
+    for part in t.split(':') {
+        let v: f64 = part.trim().parse().ok()?;
+        if !(v >= 0.0) {
+            return None;
+        }
+        total = total * 60.0 + v;
+    }
+    Some(total)
+}
+
+/// Descarga solo el fragmento pedido. Sin --force-keyframes-at-cuts: con esa
+/// opcion yt-dlp reencodeaba el video con x264 (CPU) para cortar exacto. Asi
+/// se copia tal cual desde el fotograma clave anterior al inicio, y el corte
+/// exacto lo hace despues LiquidCat con la GPU (ver `section_lead`).
+fn download_sections(p: &Payload) -> Vec<String> {
+    let Some((start, end)) = trim_window(p) else { return vec![] };
+    let end = end.map(|e| e.to_string()).unwrap_or_else(|| "inf".into());
+    vec!["--download-sections".into(), format!("*{start}-{end}")]
+}
+
+/// Segundos que sobran al principio de un fragmento descargado: empieza en el
+/// fotograma clave anterior al inicio pedido, pero termina justo en el final,
+/// asi que lo que sobra es su duracion menos la pedida.
+fn section_lead(ffprobe: &Path, file: &Path, wanted: f64) -> f64 {
+    media::probe_duration(ffprobe, file).map(|d| (d - wanted).max(0.0)).unwrap_or(0.0)
 }
 
 /// Calidad "h264": se pide la mejor pista H.264 (avc1) y el mejor audio AAC
@@ -757,7 +791,9 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
         } else {
             p.audio_id.clone().filter(|a| !a.is_empty()).unwrap_or_else(|| "bestaudio".into())
         };
-        let sections = if p.direct { download_sections(p) } else { vec![] };
+        // Con recorte se descarga solo el fragmento (en video siempre; en
+        // audio solo sin reencode, donde el corte se copia tal cual).
+        let sections = if p.mode != "audio" || p.direct { download_sections(p) } else { vec![] };
         let mut ytd: Vec<String> = strs(["--retries", "15", "--fragment-retries", "15"]);
         ytd.extend(core.cookies_args(&p.cookies_browser));
         if let Some(dir) = ffmpeg.parent() {
@@ -849,7 +885,8 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
         let vs = video_file.to_string_lossy().to_string();
         let au = audio_file.to_string_lossy().to_string();
 
-        if p.direct {
+        let window = trim_window(p);
+        if p.direct && window.is_none() {
             let ext = video_file.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or("mp4".into());
             let out = util::unique_path(&out_dir.join(format!("{title}.{ext}")));
             let mut args = strs(["-y", "-i"]);
@@ -867,16 +904,41 @@ pub fn download_worker(core: &Arc<Core>, p: &Payload) {
             return Ok(());
         }
 
-        let duration = media::probe_duration(&ffprobe, &video_file);
+        // Con recorte, el fragmento descargado trae de mas el trozo desde el
+        // fotograma clave anterior: se salta con -ss y se corta con -t, con la
+        // GPU elegida (tambien en modo directo: cortar exacto obliga a
+        // reencodear, y asi no lo hace la CPU).
+        let cut = window.and_then(|(start, end)| {
+            let wanted = match end {
+                Some(end) => end - start,
+                None => {
+                    let o = util::cmd(&ytdlp).args(["--print", "duration", "--no-playlist"]).args(&ytd).arg(&p.url).output().ok()?;
+                    String::from_utf8_lossy(&o.stdout).trim().parse::<f64>().ok()? - start
+                }
+            };
+            (wanted > 0.0).then(|| (section_lead(&ffprobe, &video_file, wanted), section_lead(&ffprobe, &audio_file, wanted), wanted))
+        });
+        let duration = cut.map(|(_, _, wanted)| wanted).or_else(|| media::probe_duration(&ffprobe, &video_file));
         let out_ext = if p.codec == "vp9" { "webm" } else { "mp4" };
         let out = util::unique_path(&out_dir.join(format!("{title}.{out_ext}")));
         let audio_out = if out_ext == "webm" { strs(["-c:a", "libopus", "-b:a", "192k"]) } else { strs(["-c:a", "aac", "-b:a", "192k"]) };
         let build = |enc: Vec<String>| {
             let mut args = strs(["-y"]);
-            args.extend(trim_in(&p.trim_start, &p.trim_end));
-            args.extend(["-i".to_string(), vs.clone()]);
-            args.extend(trim_in(&p.trim_start, &p.trim_end));
-            args.extend(["-i".to_string(), au.clone()]);
+            match cut {
+                Some((lead_v, lead_a, wanted)) => {
+                    args.extend(["-ss".to_string(), format!("{lead_v:.3}"), "-i".into(), vs.clone()]);
+                    args.extend(["-ss".to_string(), format!("{lead_a:.3}"), "-i".into(), au.clone()]);
+                    args.extend(["-t".to_string(), format!("{wanted:.3}")]);
+                }
+                // Sin recorte, o con tiempos que no se entendieron (se bajo
+                // entero): ffmpeg recorta con los tiempos tal cual.
+                None => {
+                    args.extend(trim_in(&p.trim_start, &p.trim_end));
+                    args.extend(["-i".to_string(), vs.clone()]);
+                    args.extend(trim_in(&p.trim_start, &p.trim_end));
+                    args.extend(["-i".to_string(), au.clone()]);
+                }
+            }
             args.extend(strs(["-map", "0:v:0", "-map", "1:a:0"]));
             args.extend(enc);
             args.extend(audio_out.clone());

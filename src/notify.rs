@@ -20,17 +20,24 @@ pub fn show(title: &str, message: &str) {
 
 #[cfg(windows)]
 fn toast(title: &str, message: &str) -> windows::core::Result<()> {
-    use windows::core::HSTRING;
+    use windows::core::{Interface, HSTRING};
+    use windows::Data::Xml::Dom::XmlElement;
     use windows::UI::Notifications::{ToastNotification, ToastNotificationManager, ToastTemplateType};
-    // Plantilla clasica de dos lineas (titulo y mensaje). Con un XML
+    // Plantilla clasica con imagen y dos lineas (titulo y mensaje). Con un XML
     // "ToastGeneric" escrito a mano, Windows aceptaba la notificacion pero no
     // la mostraba en apps sin instalador. El texto se inserta como nodos, asi
     // no hace falta escapar nada a mano.
-    let doc = ToastNotificationManager::GetTemplateContent(ToastTemplateType::ToastText02)?;
+    let doc = ToastNotificationManager::GetTemplateContent(ToastTemplateType::ToastImageAndText02)?;
     let lines = doc.GetElementsByTagName(&HSTRING::from("text"))?;
     for (i, text) in [title, message].into_iter().enumerate() {
         let node = doc.CreateTextNode(&HSTRING::from(text))?;
         lines.Item(i as u32)?.AppendChild(&node)?;
+    }
+    // El logo de LiquidCat dentro de la notificacion.
+    if let Some(icon) = icon_path().filter(|p| p.is_file()) {
+        let image: XmlElement = doc.GetElementsByTagName(&HSTRING::from("image"))?.Item(0)?.cast()?;
+        let uri = format!("file:///{}", icon.to_string_lossy().replace('\\', "/"));
+        image.SetAttribute(&HSTRING::from("src"), &HSTRING::from(uri))?;
     }
     let toast = ToastNotification::CreateToastNotification(&doc)?;
     ToastNotificationManager::CreateToastNotifierWithId(&HSTRING::from(APP_ID))?.Show(&toast)
@@ -44,15 +51,25 @@ fn register_app() {
     use std::sync::Once;
     static ONCE: Once = Once::new();
     ONCE.call_once(|| {
-        let icon = crate::util::bin_dir().parent().map(|d| d.join("notify-icon.png"));
-        let Some(icon) = icon else { return };
+        let Some(icon) = icon_path() else { return };
         if std::fs::write(&icon, include_bytes!("../assets/logo.png")).is_err() {
+            return;
+        }
+        // Para la cabecera de la notificacion, el mismo .ico del exe.
+        let ico = icon.with_extension("ico");
+        if std::fs::write(&ico, include_bytes!("../assets/icon.ico")).is_err() {
             return;
         }
         let key = format!("Software\\Classes\\AppUserModelId\\{APP_ID}");
         set_reg_string(&key, "DisplayName", "LiquidCat");
-        set_reg_string(&key, "IconUri", &icon.to_string_lossy());
+        set_reg_string(&key, "IconUri", &ico.to_string_lossy());
     });
+}
+
+/// %LOCALAPPDATA%\LiquidCat\notify-icon.png (lo escribe `register_app`).
+#[cfg(windows)]
+fn icon_path() -> Option<std::path::PathBuf> {
+    crate::util::bin_dir().parent().map(|d| d.join("notify-icon.png"))
 }
 
 #[cfg(windows)]
