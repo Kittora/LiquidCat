@@ -62,13 +62,13 @@ pub fn ensure_shortcut() {
 
 #[cfg(windows)]
 fn write_shortcut(exe: &std::path::Path, lnk: &std::path::Path) -> windows::core::Result<()> {
-    use windows::core::{Interface, HSTRING, PWSTR};
+    use windows::core::{Interface, HSTRING};
     use windows::Win32::Storage::EnhancedStorage::PKEY_AppUserModel_ID;
     use windows::Win32::System::Com::StructuredStorage::PROPVARIANT;
     use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, IPersistFile, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED};
     use windows::Win32::System::Variant::VT_LPWSTR;
     use windows::Win32::UI::Shell::PropertiesSystem::IPropertyStore;
-    use windows::Win32::UI::Shell::{IShellLinkW, ShellLink};
+    use windows::Win32::UI::Shell::{IShellLinkW, SHStrDupW, ShellLink};
     unsafe {
         let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
         let link: IShellLinkW = CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER)?;
@@ -80,11 +80,12 @@ fn write_shortcut(exe: &std::path::Path, lnk: &std::path::Path) -> windows::core
         }
         link.SetDescription(&HSTRING::from("LiquidCat"))?;
         // El identificador va como texto (VT_LPWSTR) en las propiedades del
-        // acceso directo. `id` vive hasta el Commit.
-        let mut id: Vec<u16> = APP_ID.encode_utf16().chain(std::iter::once(0)).collect();
+        // acceso directo. El texto se reserva con la memoria de Windows
+        // (SHStrDupW): PROPVARIANT lo libera al destruirse con PropVariantClear,
+        // y con un buffer de Rust eso corrompia la memoria y cerraba la app.
         let mut value = PROPVARIANT::default();
         (*value.Anonymous.Anonymous).vt = VT_LPWSTR;
-        (*value.Anonymous.Anonymous).Anonymous.pwszVal = PWSTR(id.as_mut_ptr());
+        (*value.Anonymous.Anonymous).Anonymous.pwszVal = SHStrDupW(&HSTRING::from(APP_ID))?;
         let store: IPropertyStore = link.cast()?;
         store.SetValue(&PKEY_AppUserModel_ID, &value)?;
         store.Commit()?;
