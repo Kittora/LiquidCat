@@ -64,6 +64,7 @@ fn main() {
     themes::refresh_logo(&app);
     #[cfg(windows)]
     {
+        notify::ensure_shortcut();
         round_window(&app);
         // El handle nativo puede tardar un frame en estar disponible: reintento
         // una vez ya arrancado el bucle de eventos.

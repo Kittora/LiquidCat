@@ -35,9 +35,10 @@ fs2 = "0.4"
 
 [target.'cfg(windows)'.dependencies]
 rfd = { version = "0.15", default-features = false }
-windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Diagnostics_Debug", "Win32_System_Time", "Win32_Graphics_Dwm", "Win32_Media_Audio", "Win32_Devices_DeviceAndDriverInstallation", "Win32_System_Registry"] }
-# DXGI (detectar la GPU) y notificaciones (WinRT), sin lanzar PowerShell.
-windows = { version = "0.62", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common", "Data_Xml_Dom", "UI_Notifications", "Foundation"] }
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Diagnostics_Debug", "Win32_System_Time", "Win32_Graphics_Dwm", "Win32_Media_Audio", "Win32_Devices_DeviceAndDriverInstallation"] }
+# DXGI (detectar la GPU), notificaciones (WinRT) y el acceso directo del menu
+# Inicio (COM), sin lanzar PowerShell.
+windows = { version = "0.62", features = ["Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common", "Data_Xml_Dom", "UI_Notifications", "Foundation", "Win32_System_Com", "Win32_System_Com_StructuredStorage", "Win32_System_Variant", "Win32_UI_Shell", "Win32_UI_Shell_PropertiesSystem", "Win32_Storage_EnhancedStorage"] }
 
 [target.'cfg(not(windows))'.dependencies]
 rfd = { version = "0.15", default-features = false, features = ["xdg-portal", "async-std"] }
