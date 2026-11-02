@@ -92,7 +92,7 @@ It is written in **Rust** with a **Slint** interface drawn on the GPU by Skia: a
 
 <div align="center">
 
-<!-- Screenshots captured at 1060 px wide (LiquidCat 0.4, Catppuccin Mocha). -->
+<!-- Screenshots captured at 1060 px wide (LiquidCat 0.4.6, Catppuccin Mocha). -->
 
 | Downloader | Local files |
 |:---:|:---:|
