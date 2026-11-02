@@ -39,9 +39,11 @@ fn toast(title: &str, message: &str) -> windows::core::Result<()> {
 
 /// Acceso directo de LiquidCat en el menu Inicio del usuario, con el mismo
 /// identificador que sus notificaciones. Sin el, Windows no reconoce una app
-/// portable (sin instalador) y muestra sus notificaciones sin icono. Se crea al
-/// abrir la app, y se rehace si el exe cambio de sitio o de nombre (cada
-/// version se descarga con un nombre distinto).
+/// portable (sin instalador) y muestra sus notificaciones sin icono. Lleva el
+/// icono fijo del exe; el de la barra de tareas cambia con el tema por su
+/// cuenta (ver `set_process_identity`). Se crea al abrir la app, y se rehace
+/// si el exe cambio de sitio o de nombre (cada version se descarga con un
+/// nombre distinto).
 #[cfg(windows)]
 pub fn ensure_shortcut() {
     std::thread::spawn(|| {
@@ -92,6 +94,18 @@ fn write_shortcut(exe: &std::path::Path, lnk: &std::path::Path) -> windows::core
         let file: IPersistFile = link.cast()?;
         file.Save(&HSTRING::from(lnk.as_os_str()), true)
     }
+}
+
+/// Identidad propia del proceso en la barra de tareas, distinta de la del
+/// acceso directo (APP_ID). Sin esto Windows asocia la ventana al acceso
+/// directo del menu Inicio y la barra de tareas muestra el icono fijo de
+/// este, no el del tema que pone la ventana. Tiene que hacerse al arrancar,
+/// antes de crear la ventana. Las notificaciones siguen usando APP_ID.
+#[cfg(windows)]
+pub fn set_process_identity() {
+    use windows::core::HSTRING;
+    use windows::Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID;
+    let _ = unsafe { SetCurrentProcessExplicitAppUserModelID(&HSTRING::from("Kittora.LiquidCat.App")) };
 }
 
 #[cfg(target_os = "macos")]

@@ -41,6 +41,8 @@ fn round_window(app: &App) {
 }
 
 fn main() {
+    #[cfg(windows)]
+    notify::set_process_identity();
     // Renderer: por defecto Slint usa Skia (GPU, con vsync a la tasa del
     // monitor: 60/120/144 Hz). Se cambio desde FemtoVG porque este dejaba las
     // esquinas redondeadas y los bordes con dientes de sierra. Si no hay GPU
