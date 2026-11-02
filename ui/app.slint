@@ -83,19 +83,22 @@ component TabBtn inherits Rectangle {
     in property <int> badge: 0;
     callback clicked();
     min-height: Theme.tab-h;
-    border-radius: Math.max(2px, Pal.radius-sm - 2px);
-    border-width: 1px;
-    background: active ? Pal.accent : ta.has-hover ? Pal.panel-strong : transparent;
+    // Material 3: indicador en pildora con el contenedor secundario (como su
+    // barra de navegacion), no un bloque del color primario.
+    property <color> on: Pal.material ? Pal.on-tonal : Pal.on-accent;
+    border-radius: Pal.material ? self.height / 2 : Math.max(2px, Pal.radius-sm - 2px);
+    border-width: Pal.material ? 0px : 1px;
+    background: active ? (Pal.material ? Pal.tonal : Pal.accent) : ta.has-hover ? Pal.panel-strong : transparent;
     border-color: active ? Pal.accent : transparent;
     animate background { duration: 120ms; }
     animate border-color { duration: 120ms; }
     HorizontalLayout {
         alignment: center;
         spacing: 8px;
-        Icon { name: root.icon; size: 16px; tint: root.active ? Pal.on-accent : Pal.muted; }
+        Icon { name: root.icon; size: 16px; tint: root.active ? root.on : Pal.muted; }
         Text {
             text: root.text;
-            color: root.active ? Pal.on-accent : ta.has-hover ? Pal.text : Pal.muted;
+            color: root.active ? root.on : ta.has-hover ? Pal.text : Pal.muted;
             font-weight: 700;
             font-size: Theme.font-body;
             vertical-alignment: center;
@@ -105,10 +108,10 @@ component TabBtn inherits Rectangle {
             width: 18px;
             height: 18px;
             border-radius: 9px;
-            background: root.active ? Pal.on-accent : Pal.accent;
+            background: root.active ? root.on : Pal.accent;
             Text {
                 text: root.badge;
-                color: root.active ? Pal.accent : Pal.on-accent;
+                color: root.active ? (Pal.material ? Pal.tonal : Pal.accent) : Pal.on-accent;
                 font-size: 11.5px;
                 font-weight: 700;
                 horizontal-alignment: center;

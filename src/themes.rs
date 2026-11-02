@@ -18,18 +18,112 @@ pub fn valid(id: &str) -> bool {
     THEMES.iter().any(|t| t.id == id)
 }
 
-pub fn entries() -> ModelRc<ThemeEntry> {
+/// Tarjetas de los temas en Ajustes. Los que siguen el acento del sistema
+/// lo muestran en su muestra de color (`accent`: el del sistema, si se usa).
+pub fn entries(accent: Option<crate::accent::Accent>) -> ModelRc<ThemeEntry> {
     let v: Vec<ThemeEntry> = THEMES
         .iter()
         .map(|t| ThemeEntry {
             id: SharedString::from(t.id),
             name: SharedString::from(t.name),
             c1: col(t.sw[0]),
-            c2: col(t.sw[1]),
+            c2: col(match t.id {
+                "material" => material_scheme(accent).primary,
+                _ => accent.filter(|_| follows_system_accent(t.id)).map(|a| a.main).unwrap_or(t.sw[1]),
+            }),
             c3: col(t.sw[2]),
         })
         .collect();
     ModelRc::new(VecModel::from(v))
+}
+
+/// Temas que usan el color de acento del sistema: Material en cualquier
+/// sistema y Fluent solo en Windows (su acento es el de Windows).
+fn follows_system_accent(id: &str) -> bool {
+    id == "material" || (id == "fluent" && cfg!(windows))
+}
+
+/// Semilla de respaldo de Material (Pink A200), sin acento del sistema.
+const MATERIAL_SEED: u32 = 0xFF4081;
+
+/// Roles de color de Material 3 (modo oscuro) que usa LiquidCat, como 0xRRGGBB.
+struct MaterialScheme {
+    primary: u32,
+    on_primary: u32,
+    secondary_container: u32,
+    on_secondary_container: u32,
+    tertiary: u32,
+    error: u32,
+    surface: u32,
+    surface_container_lowest: u32,
+    surface_container_low: u32,
+    surface_container: u32,
+    surface_container_high: u32,
+    surface_container_highest: u32,
+    on_surface: u32,
+    on_surface_variant: u32,
+    outline: u32,
+    outline_variant: u32,
+}
+
+/// Esquema oscuro de Material 3 generado con el algoritmo de Google
+/// (material-color-utilities, variante "tonal spot", la de Android) a partir
+/// del acento del sistema; sin el, del rosa de respaldo.
+fn material_scheme(accent: Option<crate::accent::Accent>) -> MaterialScheme {
+    use material_colors::color::Argb;
+    use material_colors::theme::ThemeBuilder;
+    let seed = accent.map(|a| a.base).unwrap_or(MATERIAL_SEED);
+    let s = ThemeBuilder::with_source(Argb::from_u32(0xFF00_0000 | seed)).build().schemes.dark;
+    let c = |a: Argb| (a.red as u32) << 16 | (a.green as u32) << 8 | a.blue as u32;
+    MaterialScheme {
+        primary: c(s.primary),
+        on_primary: c(s.on_primary),
+        secondary_container: c(s.secondary_container),
+        on_secondary_container: c(s.on_secondary_container),
+        tertiary: c(s.tertiary),
+        error: c(s.error),
+        surface: c(s.surface),
+        surface_container_lowest: c(s.surface_container_lowest),
+        surface_container_low: c(s.surface_container_low),
+        surface_container: c(s.surface_container),
+        surface_container_high: c(s.surface_container_high),
+        surface_container_highest: c(s.surface_container_highest),
+        on_surface: c(s.on_surface),
+        on_surface_variant: c(s.on_surface_variant),
+        outline: c(s.outline),
+        outline_variant: c(s.outline_variant),
+    }
+}
+
+/// Aplica el esquema Material 3 a la paleta: todos los colores salen de los
+/// roles de Material (superficies teñidas con el acento, primario,
+/// contenedores...), no solo el acento.
+fn apply_material(p: &Pal, m: &MaterialScheme) {
+    p.set_bg(col(m.surface));
+    p.set_bg_accent(col(m.surface_container_low));
+    p.set_surface(col(m.surface_container_lowest));
+    p.set_panel(col(m.surface_container));
+    p.set_panel_strong(col(m.surface_container_high));
+    p.set_input(col(m.surface_container_highest));
+    p.set_line(col(m.outline_variant));
+    p.set_line_strong(col(m.outline));
+    p.set_text(col(m.on_surface));
+    p.set_muted(col(m.on_surface_variant));
+    p.set_accent(col(m.primary));
+    p.set_accent2(col(m.tertiary));
+    p.set_on_accent(col(m.on_primary));
+    p.set_danger(col(m.error));
+    p.set_tonal(col(m.secondary_container));
+    p.set_on_tonal(col(m.on_secondary_container));
+    p.set_log_bg(col(m.surface_container_lowest));
+    p.set_log_text(col(m.on_surface));
+    p.set_log_border(col(m.outline_variant));
+    p.set_log_cmd(col(m.primary));
+    p.set_log_info(col(m.on_surface_variant));
+    p.set_log_err(col(m.error));
+    for set in [Pal::set_c_search, Pal::set_c_preview, Pal::set_c_layers, Pal::set_c_sliders, Pal::set_c_folder, Pal::set_c_file, Pal::set_c_terminal] {
+        set(p, col(m.primary));
+    }
 }
 
 /// Icono de la cabecera dibujado para cada tema (assets/theme-icons).
@@ -130,12 +224,47 @@ pub fn apply(app: &App, id: &str) {
     p.set_hard_panel(col(t.hard_panel));
     p.set_hard_ctrl(col(t.hard_ctrl));
     p.set_brutal(t.brutal);
+    // Acento del sistema ("Usar el color de acento del sistema" en Ajustes):
+    // sustituye al acento propio del tema y a los iconos que lo usan.
+    let s = app.global::<crate::S>();
+    let system = if s.get_pref_sysaccent() { crate::accent::system() } else { None };
+    let material = t.id == "material";
+    p.set_material(material);
+    if material {
+        apply_material(&p, &material_scheme(system));
+    } else if let Some(a) = system.filter(|_| follows_system_accent(t.id)) {
+        let (main, hover) = (col(a.main), col(a.hover));
+        p.set_accent(main);
+        p.set_accent2(hover);
+        p.set_on_accent(col(crate::accent::text_on(a.main)));
+        p.set_log_cmd(main);
+        p.set_c_search(main);
+        p.set_c_preview(main);
+        p.set_c_layers(main);
+        p.set_c_sliders(main);
+        p.set_c_folder(main);
+        p.set_c_file(main);
+        p.set_c_terminal(main);
+    }
+    s.set_themes(entries(system));
     if t.brutal {
         // Esquinas rectas: la sombra dura son dos tiras rectas y con esquinas
         // redondeadas quedaba una muesca entre la tarjeta y su sombra.
         p.set_radius(0.0);
         p.set_radius_sm(0.0);
         p.set_border_w(3.0);
+        p.set_a_panel(1.0);
+        p.set_a_soft(1.0);
+        p.set_a_strong(1.0);
+        p.set_a_solid(1.0);
+        p.set_a_border(1.0);
+        p.set_highlight(Color::from_argb_u8(0, 255, 255, 255));
+    } else if material {
+        // Material 3: superficies solidas (sin cristal) y esquinas grandes en
+        // las tarjetas (24 px, entre "large" y "extra large").
+        p.set_radius(24.0);
+        p.set_radius_sm(12.0);
+        p.set_border_w(1.0);
         p.set_a_panel(1.0);
         p.set_a_soft(1.0);
         p.set_a_strong(1.0);
@@ -153,7 +282,6 @@ pub fn apply(app: &App, id: &str) {
         p.set_a_border(0.36);
         p.set_highlight(Color::from_argb_u8(18, 255, 255, 255));
     }
-    let s = app.global::<crate::S>();
     s.set_theme(SharedString::from(t.id));
     refresh_logo(app);
 }

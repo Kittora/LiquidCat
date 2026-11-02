@@ -236,7 +236,7 @@
   "wiki_h_history": "Historial",
   "wiki_p_history": "Guarda los archivos generados con su miniatura e información (título, canal y duración). Puedes abrir cada archivo, ir a su carpeta o limpiar el historial (con confirmación).",
   "wiki_h_settings": "Ajustes",
-  "wiki_p_settings": "Cambia entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, Intel en celeste, CPU en azul).",
+  "wiki_p_settings": "Cambia entre 15 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, Intel en celeste, CPU en azul).",
   "wiki_h_lang": "Idioma y créditos",
   "wiki_p_lang": "Selector de idioma en Ajustes (español, inglés, portugués, francés, alemán e italiano), y Créditos con los desarrolladores, el software usado y los autores de los temas.",
   "set_lang": "Idioma",
@@ -279,7 +279,10 @@
   "hw_intel": "Intel (Quick Sync)",
   "gpu_intel": "GPU Intel detectada",
   "hw_apple": "Apple (VideoToolbox)",
-  "credit_skia_desc": "Motor gráfico (el de Chrome) con el que Slint dibuja la interfaz en la GPU."
+  "credit_skia_desc": "Motor gráfico (el de Chrome) con el que Slint dibuja la interfaz en la GPU.",
+  "pref_sysaccent": "Usar el color de acento del sistema",
+  "pref_sysaccent_hint": "En los temas Material y Fluent (Fluent, solo en Windows).",
+  "credit_material_desc": "Sistema de diseño de Google (Material 3), con el acento del sistema."
  },
  "backend": {
   "dl_video": "Tomando video…",

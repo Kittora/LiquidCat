@@ -236,7 +236,7 @@
   "wiki_h_history": "Historique",
   "wiki_p_history": "Conserve vos fichiers générés avec leur miniature et leurs infos (titre, chaîne et durée). Ouvrez chaque fichier, accédez à son dossier ou effacez l'historique (avec confirmation).",
   "wiki_h_settings": "Paramètres",
-  "wiki_p_settings": "Passez d'un thème à l'autre parmi 14 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, Intel en cyan, CPU en bleu).",
+  "wiki_p_settings": "Passez d'un thème à l'autre parmi 15 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, Intel en cyan, CPU en bleu).",
   "wiki_h_lang": "Langue et crédits",
   "wiki_p_lang": "Sélecteur de langue dans les Paramètres (espagnol, anglais, portugais, français, allemand et italien), et Crédits avec les développeurs, les logiciels utilisés et les auteurs des thèmes.",
   "set_lang": "Langue",
@@ -279,7 +279,10 @@
   "hw_intel": "Intel (Quick Sync)",
   "gpu_intel": "GPU Intel détecté",
   "hw_apple": "Apple (VideoToolbox)",
-  "credit_skia_desc": "Moteur graphique (celui de Chrome) avec lequel Slint dessine l'interface sur le GPU."
+  "credit_skia_desc": "Moteur graphique (celui de Chrome) avec lequel Slint dessine l'interface sur le GPU.",
+  "pref_sysaccent": "Utiliser la couleur d'accentuation du système",
+  "pref_sysaccent_hint": "Dans les thèmes Material et Fluent (Fluent uniquement sous Windows).",
+  "credit_material_desc": "Système de design de Google (Material 3), avec l'accent du système."
  },
  "backend": {
   "dl_video": "Récupération de la vidéo…",

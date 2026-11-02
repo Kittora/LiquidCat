@@ -107,7 +107,7 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 | Queue & activity | Settings |
 |:---:|:---:|
 | <img src="assets/readme/queue-history.png" alt="LiquidCat queue and activity" width="680"> | <img src="assets/readme/settings.png" alt="LiquidCat settings with themes" width="680"> |
-| Follow active jobs and revisit completed work. | 14 themes, 6 languages, dependencies and update checks. |
+| Follow active jobs and revisit completed work. | 15 themes, 6 languages, dependencies and update checks. |
 
 | Credits |
 |:---:|

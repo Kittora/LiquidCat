@@ -236,7 +236,7 @@
   "wiki_h_history": "Verlauf",
   "wiki_p_history": "Speichert deine erstellten Dateien mit Miniatur und Infos (Titel, Kanal und Dauer). Öffne jede Datei, springe zu ihrem Ordner oder lösche den Verlauf (mit Bestätigung).",
   "wiki_h_settings": "Einstellungen",
-  "wiki_p_settings": "Wechsle zwischen 14 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau).",
+  "wiki_p_settings": "Wechsle zwischen 15 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau).",
   "wiki_h_lang": "Sprache & Credits",
   "wiki_p_lang": "Sprachauswahl in den Einstellungen (Spanisch, Englisch, Portugiesisch, Französisch, Deutsch und Italienisch) sowie Credits mit den Entwicklern, der verwendeten Software und den Autoren der Designs.",
   "set_lang": "Sprache",
@@ -279,7 +279,10 @@
   "hw_intel": "Intel (Quick Sync)",
   "gpu_intel": "Intel-GPU erkannt",
   "hw_apple": "Apple (VideoToolbox)",
-  "credit_skia_desc": "Grafik-Engine (die von Chrome), mit der Slint die Oberfläche auf der GPU zeichnet."
+  "credit_skia_desc": "Grafik-Engine (die von Chrome), mit der Slint die Oberfläche auf der GPU zeichnet.",
+  "pref_sysaccent": "Akzentfarbe des Systems verwenden",
+  "pref_sysaccent_hint": "In den Designs Material und Fluent (Fluent nur unter Windows).",
+  "credit_material_desc": "Designsystem von Google (Material 3), mit der Akzentfarbe des Systems."
  },
  "backend": {
   "dl_video": "Video wird geladen…",

@@ -104,7 +104,8 @@ export component Panel inherits Rectangle {
     in property <color> border: Pal.line-strong.with-alpha(Pal.a-border);
     background: base.with-alpha(alpha);
     border-radius: r;
-    border-width: Pal.border-w;
+    // Material 3: las tarjetas son superficies tonales, sin contorno.
+    border-width: Pal.material ? 0px : Pal.border-w;
     border-color: border;
     // Reflejo superior (sheen) propio del liquid glass.
     Rectangle {
@@ -135,15 +136,21 @@ export component Btn inherits Rectangle {
     // El estado deshabilitado se pinta con colores propios, no con opacity:
     // opacity < 1 hace que Slint guarde el control en una capa aparte y esa
     // capa no se invalida cuando cambia el texto (p. ej. al cambiar idioma).
-    property <color> fill: !enabled ? Pal.panel-strong.with-alpha(0.28) : kind == "primary" ? Pal.accent : kind == "success" ? Pal.success : kind == "danger" ? Pal.danger : kind == "secondary" ? Pal.panel-strong : Pal.panel-strong.with-alpha(Pal.a-soft);
-    property <color> fg: !enabled ? Pal.muted.with-alpha(0.75) : kind == "primary" || kind == "success" ? Pal.on-accent : kind == "danger" ? #ffffff : Pal.text;
+    // Material 3: los botones no principales son "tonales" (contenedor
+    // secundario), sin contorno.
+    property <bool> tonal: Pal.material && !solid;
+    // (Material 3 no tiene color de "exito": el boton principal es el primario.)
+    property <color> fill: !enabled ? Pal.panel-strong.with-alpha(0.28) : kind == "primary" || (kind == "success" && Pal.material) ? Pal.accent : kind == "success" ? Pal.success : kind == "danger" ? Pal.danger : tonal ? Pal.tonal : kind == "secondary" ? Pal.panel-strong : Pal.panel-strong.with-alpha(Pal.a-soft);
+    property <color> fg: !enabled ? Pal.muted.with-alpha(0.75) : kind == "primary" || kind == "success" ? Pal.on-accent : kind == "danger" ? #ffffff : tonal ? Pal.on-tonal : Pal.text;
 
     horizontal-stretch: 0;
     min-height: icon-only ? Theme.control-h : compact ? Theme.control-h-sm : small ? Theme.control-h-sm : Theme.control-h;
     min-width: icon-only ? Theme.control-h : 0px;
-    border-radius: Pal.radius-sm;
-    border-width: Pal.border-w;
-    background: ta.pressed && root.enabled ? fill.darker(0.12) : fill;
+    // Material 3: pildora; el hover y la pulsacion aclaran el relleno (la
+    // "capa de estado") en vez de colorear el borde.
+    border-radius: Pal.material ? self.height / 2 : Pal.radius-sm;
+    border-width: Pal.material ? 0px : Pal.border-w;
+    background: !root.enabled ? fill : Pal.material ? (ta.pressed ? fill.brighter(0.16) : ta.has-hover ? fill.brighter(0.08) : fill) : ta.pressed ? fill.darker(0.12) : fill;
     border-color: !enabled ? Pal.line.with-alpha(Pal.a-border * 0.6) : (ta.has-hover ? Pal.accent : solid ? fill : Pal.line-strong.with-alpha(Math.min(1.0, Pal.a-border + 0.14)));
     animate background { duration: 120ms; }
     animate border-color { duration: 120ms; }
@@ -192,10 +199,12 @@ export component Field inherits Rectangle {
     height: Theme.control-h;
     min-width: 0px;
     preferred-width: 0px;
-    border-radius: Pal.radius-sm;
-    border-width: Pal.border-w;
-    background: root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
-    border-color: ti.has-focus ? Pal.accent : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);
+    // Material 3: campo "outlined", esquinas de 4 px y contorno de 2 px en el
+    // color primario al enfocar.
+    border-radius: Pal.material ? 4px : Pal.radius-sm;
+    border-width: Pal.material && ti.has-focus ? 2px : Pal.border-w;
+    background: Pal.material ? transparent : root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
+    border-color: ti.has-focus ? Pal.accent : Pal.material ? (root.enabled ? Pal.line-strong : Pal.line) : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);
     animate border-color { duration: 120ms; }
     clip: true;
 
@@ -292,10 +301,11 @@ export component Select inherits Rectangle {
     // columnas se reacomoden al cambiar una opcion.
     min-width: 0px;
     preferred-width: 0px;
-    border-radius: Pal.radius-sm;
+    // Material 3: igual que el campo de texto ("outlined").
+    border-radius: Pal.material ? 4px : Pal.radius-sm;
     border-width: Pal.border-w;
-    background: root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
-    border-color: (ta.has-hover && root.enabled) ? Pal.accent : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);
+    background: Pal.material ? transparent : root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
+    border-color: (ta.has-hover && root.enabled) ? Pal.accent : Pal.material ? (root.enabled ? Pal.line-strong : Pal.line) : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);
     animate border-color { duration: 120ms; }
 
     HorizontalLayout {
@@ -357,10 +367,11 @@ export component Check inherits Rectangle {
             width: 17px;
             height: 17px;
             y: (parent.height - self.height) / 2;
-            border-radius: 5px;
-            border-width: 1px;
-            background: root.checked ? (root.enabled ? Pal.accent : Pal.muted.with-alpha(0.5)) : Pal.input.with-alpha(root.enabled ? Pal.a-soft : Pal.a-soft * 0.55);
-            border-color: (ta.has-hover && root.enabled) || root.checked ? (root.enabled ? Pal.accent : Pal.muted.with-alpha(0.5)) : Pal.line-strong.with-alpha(root.enabled ? Math.min(1.0, Pal.a-border + 0.12) : Pal.a-border * 0.55);
+            // Material 3: casilla cuadrada (2 px) con contorno de 2 px.
+            border-radius: Pal.material ? 2px : 5px;
+            border-width: Pal.material && !root.checked ? 2px : 1px;
+            background: root.checked ? (root.enabled ? Pal.accent : Pal.muted.with-alpha(0.5)) : Pal.material ? transparent : Pal.input.with-alpha(root.enabled ? Pal.a-soft : Pal.a-soft * 0.55);
+            border-color: (ta.has-hover && root.enabled) || root.checked ? (root.enabled ? Pal.accent : Pal.muted.with-alpha(0.5)) : Pal.material ? Pal.muted : Pal.line-strong.with-alpha(root.enabled ? Math.min(1.0, Pal.a-border + 0.12) : Pal.a-border * 0.55);
             if root.checked: Icon {
                 x: 2px;
                 width: 13px;
@@ -412,7 +423,7 @@ export component Slide inherits Rectangle {
         width: parent.width;
         height: 4px;
         border-radius: 2px;
-        background: root.enabled ? Pal.line-strong : Pal.line-strong.with-alpha(0.5);
+        background: Pal.material ? (root.enabled ? Pal.tonal : Pal.tonal.with-alpha(0.5)) : root.enabled ? Pal.line-strong : Pal.line-strong.with-alpha(0.5);
         Rectangle {
             x: 0px;
             width: 7px + (root.width - 14px) * root.frac;
@@ -428,7 +439,8 @@ export component Slide inherits Rectangle {
         height: 14px;
         border-radius: 7px;
         background: root.enabled ? Pal.accent : Pal.muted.with-alpha(0.6);
-        border-width: 3px;
+        // Material 3: pulgar macizo, sin aro.
+        border-width: Pal.material ? 0px : 3px;
         border-color: root.enabled ? Pal.panel : Pal.panel.with-alpha(0.7);
     }
     ta := TouchArea {
@@ -446,15 +458,17 @@ export component ProgressBar inherits Rectangle {
     in property <float> value: 0;
     height: 6px;
     border-radius: 3px;
-    border-width: 1px;
+    // Material 3: pista tonal sin borde y relleno liso en el primario.
+    border-width: Pal.material ? 0px : 1px;
     clip: true;
-    background: Pal.input.with-alpha(Pal.a-soft);
+    background: Pal.material ? Pal.tonal : Pal.input.with-alpha(Pal.a-soft);
     border-color: Pal.line.with-alpha(Pal.a-border);
     Rectangle {
         x: 0px;
         width: parent.width * Math.max(0.0, Math.min(1.0, root.value));
         height: parent.height;
-        background: @linear-gradient(90deg, Pal.accent 0%, Pal.accent2 50%, Pal.success 100%);
+        border-radius: Pal.material ? parent.height / 2 : 0px;
+        background: Pal.material ? @linear-gradient(90deg, Pal.accent 0%, Pal.accent 100%) : @linear-gradient(90deg, Pal.accent 0%, Pal.accent2 50%, Pal.success 100%);
         animate width { duration: 180ms; }
     }
 }
@@ -620,9 +634,10 @@ export component CardHead inherits HorizontalLayout {
 export component Chip inherits Rectangle {
     in property <string> text;
     in property <color> fg: Pal.muted;
-    background: Pal.input.with-alpha(Pal.a-soft);
-    // Recuadro redondeado, como las tarjetas de seccion; no una pildora.
-    border-radius: Pal.brutal ? 2px : 6px;
+    background: Pal.material ? transparent : Pal.input.with-alpha(Pal.a-soft);
+    // Recuadro redondeado, como las tarjetas de seccion; no una pildora
+    // (Material 3: chip de 8 px con contorno).
+    border-radius: Pal.brutal ? 2px : Pal.material ? 8px : 6px;
     border-width: Pal.brutal ? 2px : 1px;
     border-color: Pal.line.with-alpha(Pal.a-border);
     min-height: Theme.chip-h;

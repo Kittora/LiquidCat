@@ -1,4 +1,5 @@
-// GENERADO por tools/gen_themes.py a partir de style.css. No editar a mano.
+// Generado por tools/gen_themes.py a partir del style.css original; los temas
+// posteriores (Material) se anadieron a mano.
 
 pub struct ThemeDef {
     pub id: &'static str,
@@ -362,6 +363,45 @@ pub static THEMES: &[ThemeDef] = &[
         c_terminal: 0x60CDFF,
         hard_panel: 0x171717,
         hard_ctrl: 0x171717,
+        brutal: false,
+    },
+    // Material 3 (Google), modo oscuro: superficies y textos de referencia de
+    // Material 3. El acento sale del sistema (ver themes::apply); este rosa
+    // (Pink A200 / A100) es el de respaldo.
+    ThemeDef {
+        id: "material", name: "Material", sw: [0x141218, 0xFF4081, 0xD0BCFF],
+        bg: 0x141218,
+        bg_accent: 0x1D1B20,
+        surface: 0x0F0D13,
+        panel: 0x211F26,
+        panel_strong: 0x2B2930,
+        input: 0x1D1B20,
+        line: 0x49454F,
+        line_strong: 0x625D69,
+        text: 0xE6E0E9,
+        muted: 0xCAC4D0,
+        accent: 0xFF4081,
+        accent2: 0xFF80AB,
+        success: 0x81C995,
+        danger: 0xF2B8B5,
+        warning: 0xFDD663,
+        on_accent: 0xFFFFFF,
+        log_bg: 0x0F0D13,
+        log_text: 0xE6E0E9,
+        log_border: 0x49454F,
+        log_cmd: 0xFF4081,
+        log_info: 0xCAC4D0,
+        log_ok: 0x81C995,
+        log_err: 0xF2B8B5,
+        c_search: 0xFF4081,
+        c_preview: 0xFF4081,
+        c_layers: 0xFF4081,
+        c_sliders: 0xFF4081,
+        c_folder: 0xFF4081,
+        c_file: 0xFF4081,
+        c_terminal: 0xFF4081,
+        hard_panel: 0x000000,
+        hard_ctrl: 0x000000,
         brutal: false,
     },
     ThemeDef {

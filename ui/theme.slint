@@ -51,6 +51,13 @@ export global Pal {
     in-out property <bool> brutal: false;
     in-out property <color> hard-panel: #171717;
     in-out property <color> hard-ctrl: #171717;
+
+    // Material 3: superficies solidas, botones en pildora y colores tonales.
+    // `tonal` es el "secondary container" (botones tonales, pestana activa,
+    // pistas) y `on-tonal` el texto encima.
+    in-out property <bool> material: false;
+    in-out property <color> tonal: #4a4458;
+    in-out property <color> on-tonal: #e8def8;
 }
 
 // Escala de la interfaz. Un solo sitio para ajustar densidad y tipografia.

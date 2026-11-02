@@ -152,6 +152,7 @@ fn save_prefs(core: &Core, app: &App) {
     cfg.set_pref("remember_settings", json!(s.get_pref_remember()));
     cfg.set_pref("cookies_browser", json!(pick(&COOKIES, s.get_pref_cookies_idx())));
     cfg.set_pref("theme", json!(s.get_theme().to_string()));
+    cfg.set_pref("system_accent", json!(s.get_pref_sysaccent()));
     cfg.set_pref("lang", json!(core.lang()));
     cfg.set_pref("out_dir", json!(s.get_out_dir().to_string()));
     cfg.set_pref("local_out_dir", json!(s.get_local_out_dir().to_string()));
@@ -186,10 +187,23 @@ pub fn load_initial(core: &Arc<Core>, app: &App) {
             cfg.pref_str("local_out_dir"),
         )
     };
-    s.set_themes(themes::entries());
     s.set_lang_names(ModelRc::new(VecModel::from(i18n_data::LANGS.iter().map(|(_, n)| ss(n)).collect::<Vec<_>>())));
     s.set_lang_codes(ModelRc::new(VecModel::from(i18n_data::LANGS.iter().map(|(c, _)| ss(c)).collect::<Vec<_>>())));
+    // Antes de aplicar el tema: decide si Material/Fluent usan el acento
+    // del sistema.
+    s.set_pref_sysaccent(core.cfg.lock().unwrap().pref_bool("system_accent", true));
     themes::apply(app, &theme);
+    // Si el usuario cambia el acento (o el modo claro/oscuro) en Windows con
+    // la app abierta, el tema se vuelve a aplicar con el color nuevo.
+    {
+        let core = core.clone();
+        crate::accent::watch(move || {
+            core.ui(|a| {
+                let id = a.global::<S>().get_theme();
+                themes::apply(&a, &id);
+            });
+        });
+    }
     {
         let cfg = core.cfg.lock().unwrap();
         s.set_pref_notify(cfg.pref_bool("notify_on_done", true));

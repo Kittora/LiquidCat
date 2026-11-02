@@ -188,6 +188,12 @@ export component AllModals inherits Rectangle {
                         tt := TouchArea { mouse-cursor: pointer; clicked => { S.set-theme(th.id); } }
                     }
                 }
+                // Al cambiarla se vuelve a aplicar el tema actual (y se guarda).
+                VerticalLayout {
+                    spacing: 3px;
+                    Check { text: T.pref-sysaccent; checked <=> S.pref-sysaccent; toggled(b) => { S.set-theme(S.theme); } }
+                    Text { text: T.pref-sysaccent-hint; color: Pal.muted; font-size: 11.5px; wrap: word-wrap; }
+                }
 
                 H3 { icon: "globe"; text: T.set-lang; tint: Pal.c-preview; }
                 HorizontalLayout {
@@ -399,6 +405,7 @@ export component AllModals inherits Rectangle {
                             { n: "Tokyo Night", d: T.credit-tokyo-desc, u: "github.com/enkia/tokyo-night-vscode-theme", l: "MIT" },
                             { n: "Gruvbox", d: T.credit-gruv-desc, u: "github.com/morhetz/gruvbox", l: "MIT" },
                             { n: "Fluent", d: T.credit-fluent-desc, u: "microsoft.com/design/fluent", l: "Microsoft" },
+                            { n: "Material", d: T.credit-material-desc, u: "m3.material.io", l: "Apache 2.0" },
                         ]: VerticalLayout {
                             spacing: 1px;
                             padding-bottom: 6px;

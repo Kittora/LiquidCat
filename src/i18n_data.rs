@@ -248,7 +248,7 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("wiki_h_history", "Historial"),
     ("wiki_p_history", "Guarda los archivos generados con su miniatura e información (título, canal y duración). Puedes abrir cada archivo, ir a su carpeta o limpiar el historial (con confirmación)."),
     ("wiki_h_settings", "Ajustes"),
-    ("wiki_p_settings", "Cambia entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, Intel en celeste, CPU en azul)."),
+    ("wiki_p_settings", "Cambia entre 15 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night y Neo Brutalist), cada uno con su propio icono; actualiza yt-dlp a la última versión (nightly) y ffmpeg con un clic, y elige la carpeta de descargas. Arriba se ve el estado de yt-dlp, ffmpeg y la GPU (NVIDIA en verde, AMD en rojo, Intel en celeste, CPU en azul)."),
     ("wiki_h_lang", "Idioma y créditos"),
     ("wiki_p_lang", "Selector de idioma en Ajustes (español, inglés, portugués, francés, alemán e italiano), y Créditos con los desarrolladores, el software usado y los autores de los temas."),
     ("set_lang", "Idioma"),
@@ -292,6 +292,9 @@ pub static UI_ES: &[(&str, &str)] = &[
     ("gpu_intel", "GPU Intel detectada"),
     ("hw_apple", "Apple (VideoToolbox)"),
     ("credit_skia_desc", "Motor gráfico (el de Chrome) con el que Slint dibuja la interfaz en la GPU."),
+    ("pref_sysaccent", "Usar el color de acento del sistema"),
+    ("pref_sysaccent_hint", "En los temas Material y Fluent (Fluent, solo en Windows)."),
+    ("credit_material_desc", "Sistema de diseño de Google (Material 3), con el acento del sistema."),
 ];
 
 pub static UI_EN: &[(&str, &str)] = &[
@@ -530,7 +533,7 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("wiki_h_history", "History"),
     ("wiki_p_history", "Keeps your generated files with their thumbnail and info (title, channel and duration). Open each file, jump to its folder, or clear the history (with confirmation)."),
     ("wiki_h_settings", "Settings"),
-    ("wiki_p_settings", "Switch between 14 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, cyan Intel, blue CPU)."),
+    ("wiki_p_settings", "Switch between 15 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, cyan Intel, blue CPU)."),
     ("wiki_h_lang", "Language & credits"),
     ("wiki_p_lang", "Language selector in Settings (Spanish, English, Portuguese, French, German and Italian), and Credits with the developers, the software used and the theme authors."),
     ("set_lang", "Language"),
@@ -574,6 +577,9 @@ pub static UI_EN: &[(&str, &str)] = &[
     ("gpu_intel", "Intel GPU detected"),
     ("hw_apple", "Apple (VideoToolbox)"),
     ("credit_skia_desc", "Graphics engine (the one behind Chrome) that Slint uses to draw the interface on the GPU."),
+    ("pref_sysaccent", "Use the system accent color"),
+    ("pref_sysaccent_hint", "In the Material and Fluent themes (Fluent on Windows only)."),
+    ("credit_material_desc", "Google's design system (Material 3), with the system accent."),
 ];
 
 pub static UI_PT: &[(&str, &str)] = &[
@@ -812,7 +818,7 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("wiki_h_history", "Histórico"),
     ("wiki_p_history", "Guarda os arquivos gerados com miniatura e informações (título, canal e duração). Abra cada arquivo, vá até sua pasta ou limpe o histórico (com confirmação)."),
     ("wiki_h_settings", "Configurações"),
-    ("wiki_p_settings", "Alterne entre 14 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night e Neo Brutalist), cada um com seu próprio ícone; atualize o yt-dlp para a versão mais recente (nightly) e o ffmpeg com um clique, e escolha a pasta de downloads. No topo aparece o status do yt-dlp, do ffmpeg e da GPU (NVIDIA em verde, AMD em vermelho, Intel em ciano, CPU em azul)."),
+    ("wiki_p_settings", "Alterne entre 15 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night e Neo Brutalist), cada um com seu próprio ícone; atualize o yt-dlp para a versão mais recente (nightly) e o ffmpeg com um clique, e escolha a pasta de downloads. No topo aparece o status do yt-dlp, do ffmpeg e da GPU (NVIDIA em verde, AMD em vermelho, Intel em ciano, CPU em azul)."),
     ("wiki_h_lang", "Idioma e créditos"),
     ("wiki_p_lang", "Seletor de idioma em Configurações (espanhol, inglês, português, francês, alemão e italiano), e Créditos com os desenvolvedores, o software usado e os autores dos temas."),
     ("set_lang", "Idioma"),
@@ -856,6 +862,9 @@ pub static UI_PT: &[(&str, &str)] = &[
     ("gpu_intel", "GPU Intel detectada"),
     ("hw_apple", "Apple (VideoToolbox)"),
     ("credit_skia_desc", "Motor gráfico (o do Chrome) com o qual o Slint desenha a interface na GPU."),
+    ("pref_sysaccent", "Usar a cor de destaque do sistema"),
+    ("pref_sysaccent_hint", "Nos temas Material e Fluent (Fluent, só no Windows)."),
+    ("credit_material_desc", "Sistema de design do Google (Material 3), com o destaque do sistema."),
 ];
 
 pub static UI_FR: &[(&str, &str)] = &[
@@ -1094,7 +1103,7 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("wiki_h_history", "Historique"),
     ("wiki_p_history", "Conserve vos fichiers générés avec leur miniature et leurs infos (titre, chaîne et durée). Ouvrez chaque fichier, accédez à son dossier ou effacez l'historique (avec confirmation)."),
     ("wiki_h_settings", "Paramètres"),
-    ("wiki_p_settings", "Passez d'un thème à l'autre parmi 14 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, Intel en cyan, CPU en bleu)."),
+    ("wiki_p_settings", "Passez d'un thème à l'autre parmi 15 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, Intel en cyan, CPU en bleu)."),
     ("wiki_h_lang", "Langue et crédits"),
     ("wiki_p_lang", "Sélecteur de langue dans les Paramètres (espagnol, anglais, portugais, français, allemand et italien), et Crédits avec les développeurs, les logiciels utilisés et les auteurs des thèmes."),
     ("set_lang", "Langue"),
@@ -1138,6 +1147,9 @@ pub static UI_FR: &[(&str, &str)] = &[
     ("gpu_intel", "GPU Intel détecté"),
     ("hw_apple", "Apple (VideoToolbox)"),
     ("credit_skia_desc", "Moteur graphique (celui de Chrome) avec lequel Slint dessine l'interface sur le GPU."),
+    ("pref_sysaccent", "Utiliser la couleur d'accentuation du système"),
+    ("pref_sysaccent_hint", "Dans les thèmes Material et Fluent (Fluent uniquement sous Windows)."),
+    ("credit_material_desc", "Système de design de Google (Material 3), avec l'accent du système."),
 ];
 
 pub static UI_DE: &[(&str, &str)] = &[
@@ -1376,7 +1388,7 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("wiki_h_history", "Verlauf"),
     ("wiki_p_history", "Speichert deine erstellten Dateien mit Miniatur und Infos (Titel, Kanal und Dauer). Öffne jede Datei, springe zu ihrem Ordner oder lösche den Verlauf (mit Bestätigung)."),
     ("wiki_h_settings", "Einstellungen"),
-    ("wiki_p_settings", "Wechsle zwischen 14 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau)."),
+    ("wiki_p_settings", "Wechsle zwischen 15 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau)."),
     ("wiki_h_lang", "Sprache & Credits"),
     ("wiki_p_lang", "Sprachauswahl in den Einstellungen (Spanisch, Englisch, Portugiesisch, Französisch, Deutsch und Italienisch) sowie Credits mit den Entwicklern, der verwendeten Software und den Autoren der Designs."),
     ("set_lang", "Sprache"),
@@ -1420,6 +1432,9 @@ pub static UI_DE: &[(&str, &str)] = &[
     ("gpu_intel", "Intel-GPU erkannt"),
     ("hw_apple", "Apple (VideoToolbox)"),
     ("credit_skia_desc", "Grafik-Engine (die von Chrome), mit der Slint die Oberfläche auf der GPU zeichnet."),
+    ("pref_sysaccent", "Akzentfarbe des Systems verwenden"),
+    ("pref_sysaccent_hint", "In den Designs Material und Fluent (Fluent nur unter Windows)."),
+    ("credit_material_desc", "Designsystem von Google (Material 3), mit der Akzentfarbe des Systems."),
 ];
 
 pub static UI_IT: &[(&str, &str)] = &[
@@ -1658,7 +1673,7 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("wiki_h_history", "Cronologia"),
     ("wiki_p_history", "Conserva i file generati con miniatura e informazioni (titolo, canale e durata). Apri ogni file, vai alla sua cartella o cancella la cronologia (con conferma)."),
     ("wiki_h_settings", "Impostazioni"),
-    ("wiki_p_settings", "Passa da uno all'altro dei 14 temi (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Gruvbox, Nord, Tokyo Night e Neo Brutalist), ognuno con la sua icona; aggiorna yt-dlp all'ultima versione (nightly) e ffmpeg con un clic, e scegli la cartella di download. In alto si vede lo stato di yt-dlp, ffmpeg e della GPU (NVIDIA in verde, AMD in rosso, Intel in azzurro, CPU in blu)."),
+    ("wiki_p_settings", "Passa da uno all'altro dei 15 temi (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night e Neo Brutalist), ognuno con la sua icona; aggiorna yt-dlp all'ultima versione (nightly) e ffmpeg con un clic, e scegli la cartella di download. In alto si vede lo stato di yt-dlp, ffmpeg e della GPU (NVIDIA in verde, AMD in rosso, Intel in azzurro, CPU in blu)."),
     ("wiki_h_lang", "Lingua e crediti"),
     ("wiki_p_lang", "Selettore della lingua nelle Impostazioni (spagnolo, inglese, portoghese, francese, tedesco e italiano), e Crediti con gli sviluppatori, il software utilizzato e gli autori dei temi."),
     ("set_lang", "Lingua"),
@@ -1702,6 +1717,9 @@ pub static UI_IT: &[(&str, &str)] = &[
     ("gpu_intel", "GPU Intel rilevata"),
     ("hw_apple", "Apple (VideoToolbox)"),
     ("credit_skia_desc", "Motore grafico (quello di Chrome) con cui Slint disegna l'interfaccia sulla GPU."),
+    ("pref_sysaccent", "Usa il colore principale del sistema"),
+    ("pref_sysaccent_hint", "Nei temi Material e Fluent (Fluent solo su Windows)."),
+    ("credit_material_desc", "Sistema di design di Google (Material 3), con l'accento del sistema."),
 ];
 
 pub static BE_ES: &[(&str, &str)] = &[
@@ -2242,6 +2260,9 @@ pub fn apply(app: &App, lang: &str) {
                 "gpu_intel" => t.set_gpu_intel((*v).into()),
                 "hw_apple" => t.set_hw_apple((*v).into()),
                 "credit_skia_desc" => t.set_credit_skia_desc((*v).into()),
+                "pref_sysaccent" => t.set_pref_sysaccent((*v).into()),
+                "pref_sysaccent_hint" => t.set_pref_sysaccent_hint((*v).into()),
+                "credit_material_desc" => t.set_credit_material_desc((*v).into()),
                 _ => {}
             }
         }

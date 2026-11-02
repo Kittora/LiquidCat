@@ -2,6 +2,7 @@
 
 mod config;
 mod core;
+mod accent;
 mod deps;
 mod gpu;
 mod i18n_data;
