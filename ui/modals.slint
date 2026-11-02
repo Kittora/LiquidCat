@@ -236,7 +236,11 @@ export component AllModals inherits Rectangle {
 
                 H3 { icon: "hard-drive"; text: T.set-deps; tint: Pal.c-file; }
                 VerticalLayout { padding-bottom: 6px; Text { text: T.set-deps-hint; color: Pal.muted; font-size: 12px; wrap: word-wrap; } }
-                for d in S.deps: Box {
+                // Separadas: en Material las cajas son solidas y con esquinas
+                // grandes, y pegadas parecia que se montaban una sobre otra.
+                for d in S.deps: VerticalLayout {
+                    padding-bottom: 8px;
+                    Box {
                     height: 74px;
                     HorizontalLayout {
                         padding: 11px;
@@ -276,6 +280,7 @@ export component AllModals inherits Rectangle {
                             Btn { small: true; text: T.dep-update; enabled: d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "update"); } }
                             Btn { small: true; text: T.dep-reinstall; enabled: d.installed && !S.dep-busy; clicked => { S.dep-action(d.key, "reinstall"); } }
                         } }
+                    }
                     }
                 }
 

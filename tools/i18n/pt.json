@@ -145,7 +145,7 @@
   "soon": "Em breve",
   "credit_author": "Autor",
   "credit_dracula_desc": "Esquema de cores escuro de alto contraste.",
-  "credit_fluent_desc": "Linguagem de design da Microsoft (inspiração no Windows 11).",
+  "credit_fluent_desc": "Linguagem de design da Microsoft (inspiração do Windows 11), com o destaque do Windows.",
   "credit_dev_role": "Autor dos temas adicionais, otimização do programa, correção de bugs e do conversor de vídeo para áudio.",
   "credit_main_role": "Criador e autor principal do LiquidCat e das páginas da Kittora.",
   "credit_helper_role": "Coautor: otimização do LiquidCat e criação das páginas da Kittora.",
@@ -224,7 +224,7 @@
   "wiki_h_encode": "Codificação",
   "wiki_p_encode": "Aceleração por hardware: NVIDIA, AMD, Intel ou somente CPU. Codec de vídeo: H.264, HEVC, AV1 ou VP9. Codec de áudio: MP3, AAC, Opus etc. Qualidade (CQ/CRF): valor menor = melhor qualidade e arquivo maior.",
   "wiki_h_advanced": "Opções avançadas",
-  "wiki_p_advanced": "Corte (início/fim), legendas (baixar ou incorporar), metadados (título, artista e descrição) e capa em MP3/M4A/FLAC (no WAV só metadados), e cookies do navegador para conteúdo restrito (verificados ao escolher).",
+  "wiki_p_advanced": "Corte (início/fim), legendas (baixar ou incorporar), metadados (título, artista e descrição) e capa em MP3/M4A/FLAC (no WAV só metadados), e cookies do navegador para conteúdo restrito (verificados ao escolher). Com um corte, só esse trecho é baixado e o corte é exato: ele é recodificado com a sua GPU (ou a CPU, se não houver).",
   "wiki_h_dest": "Destino",
   "wiki_p_dest": "Pasta onde o resultado é salvo. O botão Procurar… abre o explorador de arquivos do Windows. Se você não escolher nada, será usada sua pasta Downloads.",
   "wiki_h_local": "Arquivos locais",
@@ -236,7 +236,7 @@
   "wiki_h_history": "Histórico",
   "wiki_p_history": "Guarda os arquivos gerados com miniatura e informações (título, canal e duração). Abra cada arquivo, vá até sua pasta ou limpe o histórico (com confirmação).",
   "wiki_h_settings": "Configurações",
-  "wiki_p_settings": "Alterne entre 15 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night e Neo Brutalist), cada um com seu próprio ícone; atualize o yt-dlp para a versão mais recente (nightly) e o ffmpeg com um clique, e escolha a pasta de downloads. No topo aparece o status do yt-dlp, do ffmpeg e da GPU (NVIDIA em verde, AMD em vermelho, Intel em ciano, CPU em azul).",
+  "wiki_p_settings": "Alterne entre 15 temas (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night e Neo Brutalist), cada um com seu próprio ícone; atualize o yt-dlp para a versão mais recente (nightly) e o ffmpeg com um clique, e escolha a pasta de downloads. No topo aparece o status do yt-dlp, do ffmpeg e da GPU (NVIDIA em verde, AMD em vermelho, Intel em ciano, CPU em azul). Com \"Usar a cor de destaque do sistema\", o Material (e o Fluent no Windows) usa a sua cor de destaque, incluindo o gato do ícone. Ao terminar um trabalho, o LiquidCat avisa com uma notificação; para que ela apareça com o ícone, ele cria um atalho no menu Iniciar.",
   "wiki_h_lang": "Idioma e créditos",
   "wiki_p_lang": "Seletor de idioma em Configurações (espanhol, inglês, português, francês, alemão e italiano), e Créditos com os desenvolvedores, o software usado e os autores dos temas.",
   "set_lang": "Idioma",
@@ -282,7 +282,7 @@
   "credit_skia_desc": "Motor gráfico (o do Chrome) com o qual o Slint desenha a interface na GPU.",
   "pref_sysaccent": "Usar a cor de destaque do sistema",
   "pref_sysaccent_hint": "Nos temas Material e Fluent (Fluent, só no Windows).",
-  "credit_material_desc": "Sistema de design do Google (Material 3), com o destaque do sistema."
+  "credit_material_desc": "Sistema de design do Google (Material 3). Cores geradas a partir do seu destaque com material-color-utilities."
  },
  "backend": {
   "dl_video": "Obtendo vídeo…",

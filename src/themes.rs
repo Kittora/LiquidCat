@@ -52,7 +52,6 @@ struct MaterialScheme {
     on_primary: u32,
     secondary_container: u32,
     on_secondary_container: u32,
-    tertiary: u32,
     error: u32,
     surface: u32,
     surface_container_lowest: u32,
@@ -80,7 +79,6 @@ fn material_scheme(accent: Option<crate::accent::Accent>) -> MaterialScheme {
         on_primary: c(s.on_primary),
         secondary_container: c(s.secondary_container),
         on_secondary_container: c(s.on_secondary_container),
-        tertiary: c(s.tertiary),
         error: c(s.error),
         surface: c(s.surface),
         surface_container_lowest: c(s.surface_container_lowest),
@@ -110,7 +108,8 @@ fn apply_material(p: &Pal, m: &MaterialScheme) {
     p.set_text(col(m.on_surface));
     p.set_muted(col(m.on_surface_variant));
     p.set_accent(col(m.primary));
-    p.set_accent2(col(m.tertiary));
+    // accent2 (realces y hovers) es el mismo primario en Material.
+    p.set_accent2(col(m.primary));
     p.set_on_accent(col(m.on_primary));
     p.set_danger(col(m.error));
     p.set_tonal(col(m.secondary_container));
@@ -143,6 +142,7 @@ fn theme_icon_png(id: &str) -> &'static [u8] {
         "neo-brutalist-light" => include_bytes!("../assets/theme-icons/neo-brutalist-light.png"),
         "neo-brutalist-dark" => include_bytes!("../assets/theme-icons/neo-brutalist-dark.png"),
         // Material usa el de Mocha teñido con su color primario (tint_to_hue).
+        // (Fluent, con el acento de Windows, tambien se tiñe.)
         _ => include_bytes!("../assets/theme-icons/catppuccin.png"),
     }
 }
@@ -156,16 +156,18 @@ const LOGO_PX: f32 = 46.0;
 fn theme_icon_rgba(id: &str, px: u32) -> Option<image::RgbaImage> {
     let img = image::load_from_memory(theme_icon_png(id)).ok()?;
     let mut img = img.resize_exact(px, px, image::imageops::FilterType::Lanczos3).to_rgba8();
-    if id == "material" {
-        tint_to_hue(&mut img, MATERIAL_TINT.load(std::sync::atomic::Ordering::Relaxed));
+    let tint = ICON_TINT.load(std::sync::atomic::Ordering::Relaxed);
+    if tint != NO_TINT && (id == "material" || id == "fluent") {
+        tint_to_hue(&mut img, tint);
     }
     Some(img)
 }
 
-/// Color primario del esquema Material actual: el gato de Material es el de
-/// Mocha teñido con este color (ver `tint_to_hue`), asi va a juego con el
-/// acento del sistema y cambia con el.
-static MATERIAL_TINT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(MATERIAL_SEED);
+/// Color con el que se tiñe el gato del tema actual (ver `tint_to_hue`), asi
+/// va a juego con el acento: en Material el primario de su esquema, y en
+/// Fluent el acento de Windows. NO_TINT: el icono tal cual.
+static ICON_TINT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(NO_TINT);
+const NO_TINT: u32 = u32::MAX;
 
 /// Lleva todos los pixeles al tono (hue) de `color`, conservando su luz y su
 /// saturacion: el gato queda monocromo en el color del tema, como los
@@ -301,11 +303,14 @@ pub fn apply(app: &App, id: &str) {
     let system = if s.get_pref_sysaccent() { crate::accent::system() } else { None };
     let material = t.id == "material";
     p.set_material(material);
+    // Sin acento del sistema, cada gato con su color de siempre.
+    ICON_TINT.store(NO_TINT, std::sync::atomic::Ordering::Relaxed);
     if material {
         let scheme = material_scheme(system);
-        MATERIAL_TINT.store(scheme.primary, std::sync::atomic::Ordering::Relaxed);
+        ICON_TINT.store(scheme.primary, std::sync::atomic::Ordering::Relaxed);
         apply_material(&p, &scheme);
     } else if let Some(a) = system.filter(|_| follows_system_accent(t.id)) {
+        ICON_TINT.store(a.main, std::sync::atomic::Ordering::Relaxed);
         let (main, hover) = (col(a.main), col(a.hover));
         p.set_accent(main);
         p.set_accent2(hover);

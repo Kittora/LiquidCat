@@ -145,7 +145,7 @@
   "soon": "Coming soon",
   "credit_author": "Author",
   "credit_dracula_desc": "High-contrast dark color scheme.",
-  "credit_fluent_desc": "Microsoft design language (Windows 11 inspiration).",
+  "credit_fluent_desc": "Microsoft design language (Windows 11 inspiration), with the Windows accent.",
   "credit_dev_role": "Author of the additional themes, program optimization, bug fixes and the video-to-audio converter.",
   "credit_main_role": "Creator and lead author of LiquidCat and the Kittora pages.",
   "credit_helper_role": "Co-author: LiquidCat optimization and building the Kittora pages.",
@@ -224,7 +224,7 @@
   "wiki_h_encode": "Encoding",
   "wiki_p_encode": "Hardware acceleration: NVIDIA, AMD, Intel or CPU only. Video codec: H.264, HEVC, AV1 or VP9. Audio codec: MP3, AAC, Opus, etc. Quality (CQ/CRF): lower value = better quality and larger size.",
   "wiki_h_advanced": "Advanced options",
-  "wiki_p_advanced": "Trim (start/end), subtitles (download or embed), metadata (title, artist and description) and cover art in MP3/M4A/FLAC (WAV metadata only), and browser cookies for restricted content (verified when picked).",
+  "wiki_p_advanced": "Trim (start/end), subtitles (download or embed), metadata (title, artist and description) and cover art in MP3/M4A/FLAC (WAV metadata only), and browser cookies for restricted content (verified when picked). With a trim, only that part is downloaded and the cut is exact: it is re-encoded with your GPU (or the CPU if there is none).",
   "wiki_h_dest": "Destination",
   "wiki_p_dest": "Folder where the result is saved. The Browse… button opens the Windows file explorer. If you pick nothing, your Downloads folder is used.",
   "wiki_h_local": "Local files",
@@ -236,7 +236,7 @@
   "wiki_h_history": "History",
   "wiki_p_history": "Keeps your generated files with their thumbnail and info (title, channel and duration). Open each file, jump to its folder, or clear the history (with confirmation).",
   "wiki_h_settings": "Settings",
-  "wiki_p_settings": "Switch between 15 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, cyan Intel, blue CPU).",
+  "wiki_p_settings": "Switch between 15 themes (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night and Neo Brutalist), each with its own icon; update yt-dlp to the latest (nightly) and ffmpeg with one click, and pick the download folder. The top bar shows the status of yt-dlp, ffmpeg and the GPU (green NVIDIA, red AMD, cyan Intel, blue CPU). With \"Use the system accent color\", Material (and Fluent on Windows) takes your accent color, including the cat icon. When a job finishes, LiquidCat shows a notification; to show it with its icon, it adds a shortcut to the Start menu.",
   "wiki_h_lang": "Language & credits",
   "wiki_p_lang": "Language selector in Settings (Spanish, English, Portuguese, French, German and Italian), and Credits with the developers, the software used and the theme authors.",
   "set_lang": "Language",
@@ -282,7 +282,7 @@
   "credit_skia_desc": "Graphics engine (the one behind Chrome) that Slint uses to draw the interface on the GPU.",
   "pref_sysaccent": "Use the system accent color",
   "pref_sysaccent_hint": "In the Material and Fluent themes (Fluent on Windows only).",
-  "credit_material_desc": "Google's design system (Material 3), with the system accent."
+  "credit_material_desc": "Google's design system (Material 3). Colors generated from your accent with material-color-utilities."
  },
  "backend": {
   "dl_video": "Getting video…",

@@ -145,7 +145,7 @@
   "soon": "Bientôt disponible",
   "credit_author": "Auteur",
   "credit_dracula_desc": "Jeu de couleurs sombre à fort contraste.",
-  "credit_fluent_desc": "Langage de design de Microsoft (inspiré de Windows 11).",
+  "credit_fluent_desc": "Langage de design de Microsoft (inspiré de Windows 11), avec l'accent de Windows.",
   "credit_dev_role": "Auteur des thèmes supplémentaires, de l'optimisation du programme, des corrections de bugs et du convertisseur vidéo vers audio.",
   "credit_main_role": "Créateur et auteur principal de LiquidCat et des pages Kittora.",
   "credit_helper_role": "Co-auteur : optimisation de LiquidCat et création des pages Kittora.",
@@ -224,7 +224,7 @@
   "wiki_h_encode": "Encodage",
   "wiki_p_encode": "Accélération matérielle : NVIDIA, AMD, Intel ou CPU uniquement. Codec vidéo : H.264, HEVC, AV1 ou VP9. Codec audio : MP3, AAC, Opus, etc. Qualité (CQ/CRF) : valeur plus basse = meilleure qualité et fichier plus lourd.",
   "wiki_h_advanced": "Options avancées",
-  "wiki_p_advanced": "Découpe (début/fin), sous-titres (télécharger ou intégrer), métadonnées (titre, artiste et description) et pochette en MP3/M4A/FLAC (WAV : métadonnées seulement), et cookies du navigateur pour le contenu restreint (vérifiés à la sélection).",
+  "wiki_p_advanced": "Découpe (début/fin), sous-titres (télécharger ou intégrer), métadonnées (titre, artiste et description) et pochette en MP3/M4A/FLAC (WAV : métadonnées seulement), et cookies du navigateur pour le contenu restreint (vérifiés à la sélection). Avec un découpage, seul ce passage est téléchargé et la coupe est exacte : il est réencodé avec votre GPU (ou le CPU s'il n'y en a pas).",
   "wiki_h_dest": "Destination",
   "wiki_p_dest": "Dossier où le résultat est enregistré. Le bouton Parcourir… ouvre l'explorateur de fichiers de Windows. Si vous ne choisissez rien, votre dossier Téléchargements est utilisé.",
   "wiki_h_local": "Fichiers locaux",
@@ -236,7 +236,7 @@
   "wiki_h_history": "Historique",
   "wiki_p_history": "Conserve vos fichiers générés avec leur miniature et leurs infos (titre, chaîne et durée). Ouvrez chaque fichier, accédez à son dossier ou effacez l'historique (avec confirmation).",
   "wiki_h_settings": "Paramètres",
-  "wiki_p_settings": "Passez d'un thème à l'autre parmi 15 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, Intel en cyan, CPU en bleu).",
+  "wiki_p_settings": "Passez d'un thème à l'autre parmi 15 (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night et Neo Brutalist), chacun avec sa propre icône ; mettez à jour yt-dlp vers la dernière version (nightly) et ffmpeg en un clic, et choisissez le dossier de téléchargement. En haut s'affiche l'état de yt-dlp, de ffmpeg et du GPU (NVIDIA en vert, AMD en rouge, Intel en cyan, CPU en bleu). Avec « Utiliser la couleur d'accentuation du système », Material (et Fluent sous Windows) prend votre couleur d'accentuation, y compris le chat de l'icône. À la fin d'une tâche, LiquidCat affiche une notification ; pour qu'elle apparaisse avec son icône, il crée un raccourci dans le menu Démarrer.",
   "wiki_h_lang": "Langue et crédits",
   "wiki_p_lang": "Sélecteur de langue dans les Paramètres (espagnol, anglais, portugais, français, allemand et italien), et Crédits avec les développeurs, les logiciels utilisés et les auteurs des thèmes.",
   "set_lang": "Langue",
@@ -282,7 +282,7 @@
   "credit_skia_desc": "Moteur graphique (celui de Chrome) avec lequel Slint dessine l'interface sur le GPU.",
   "pref_sysaccent": "Utiliser la couleur d'accentuation du système",
   "pref_sysaccent_hint": "Dans les thèmes Material et Fluent (Fluent uniquement sous Windows).",
-  "credit_material_desc": "Système de design de Google (Material 3), avec l'accent du système."
+  "credit_material_desc": "Système de design de Google (Material 3). Couleurs générées depuis votre accent avec material-color-utilities."
  },
  "backend": {
   "dl_video": "Récupération de la vidéo…",

@@ -556,7 +556,9 @@ export component VScroll inherits Rectangle {
         width: (bar.pressed || bar.has-hover) ? 6px : 4px;
         height: thumb-h;
         border-radius: 3px;
-        background: bar.pressed ? Pal.accent : bar.has-hover ? Pal.accent2 : Pal.line-strong;
+        // Hover y arrastre en el color de acento del tema (un poco mas suave al
+        // pasar el raton), no en el secundario.
+        background: bar.pressed ? Pal.accent : bar.has-hover ? Pal.accent.with-alpha(0.75) : Pal.line-strong;
         animate width { duration: 110ms; }
         animate background { duration: 110ms; }
     }

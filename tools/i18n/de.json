@@ -145,7 +145,7 @@
   "soon": "Demnächst",
   "credit_author": "Autor",
   "credit_dracula_desc": "Dunkles Farbschema mit hohem Kontrast.",
-  "credit_fluent_desc": "Designsprache von Microsoft (inspiriert von Windows 11).",
+  "credit_fluent_desc": "Designsprache von Microsoft (inspiriert von Windows 11), mit der Akzentfarbe von Windows.",
   "credit_dev_role": "Autor der zusätzlichen Designs, der Programmoptimierung, der Fehlerbehebungen und des Video-zu-Audio-Konverters.",
   "credit_main_role": "Schöpfer und Hauptautor von LiquidCat und den Kittora-Seiten.",
   "credit_helper_role": "Mitautor: Optimierung von LiquidCat und Erstellung der Kittora-Seiten.",
@@ -224,7 +224,7 @@
   "wiki_h_encode": "Kodierung",
   "wiki_p_encode": "Hardwarebeschleunigung: NVIDIA, AMD, Intel oder nur CPU. Videocodec: H.264, HEVC, AV1 oder VP9. Audiocodec: MP3, AAC, Opus usw. Qualität (CQ/CRF): niedrigerer Wert = bessere Qualität und größere Datei.",
   "wiki_h_advanced": "Erweiterte Optionen",
-  "wiki_p_advanced": "Zuschnitt (Anfang/Ende), Untertitel (herunterladen oder einbetten), Metadaten (Titel, Künstler und Beschreibung) und Cover bei MP3/M4A/FLAC (bei WAV nur Metadaten) sowie Browser-Cookies für eingeschränkte Inhalte (beim Auswählen geprüft).",
+  "wiki_p_advanced": "Zuschnitt (Anfang/Ende), Untertitel (herunterladen oder einbetten), Metadaten (Titel, Künstler und Beschreibung) und Cover bei MP3/M4A/FLAC (bei WAV nur Metadaten) sowie Browser-Cookies für eingeschränkte Inhalte (beim Auswählen geprüft). Mit einem Zuschnitt wird nur dieser Teil heruntergeladen und exakt geschnitten: Er wird mit deiner GPU neu kodiert (oder mit der CPU, falls keine vorhanden ist).",
   "wiki_h_dest": "Ziel",
   "wiki_p_dest": "Ordner, in dem das Ergebnis gespeichert wird. Die Schaltfläche Durchsuchen… öffnet den Windows-Explorer. Wenn du nichts wählst, wird dein Download-Ordner verwendet.",
   "wiki_h_local": "Lokale Dateien",
@@ -236,7 +236,7 @@
   "wiki_h_history": "Verlauf",
   "wiki_p_history": "Speichert deine erstellten Dateien mit Miniatur und Infos (Titel, Kanal und Dauer). Öffne jede Datei, springe zu ihrem Ordner oder lösche den Verlauf (mit Bestätigung).",
   "wiki_h_settings": "Einstellungen",
-  "wiki_p_settings": "Wechsle zwischen 15 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau).",
+  "wiki_p_settings": "Wechsle zwischen 15 Designs (Catppuccin, Dracula, AMOLED, Dark, Light, Fluent, Material, Gruvbox, Nord, Tokyo Night und Neo Brutalist), jedes mit eigenem Symbol; aktualisiere yt-dlp auf die neueste Version (nightly) und ffmpeg mit einem Klick und wähle den Download-Ordner. Oben siehst du den Status von yt-dlp, ffmpeg und der GPU (NVIDIA grün, AMD rot, Intel cyan, CPU blau). Mit „Akzentfarbe des Systems verwenden“ übernimmt Material (und Fluent unter Windows) deine Akzentfarbe, auch für die Katze im Symbol. Ist ein Auftrag fertig, zeigt LiquidCat eine Benachrichtigung; damit sie mit Symbol erscheint, legt es eine Verknüpfung im Startmenü an.",
   "wiki_h_lang": "Sprache & Credits",
   "wiki_p_lang": "Sprachauswahl in den Einstellungen (Spanisch, Englisch, Portugiesisch, Französisch, Deutsch und Italienisch) sowie Credits mit den Entwicklern, der verwendeten Software und den Autoren der Designs.",
   "set_lang": "Sprache",
@@ -282,7 +282,7 @@
   "credit_skia_desc": "Grafik-Engine (die von Chrome), mit der Slint die Oberfläche auf der GPU zeichnet.",
   "pref_sysaccent": "Akzentfarbe des Systems verwenden",
   "pref_sysaccent_hint": "In den Designs Material und Fluent (Fluent nur unter Windows).",
-  "credit_material_desc": "Designsystem von Google (Material 3), mit der Akzentfarbe des Systems."
+  "credit_material_desc": "Designsystem von Google (Material 3). Farben aus deiner Akzentfarbe mit material-color-utilities erzeugt."
  },
  "backend": {
   "dl_video": "Video wird geladen…",
