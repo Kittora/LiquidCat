@@ -1,7 +1,6 @@
 <div align="center">
 
-<!-- Replace this placeholder with your final banner: assets/readme/liquidcat-banner.png -->
-<img src="assets/readme/liquidcat-banner-placeholder.svg" alt="LiquidCat — Download, convert and re-encode media" width="100%">
+<img src="assets/readme/liquidcat-banner.svg" alt="LiquidCat — Download, convert and re-encode media" width="100%">
 
 <br>
 
@@ -9,20 +8,19 @@
 
 ### Download · Convert · Re-encode
 
-**A polished, native desktop workspace for downloading and transforming multimedia—powered by yt-dlp and FFmpeg, without the usual setup friction or WebView bloat.**
+**A polished, native desktop app for downloading and transforming video and audio, powered by yt-dlp and FFmpeg, without the usual setup friction or WebView bloat.**
 
 <br>
 
-[![Platform](https://img.shields.io/badge/Platform-Windows_%7C_Linux_%7C_macOS-89B4FA?style=for-the-badge)](#installation)
-[![Rust](https://img.shields.io/badge/Rust-Native-000000?style=for-the-badge&logo=rust&logoColor=white)](#tech-stack)
-[![License](https://img.shields.io/badge/License-GPL--3.0-F38BA8?style=for-the-badge)](#license)
-[![Slint](https://img.shields.io/badge/UI-Slint-74C7EC?style=for-the-badge)](#tech-stack)
-[![yt-dlp](https://img.shields.io/badge/Powered_by-yt--dlp-A6E3A1?style=for-the-badge&logo=youtube&logoColor=11111B)](https://github.com/yt-dlp/yt-dlp)
-[![FFmpeg](https://img.shields.io/badge/Powered_by-FFmpeg-F9E2AF?style=for-the-badge&logo=ffmpeg&logoColor=11111B)](https://ffmpeg.org/)
+[![Latest release](https://img.shields.io/github/v/release/Kittora/LiquidCat?style=for-the-badge&label=Release&color=A6E3A1&labelColor=313244)](https://github.com/Kittora/LiquidCat/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Kittora/LiquidCat/total?style=for-the-badge&label=Downloads&color=89B4FA&labelColor=313244)](https://github.com/Kittora/LiquidCat/releases)
+[![Platform](https://img.shields.io/badge/Platform-Windows_%7C_Linux_%7C_macOS-CBA6F7?style=for-the-badge&labelColor=313244)](#installation)
+[![License](https://img.shields.io/badge/License-GPL--3.0-F38BA8?style=for-the-badge&labelColor=313244)](#license)
+[![Rust](https://img.shields.io/badge/Rust-Native-FAB387?style=for-the-badge&logo=rust&logoColor=white&labelColor=313244)](#tech-stack)
 
 <br>
 
-[Features](#features) · [Screenshots](#screenshots) · [Installation](#installation) · [Roadmap](#roadmap) · [Authors](#authors)
+**[Download](https://github.com/Kittora/LiquidCat/releases/latest)** · [Website](https://www.kittora.dev/liquidcat/) · [Features](#features) · [Screenshots](#screenshots) · [Installation](#installation) · [Building](#building-from-source) · [Roadmap](#roadmap)
 
 </div>
 
@@ -30,15 +28,15 @@
 
 ## Overview
 
-LiquidCat brings media downloading, conversion and re-encoding into one focused desktop application. Paste a compatible link or select a local file, choose the result you want, and let LiquidCat handle the processing pipeline.
+LiquidCat brings media downloading, conversion and re-encoding into one focused desktop application. Paste a link or pick a local file, choose the result you want, and LiquidCat handles the whole yt-dlp and FFmpeg pipeline for you.
 
-This version is a **complete native rewrite** from the ground up. Tauri and WebView2 have been completely removed; the interface is now drawn using **Rust and Slint**, resulting in a snappy, single-executable experience.
-
-> [!NOTE]
-> LiquidCat is lighter than the previous WebView2-based build. Expect around 60 MB at idle in Task Manager on Windows; actual usage varies with the active renderer and theme.
+It is written in **Rust** with a **Slint** interface drawn on the GPU by Skia: a single, portable executable with no WebView, no Python and no installer. yt-dlp and FFmpeg are downloaded and kept up to date automatically.
 
 > [!NOTE]
-> LiquidCat is designed for media you own or are authorized to download and process. You are responsible for respecting applicable copyright rules and platform terms.
+> LiquidCat uses around 60 MB of memory at idle on Windows; actual usage varies with the renderer and the theme.
+
+> [!NOTE]
+> LiquidCat is meant for media you own or are allowed to download and process. You are responsible for respecting copyright and each platform's terms.
 
 ## Features
 
@@ -48,21 +46,21 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 
 ### Download
 
-- Download video or audio from links supported by yt-dlp
+- Download video or audio from any site supported by yt-dlp
 - Batch import: paste many links at once or load them from a `.txt`
-- Choose format, resolution and quality
+- Choose format, resolution and quality, with the best option highlighted
 - Include subtitles, thumbnails and metadata
-- Select the destination folder before processing
+- Use browser cookies for content that needs a sign-in
 
 </td>
 <td width="50%" valign="top">
 
 ### Convert
 
-- Convert media to MP3, M4A, FLAC and other formats
+- Convert to MP3, M4A, FLAC, WAV, AAC, Opus or Ogg, or make a GIF
 - Re-encode local video and audio files (pick or drag several at once)
-- Use FFmpeg with hardware acceleration (NVENC/AMF/CPU)
-- Trim a specific segment without leaving the app
+- Hardware encoding with NVENC, AMF, Intel Quick Sync, VAAPI or VideoToolbox, detected automatically, with a CPU fallback
+- Trim an exact segment, re-encoded on the GPU when available
 
 </td>
 </tr>
@@ -72,22 +70,19 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 ### Organize
 
 - Manage multiple jobs through a processing queue
-- Review completed and previous jobs in history
-- Track each task from preparation to completion in a floating Activity card (with cancel)
-- Start with eight built-in presets, including **H.264 compatible** (best H.264 + AAC with no re-encode, plays everywhere)
-- Keep your existing presets and history (fully compatible with the old `config.json`)
+- Review completed jobs in the history
+- Follow each task in a floating Activity card (with cancel) and get a system notification when it's done
+- Start from eight built-in presets, including **H.264 compatible** (plays everywhere) or save your own
 
 </td>
 <td width="50%" valign="top">
 
-### Finish
+### Make it yours
 
-- Open the resulting file immediately
-- Get notified when a new LiquidCat version is out (Settings → About)
-- Jump directly to its destination folder
-- Keep the complete workflow inside one interface
-- 14 built-in themes (including Catppuccin), each with its own cat icon
-- Available in English, Spanish, Portuguese, French, German and Italian
+- 15 themes, each with its own cat icon: Catppuccin, **Material 3**, Fluent, Tokyo Night, Nord, Gruvbox, Neo Brutalist and more
+- Material and Fluent follow your system accent color, live
+- Available in English, Spanish, Portuguese, French, German and Italian (follows your system language)
+- Checks for new versions of LiquidCat, yt-dlp and FFmpeg on launch
 
 </td>
 </tr>
@@ -116,37 +111,42 @@ This version is a **complete native rewrite** from the ground up. Tauri and WebV
 
 </div>
 
-## Tech stack
-
-| Component | Role |
-|---|---|
-| [Rust](https://www.rust-lang.org/) | Core backend, performance, and logic |
-| [Slint](https://slint.dev/) | Native UI toolkit (no WebView required) |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Link extraction and media downloads |
-| [FFmpeg](https://ffmpeg.org/) | Conversion, re-encoding, trimming and media processing |
-
 ## Installation
+
+Download the file for your system from the **[latest release](https://github.com/Kittora/LiquidCat/releases/latest)** (or from [kittora.dev](https://www.kittora.dev/liquidcat/#download)).
+
+| System | File | Status |
+|---|---|---|
+| Windows 10 / 11 (x64) | `LiquidCat-<version>-windows-x86_64.exe` | Stable |
+| Linux x86_64 | `LiquidCat-<version>-linux-x86_64.tar.gz` | Experimental |
+| Linux ARM64 (e.g. Raspberry Pi 4/5) | `LiquidCat-<version>-linux-aarch64.tar.gz` | Experimental |
+| macOS Apple Silicon | `LiquidCat-<version>-macos-arm64.zip` | Experimental |
+| macOS Intel | `LiquidCat-<version>-macos-x86_64.zip` | Experimental |
 
 ### Windows
 
-1. Open the repository's **[Releases](https://github.com/Kittora/LiquidCat/releases)** page.
-2. Download the latest `LiquidCat-0.4.6-windows-x86_64.exe`.
-3. Run `LiquidCat.exe`. 
-
-*Note: **Python is not required.** LiquidCat automatically downloads and manages its own yt-dlp (kept up to date) and FFmpeg/ffprobe in the background.*
+Run the `.exe`: it's portable, so there is nothing to install. The executable isn't code-signed yet, so Windows SmartScreen may warn you the first time; choose **More info → Run anyway**. LiquidCat downloads yt-dlp and FFmpeg on first launch and keeps them up to date.
 
 ### Linux and macOS (experimental)
 
-These builds are new and have had little testing. Feedback is very welcome.
+These builds compile automatically on every release but have had little testing on real machines. Feedback is very welcome.
 
-- **Linux:** download `LiquidCat-0.4.6-linux-x86_64.tar.gz` (PC) or `LiquidCat-0.4.6-linux-aarch64.tar.gz` (ARM 64-bit, e.g. Raspberry Pi 4/5), extract it and run `./LiquidCat`. Install FFmpeg with your package manager (for example `sudo apt install ffmpeg`).
-- **macOS:** download `LiquidCat-0.4.6-macos-arm64.zip` (Apple Silicon) or `LiquidCat-0.4.6-macos-x86_64.zip` (Intel), unzip it and move `LiquidCat.app` to *Applications*. The app is not notarized, so the first time right-click it and choose **Open**. Install FFmpeg with `brew install ffmpeg`.
+- **Linux:** extract the archive and run `./LiquidCat`. Install FFmpeg with your package manager (for example `sudo apt install ffmpeg`).
+- **macOS:** unzip it and move `LiquidCat.app` to *Applications*. The app isn't notarized, so the first time right-click it and choose **Open**. Install FFmpeg with `brew install ffmpeg`.
 
 LiquidCat downloads its own yt-dlp on every platform.
 
-> [!IMPORTANT]
-> **Building from source:** You will need Rust 1.88+ installed. Simply clone the repository and run `cargo build --release`. 
-> Alternatively, you can just push the code to GitHub and use the included **Build Windows** and **Build Linux & macOS** GitHub Actions to get the builds automatically.
+## Building from source
+
+You need [Rust](https://www.rust-lang.org/tools/install) 1.88 or newer.
+
+```bash
+git clone https://github.com/Kittora/LiquidCat.git
+cd LiquidCat
+cargo build --release
+```
+
+The executable ends up in `target/release/`. On Linux, Slint and Skia also need the usual development packages (fontconfig, xkbcommon, Wayland/X11 and OpenGL headers); the [Linux & macOS workflow](.github/workflows/unix.yml) lists the exact ones. The **Build Windows** and **Build Linux & macOS** GitHub Actions produce the same release files.
 
 ## How it works
 
@@ -155,12 +155,22 @@ Link or local file
         ↓
 Choose format, quality and optional extras
         ↓
-LiquidCat prepares the yt-dlp / FFmpeg job
+LiquidCat prepares the yt-dlp / FFmpeg job (GPU when available)
         ↓
-Track progress in the queue
+Track progress in the queue and the Activity card
         ↓
 Open the finished file or its destination folder
 ```
+
+## Tech stack
+
+| Component | Role |
+|---|---|
+| [Rust](https://www.rust-lang.org/) | Core backend, performance and logic |
+| [Slint](https://slint.dev/) + [Skia](https://skia.org/) | Native UI toolkit, rendered on the GPU (no WebView) |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Link extraction and media downloads |
+| [FFmpeg](https://ffmpeg.org/) | Conversion, re-encoding, trimming and media processing |
+| [material-color-utilities](https://github.com/material-foundation/material-color-utilities) | Material 3 color schemes from your accent color |
 
 ## Roadmap
 
@@ -173,21 +183,26 @@ Open the finished file or its destination folder
 - [x] Reusable download and conversion presets
 - [x] Batch import for links and local files
 - [x] Additional application languages (PT, FR, DE, IT)
+- [x] Linux and macOS builds (experimental)
+- [x] Material 3 theme and system accent color
+- [ ] Linux and macOS testing on real hardware
 - [ ] Expanded accessibility and keyboard navigation
 
 Roadmap items may change as LiquidCat evolves.
 
 ## Contributing
 
-Issues and focused pull requests are welcome. Before proposing a large change, open an issue so the scope and expected behavior can be discussed first.
+Issues and focused pull requests are welcome. Before proposing a large change, open an issue so the scope and expected behavior can be discussed first. See the [contributing guide](https://github.com/Kittora/.github/blob/main/CONTRIBUTING.md) for details.
+
+Found a security issue? Please report it privately through **[Security → Report a vulnerability](https://github.com/Kittora/LiquidCat/security/advisories/new)** instead of a public issue.
 
 ## Authors
 
-Built by **JuanFX** ([@xjuanfxx](https://github.com/xjuanfxx)) and **Adaki** ([@notTao](https://github.com/notTao)).
+Built by **JuanFX** ([@xjuanfxx](https://github.com/xjuanfxx)) and **Adaki** ([@notTao](https://github.com/notTao)) at [Kittora](https://www.kittora.dev).
 
 ## Acknowledgements
 
-LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Slint](https://slint.dev/), [Skia](https://skia.org/) and the [Catppuccin](https://catppuccin.com/) color palette.
+LiquidCat is made possible by the excellent work behind [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), [Slint](https://slint.dev/), [Skia](https://skia.org/), the [Catppuccin](https://catppuccin.com/) color palette and Google's [Material 3](https://m3.material.io/) design system.
 
 ## License
 
@@ -197,6 +212,7 @@ Third-party components keep their own licenses:
 
 - **[Slint](https://slint.dev/)** (user interface) is used under the GPL-3.0.
 - **[Skia](https://skia.org/)** (graphics engine used by Slint) is under the BSD 3-Clause license.
+- **[material-color-utilities](https://github.com/material-foundation/material-color-utilities)** (Material 3 colors) is under the Apache 2.0 license; LiquidCat uses its Rust port, the `material-colors` crate (MIT or Apache-2.0).
 - **[Poppins](https://github.com/itfoundry/Poppins)** fonts are bundled under the SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)).
 - **yt-dlp** (Unlicense) and **FFmpeg** (GPL) are not bundled: LiquidCat downloads them from their official sources on first run.
 - The Rust libraries LiquidCat is built on use permissive licenses (MIT, Apache-2.0, BSD, ISC, Zlib and similar).
@@ -205,6 +221,6 @@ Third-party components keep their own licenses:
 
 <div align="center">
 
-<sub>Crafted with glass, color and a little bit of cat energy.</sub>
+<sub>Crafted with glass, color and a little bit of cat energy · <a href="https://www.kittora.dev">kittora.dev</a></sub>
 
 </div>
