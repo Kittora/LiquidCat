@@ -199,9 +199,10 @@ export component Field inherits Rectangle {
     height: Theme.control-h;
     min-width: 0px;
     preferred-width: 0px;
-    // Material 3: campo "outlined", esquinas de 4 px y contorno de 2 px en el
+    // Material 3: campo "outlined", con el mismo radio que la lista
+    // desplegable, y contorno de 2 px en el
     // color primario al enfocar.
-    border-radius: Pal.material ? 4px : Pal.radius-sm;
+    border-radius: Pal.radius-sm;
     border-width: Pal.material && ti.has-focus ? 2px : Pal.border-w;
     background: Pal.material ? transparent : root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
     border-color: ti.has-focus ? Pal.accent : Pal.material ? (root.enabled ? Pal.line-strong : Pal.line) : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);
@@ -302,7 +303,7 @@ export component Select inherits Rectangle {
     min-width: 0px;
     preferred-width: 0px;
     // Material 3: igual que el campo de texto ("outlined").
-    border-radius: Pal.material ? 4px : Pal.radius-sm;
+    border-radius: Pal.radius-sm;
     border-width: Pal.border-w;
     background: Pal.material ? transparent : root.enabled ? Pal.input.with-alpha(Pal.a-soft) : Pal.input.with-alpha(Pal.a-soft * 0.55);
     border-color: (ta.has-hover && root.enabled) ? Pal.accent : Pal.material ? (root.enabled ? Pal.line-strong : Pal.line) : root.enabled ? Pal.line.with-alpha(Pal.a-border) : Pal.line.with-alpha(Pal.a-border * 0.55);

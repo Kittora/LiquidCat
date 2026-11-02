@@ -142,6 +142,7 @@ fn theme_icon_png(id: &str) -> &'static [u8] {
         "tokyo-night" => include_bytes!("../assets/theme-icons/tokyo-night.png"),
         "neo-brutalist-light" => include_bytes!("../assets/theme-icons/neo-brutalist-light.png"),
         "neo-brutalist-dark" => include_bytes!("../assets/theme-icons/neo-brutalist-dark.png"),
+        // Material usa el de Mocha teñido con su color primario (tint_to_hue).
         _ => include_bytes!("../assets/theme-icons/catppuccin.png"),
     }
 }
@@ -154,7 +155,77 @@ const LOGO_PX: f32 = 46.0;
 /// con Lanczos al tamano exacto en pixeles fisicos, asi se pinta 1:1.
 fn theme_icon_rgba(id: &str, px: u32) -> Option<image::RgbaImage> {
     let img = image::load_from_memory(theme_icon_png(id)).ok()?;
-    Some(img.resize_exact(px, px, image::imageops::FilterType::Lanczos3).to_rgba8())
+    let mut img = img.resize_exact(px, px, image::imageops::FilterType::Lanczos3).to_rgba8();
+    if id == "material" {
+        tint_to_hue(&mut img, MATERIAL_TINT.load(std::sync::atomic::Ordering::Relaxed));
+    }
+    Some(img)
+}
+
+/// Color primario del esquema Material actual: el gato de Material es el de
+/// Mocha teñido con este color (ver `tint_to_hue`), asi va a juego con el
+/// acento del sistema y cambia con el.
+static MATERIAL_TINT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(MATERIAL_SEED);
+
+/// Lleva todos los pixeles al tono (hue) de `color`, conservando su luz y su
+/// saturacion: el gato queda monocromo en el color del tema, como los
+/// colores tonales de Material.
+fn tint_to_hue(img: &mut image::RgbaImage, color: u32) {
+    let (target, _, _) = rgb_to_hsl(((color >> 16) & 0xff) as u8, ((color >> 8) & 0xff) as u8, (color & 0xff) as u8);
+    for p in img.pixels_mut() {
+        let (_, s, l) = rgb_to_hsl(p[0], p[1], p[2]);
+        let (r, g, b) = hsl_to_rgb(target, s, l);
+        p[0] = r;
+        p[1] = g;
+        p[2] = b;
+    }
+}
+
+/// RGB (0-255) -> HSL (tono 0-1, saturacion 0-1, luz 0-1).
+fn rgb_to_hsl(r: u8, g: u8, b: u8) -> (f32, f32, f32) {
+    let (r, g, b) = (r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+    let (max, min) = (r.max(g).max(b), r.min(g).min(b));
+    let l = (max + min) / 2.0;
+    let d = max - min;
+    if d == 0.0 {
+        return (0.0, 0.0, l);
+    }
+    let s = if l > 0.5 { d / (2.0 - max - min) } else { d / (max + min) };
+    let h = if max == r {
+        (g - b) / d + if g < b { 6.0 } else { 0.0 }
+    } else if max == g {
+        (b - r) / d + 2.0
+    } else {
+        (r - g) / d + 4.0
+    };
+    (h / 6.0, s, l)
+}
+
+fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
+    let to = |v: f32| (v * 255.0).round().clamp(0.0, 255.0) as u8;
+    if s == 0.0 {
+        return (to(l), to(l), to(l));
+    }
+    let q = if l < 0.5 { l * (1.0 + s) } else { l + s - l * s };
+    let p = 2.0 * l - q;
+    let channel = |mut t: f32| {
+        if t < 0.0 {
+            t += 1.0;
+        }
+        if t > 1.0 {
+            t -= 1.0;
+        }
+        if t < 1.0 / 6.0 {
+            p + (q - p) * 6.0 * t
+        } else if t < 0.5 {
+            q
+        } else if t < 2.0 / 3.0 {
+            p + (q - p) * (2.0 / 3.0 - t) * 6.0
+        } else {
+            p
+        }
+    };
+    (to(channel(h + 1.0 / 3.0)), to(channel(h)), to(channel(h - 1.0 / 3.0)))
 }
 
 fn theme_icon(id: &str, px: u32) -> slint::Image {
@@ -231,7 +302,9 @@ pub fn apply(app: &App, id: &str) {
     let material = t.id == "material";
     p.set_material(material);
     if material {
-        apply_material(&p, &material_scheme(system));
+        let scheme = material_scheme(system);
+        MATERIAL_TINT.store(scheme.primary, std::sync::atomic::Ordering::Relaxed);
+        apply_material(&p, &scheme);
     } else if let Some(a) = system.filter(|_| follows_system_accent(t.id)) {
         let (main, hover) = (col(a.main), col(a.hover));
         p.set_accent(main);

@@ -273,9 +273,11 @@ fn parse_semver(v: &str) -> (u64, u64, u64) {
 
 /// Mira en segundo plano si GitHub tiene una release mas nueva que la
 /// instalada; si la hay, la cabecera muestra un aviso que abre esa release.
-/// Busca una version nueva de LiquidCat. Al abrir (`force` false) pregunta a
-/// GitHub como mucho cada 8 horas; el boton "Comprobar" de Ajustes, siempre.
-pub fn check_update(core: &Arc<Core>, force: bool) {
+/// Busca una version nueva de LiquidCat en cada arranque y al pulsar
+/// "Comprobar" en Ajustes. Es una sola peticion a github.com (no a la API,
+/// ver deps::latest_tag), asi que no hace falta espaciarla; si GitHub no
+/// responde se usa la ultima version conocida.
+pub fn check_update(core: &Arc<Core>) {
     use crate::deps::LIQUIDCAT_REPO;
     // LIQUIDCAT_PRETEND_VERSION permite probar el aviso haciendose pasar por
     // una version anterior (solo para desarrollo).
@@ -287,10 +289,9 @@ pub fn check_update(core: &Arc<Core>, force: bool) {
     core.ui(|a| a.global::<S>().set_update_state(1));
     let core = core.clone();
     std::thread::spawn(move || {
-        let max_age = if force { Duration::ZERO } else { Duration::from_secs(8 * 3600) };
         // La version sale de una redireccion de github.com (no de la API); las
         // notas, de la API, pero solo si hay una version nueva.
-        let latest = core.deps.latest(LIQUIDCAT_REPO, max_age).map(|tag| {
+        let latest = core.deps.latest(LIQUIDCAT_REPO, Duration::ZERO).map(|tag| {
             let url = format!("https://github.com/{LIQUIDCAT_REPO}/releases/tag/{tag}");
             let newer = parse_semver(&tag) > parse_semver(&current);
             let notes = if newer { core.deps.release_notes(LIQUIDCAT_REPO, &tag).unwrap_or_default() } else { String::new() };
@@ -1018,7 +1019,7 @@ pub fn setup(core: &Arc<Core>, app: &App) {
     });
     cb!(on_fetch_formats, |a, c| { fetch(&c, &a); });
     cb!(on_quality_changed, |a, c| { sync_formats_to_quality(&c, &a); });
-    cb!(on_check_updates, |_a, c| { check_update(&c, true); });
+    cb!(on_check_updates, |_a, c| { check_update(&c); });
 
     // ---- descargas
     cb!(on_start_download, |a, c| {
